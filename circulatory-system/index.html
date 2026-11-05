@@ -99,10 +99,15 @@ canvas#micro{width:100%;height:230px;display:block;border-radius:10px;background
 .syringe{cursor:grab;touch-action:none}
 .syringe.dragging{cursor:grabbing}
 .syr-grab{fill:transparent}
-.syr-needle{stroke:var(--muted);stroke-width:2;stroke-linecap:round}
-.syr-hub,.syr-flange,.syr-rod{fill:var(--muted)}
-.syr-barrel{fill:var(--surface);fill-opacity:.35;stroke:var(--ink);stroke-width:1.6}
-.syr-tick{stroke:var(--ink);stroke-width:1}
+.syr-needle{stroke:#8b96a0;stroke-width:1.8;stroke-linecap:round}
+.syr-hub,.syr-flange,.syr-rod{fill:var(--ink)}
+.syr-hub{fill:var(--sel)}
+.syr-barrel{fill:var(--surface);fill-opacity:.55;stroke:var(--ink);stroke-width:1.5}
+.syr-tick{stroke:var(--ink);stroke-width:.9}
+.syringe:hover .syr-barrel{stroke:var(--sel)}
+.syr-pad{fill:var(--sel);pointer-events:none;transform-box:fill-box;transform-origin:center;animation:padPulse 2.4s ease-in-out infinite}
+@keyframes padPulse{0%,100%{opacity:.10;transform:scale(.92)}50%{opacity:.24;transform:scale(1.04)}}
+.lbl.dock{font-weight:700;font-size:12.5px;fill:var(--ink)}
 .site-ring{pointer-events:none;fill:none;stroke:var(--sel);stroke-width:2.5;stroke-dasharray:4 3}
 .site-tag{font-size:12px;pointer-events:none}
 .meter .v small{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--muted);margin-left:3px}
@@ -230,7 +235,7 @@ canvas#bigMic{width:100%;height:100%;min-height:0;display:block;border-radius:12
 .zclose:hover{background:var(--ink);color:var(--surface)}
 .zclose:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
 @media (max-width:760px){.zoom-card{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.1fr) minmax(0,1fr)}.zinfo{padding-right:0}}
-@media (prefers-reduced-motion: reduce){.bar .fill,.phases div{transition:none}.ring,.ring-halo,.hit.hint,tr.fresh td{animation:none}.ring-halo{display:none}}
+@media (prefers-reduced-motion: reduce){.bar .fill,.phases div{transition:none}.ring,.ring-halo,.hit.hint,tr.fresh td{animation:none}.ring-halo{display:none}.syr-pad{animation:none;opacity:.14}}
 </style>
 
 <div class="wrap">
@@ -258,7 +263,7 @@ canvas#bigMic{width:100%;height:100%;min-height:0;display:block;border-radius:12
   <div class="lab">
     <section class="stage" aria-label="Circulatory system diagram">
       <div class="dia-box">
-      <svg id="dia" viewBox="20 0 705 726" role="img" aria-label="Diagram of the circulatory system: heart, lungs, head, liver, gut, kidneys and rest of body, with blood cells moving through them">
+      <svg id="dia" viewBox="20 0 705 726" role="img" aria-label="Diagram of the circulatory system: heart, lungs, head, liver, stomach and intestines, kidneys and rest of body, with blood cells moving through them">
         <defs></defs>
         <g>
           <g id="gBack"></g>
@@ -359,7 +364,7 @@ canvas#bigMic{width:100%;height:100%;min-height:0;display:block;border-radius:12
           <div class="bars">
             <div class="bar"><span>Brain &amp; head</span><span class="track"><span class="fill" id="bB"></span></span><span class="n" id="nB"></span></div>
             <div class="bar"><span>Liver (own artery)</span><span class="track"><span class="fill" id="bL"></span></span><span class="n" id="nL"></span></div>
-            <div class="bar"><span>Gut (then liver)</span><span class="track"><span class="fill" id="bG"></span></span><span class="n" id="nG"></span></div>
+            <div class="bar"><span>Stomach &amp; intestines</span><span class="track"><span class="fill" id="bG"></span></span><span class="n" id="nG"></span></div>
             <div class="bar"><span>Kidneys</span><span class="track"><span class="fill" id="bK"></span></span><span class="n" id="nK"></span></div>
             <div class="bar"><span>Rest of body</span><span class="track"><span class="fill" id="bR"></span></span><span class="n" id="nR"></span></div>
             <p class="note">Rest of body includes the muscles, skin and bones.</p>
@@ -530,7 +535,7 @@ const REG = {
   la: { name: "Left atrium", part: "la", L: 2 }, lv: { name: "Left ventricle", part: "lv", L: 2 },
   art1: { name: "Hepatic artery", part: "orgart" }, liverBed: { name: "Capillaries of the liver", part: "liver", bed: "liver" },
   vein1: { name: "Hepatic vein", part: "orgvein" },
-  art2: { name: "Artery to the gut", part: "orgart" }, gutBed: { name: "Capillaries of the gut", part: "gut", bed: "gut" },
+  art2: { name: "Artery to the stomach and intestines", part: "orgart" }, gutBed: { name: "Capillaries of the stomach and intestines", part: "gut", bed: "gut" },
   portal: { name: "Hepatic portal vein", part: "portal" },
   art3: { name: "Renal artery", part: "orgart" }, kidBed: { name: "Capillaries of the kidneys", part: "kidneys", bed: "kid" },
   vein3: { name: "Renal vein", part: "orgvein" },
@@ -574,13 +579,13 @@ const PARTS = {
   mitral: { name: "Mitral (bicuspid) valve", kind: "Heart valve", blood: "rich", text: "A one-way valve with two flaps between the left atrium and left ventricle. It opens to fill the ventricle and closes when the ventricle squeezes.", fact: "Thin cords called chordae tendineae hold the flaps so they cannot flip backward into the atrium." },
   lv: { name: "Left ventricle", kind: "Heart chamber", blood: "rich", text: "The strongest chamber. It pumps oxygen-rich blood through the aortic valve into the aorta and out to the whole body. Its muscular wall is thicker than the right ventricle's.", fact: "At rest it pumps about 70 mL of blood with every beat. That amount is the stroke volume." },
   aortic: { name: "Aortic valve", kind: "Heart valve", blood: "rich", text: "A one-way valve between the left ventricle and the aorta. It opens when the left ventricle squeezes and closes when it relaxes, stopping blood from leaking back.", fact: "If this valve leaks, the left ventricle has to pump the same blood twice and slowly enlarges." },
-  aorta: { name: "Aorta", kind: "Artery", blood: "rich", text: "The body's largest artery. It carries oxygen-rich blood from the left ventricle. Branches go up to the head and down to the liver, gut, kidneys and the rest of the body.", fact: "Its elastic wall stretches with each heartbeat. You feel that stretch travelling through your arteries as your pulse." },
-  orgart: { name: "Arteries to the organs", kind: "Arteries", blood: "rich", text: "Branches of the aorta carry oxygen-rich blood to each organ: the hepatic artery to the liver, an artery to the gut, the renal artery to the kidneys and arteries to the rest of the body.", fact: "Arteries have thick, stretchy walls because the blood in them is under high pressure." },
+  aorta: { name: "Aorta", kind: "Artery", blood: "rich", text: "The body's largest artery. It carries oxygen-rich blood from the left ventricle. Branches go up to the head and down to the liver, stomach and intestines, kidneys and the rest of the body.", fact: "Its elastic wall stretches with each heartbeat. You feel that stretch travelling through your arteries as your pulse." },
+  orgart: { name: "Arteries to the organs", kind: "Arteries", blood: "rich", text: "Branches of the aorta carry oxygen-rich blood to each organ: the hepatic artery to the liver, an artery to the stomach and intestines, the renal artery to the kidneys and arteries to the rest of the body.", fact: "Arteries have thick, stretchy walls because the blood in them is under high pressure." },
   orgvein: { name: "Veins from the organs", kind: "Veins", blood: "poor", text: "Veins carry blood out of each organ: the hepatic vein from the liver, the renal vein from the kidneys and veins from the rest of the body. They all join the inferior vena cava.", fact: "Compare a sample from the renal artery with one from the renal vein to see what the kidneys removed." },
-  portal: { name: "Hepatic portal vein", kind: "Vein", blood: "poor", text: "Carries blood from the gut to the liver. It is unusual because it links two sets of capillaries instead of going straight back to the heart. The liver gets first pick of the nutrients the gut has absorbed.", fact: "After a meal this vein carries the highest blood sugar in the body. Try the meal option, then sample it." },
+  portal: { name: "Hepatic portal vein", kind: "Vein", blood: "poor", text: "Carries blood from the stomach and intestines to the liver. It is unusual because it links two sets of capillaries instead of going straight back to the heart. The liver gets first pick of the nutrients the intestines have absorbed.", fact: "After a meal this vein carries the highest blood sugar in the body. Try the meal option, then sample it." },
   head: { name: "Brain & head", kind: "Organ capillaries", blood: "both", text: "Capillaries in the brain and head. Brain cells need a steady supply of oxygen and glucose every second, and they give off carbon dioxide.", fact: "The brain is about 2% of body mass but uses about 20% of the body's oxygen at rest." },
-  liver: { name: "Liver", kind: "Organ capillaries", blood: "both", text: "The liver gets blood from two places: the hepatic artery brings oxygen-rich blood, and the hepatic portal vein brings nutrient-rich blood from the gut. The liver stores extra glucose after a meal, releases glucose between meals and turns waste nitrogen into urea.", fact: "Blood leaves the liver through the hepatic vein and joins the inferior vena cava." },
-  gut: { name: "Gut", kind: "Organ capillaries", blood: "both", text: "Capillaries in the stomach and intestines. After a meal, glucose and other nutrients are absorbed into the blood here. This blood goes to the liver first, through the hepatic portal vein.", fact: "The gut's own cells use some oxygen and glucose too." },
+  liver: { name: "Liver", kind: "Organ capillaries", blood: "both", text: "The liver gets blood from two places: the hepatic artery brings oxygen-rich blood, and the hepatic portal vein brings nutrient-rich blood from the stomach and intestines. The liver stores extra glucose after a meal, releases glucose between meals and turns waste nitrogen into urea.", fact: "Blood leaves the liver through the hepatic vein and joins the inferior vena cava." },
+  gut: { name: "Stomach & intestines", kind: "Organ capillaries", blood: "both", text: "Capillaries in the walls of the stomach and intestines. After a meal, glucose and other nutrients are absorbed into the blood here, mostly in the small intestine. This blood goes to the liver first, through the hepatic portal vein.", fact: "The cells of the stomach and intestine walls use some oxygen and glucose too." },
   kidneys: { name: "Kidneys", kind: "Organ capillaries", blood: "both", text: "The kidneys filter the blood. They remove urea and other wastes, which leave the body in urine, and they keep the glucose. Blood leaving the kidneys has less urea than blood going in.", fact: "At rest about a fifth of all the blood the heart pumps goes through the kidneys." },
   rest: { name: "Rest of body", kind: "Organ capillaries", blood: "both", text: "Capillaries in the muscles, skin and bones. Muscles use oxygen and glucose and release carbon dioxide. During exercise they use far more.", fact: "During exercise the arteries feeding your muscles widen, so they get most of the blood. Try the Exercise tab." },
   body: { name: "Body organs", kind: "Organ capillaries", blood: "both", text: "", fact: "" }
@@ -667,7 +672,7 @@ label(410, 341, ["Left", "ventricle"], { part: "lv", heart: true, cls: "ch" });
 label(380, 24, ["Head"], { part: "head", cls: "org" });
 label(380, 121, ["Lungs"], { part: "lungs", cls: "org" });
 label(290, 441, ["Liver"], { part: "liver", cls: "org" });
-label(470, 516, ["Gut"], { part: "gut", cls: "org" });
+label(512, 516, ["Stomach & intestines"], { part: "gut", cls: "org" });
 label(380, 591, ["Kidneys"], { part: "kidneys", cls: "org" });
 label(380, 666, ["Rest of body"], { part: "rest", cls: "org" });
 label(228, 345, ["Heart"], { cls: "org" });
@@ -1070,7 +1075,7 @@ const SITES = [
   ["aortaOut", 0.5, "Aorta, leaving the heart"], ["headArt", 0.9, "Artery to the head"], ["headBed", 0.5, "Brain capillaries"],
   ["svc", 0.4, "Superior vena cava"], ["raS", 0.6, "Right atrium"], ["rv", 0.3, "Right ventricle"], ["trunk", 0.5, "Pulmonary artery"],
   ["lungBed", 0.5, "Lung capillaries"], ["pv", 0.3, "Pulmonary vein"], ["la", 0.5, "Left atrium"], ["lv", 0.3, "Left ventricle"],
-  ["art1", 0.5, "Hepatic artery"], ["gutBed", 0.5, "Gut capillaries"], ["portal", 0.5, "Hepatic portal vein"], ["liverBed", 0.5, "Liver capillaries"],
+  ["art1", 0.5, "Hepatic artery"], ["gutBed", 0.5, "Stomach & intestine capillaries"], ["portal", 0.5, "Hepatic portal vein"], ["liverBed", 0.5, "Liver capillaries"],
   ["vein1", 0.5, "Hepatic vein"], ["art3", 0.5, "Renal artery"], ["kidBed", 0.5, "Kidney capillaries"], ["vein3", 0.5, "Renal vein"],
   ["bodyBed", 0.5, "Rest of body capillaries"], ["vein4", 0.5, "Vein from the rest of the body"], ["ivc4", 0.75, "Inferior vena cava, near the heart"]
 ];
@@ -1102,9 +1107,11 @@ function findSite(x, y) {
 
 /* syringe drawing (tip at 0,0, body up and to the right) */
 G.top.parentNode.appendChild(G.top);  // syringe sits above everything so it can always be grabbed
-const DOCK = [590, 265];
+const DOCK = [580, 268];
+const SYR_S = 1.45;
+const syrPad = el("circle", { cx: DOCK[0] + 44, cy: DOCK[1] - 44, r: 44, class: "syr-pad" }, G.top);
 const syr = el("g", { class: "syringe", role: "img", "aria-label": "Syringe" }, G.top);
-const syrInner = el("g", { transform: "rotate(-45)" }, syr);
+const syrInner = el("g", { transform: `rotate(-45) scale(${SYR_S})` }, syr);
 el("rect", { x: -6, y: -20, width: 92, height: 40, class: "syr-grab" }, syrInner);
 el("line", { x1: 0, y1: 0, x2: 20, y2: 0, class: "syr-needle" }, syrInner);
 el("rect", { x: 20, y: -3, width: 4, height: 6, class: "syr-hub" }, syrInner);
@@ -1115,8 +1122,8 @@ el("rect", { x: 63, y: -12, width: 3, height: 24, rx: 1, class: "syr-flange" }, 
 const syrRod = el("g", {}, syrInner);
 el("rect", { x: 40, y: -2, width: 34, height: 4, class: "syr-rod" }, syrRod);
 el("rect", { x: 74, y: -9, width: 4, height: 18, rx: 1.5, class: "syr-rod" }, syrRod);
-const dockTxt = el("text", { x: 572, y: 292, class: "lbl row" }, G.top);
-[["Drag the syringe", 0], ["to take a blood sample", 1]].forEach(([t, i]) => { const ts = el("tspan", { x: 572, dy: i ? "1.2em" : "0" }, dockTxt); ts.textContent = t; });
+const dockTxt = el("text", { x: 618, y: 292, "text-anchor": "middle", class: "lbl dock" }, G.top);
+[["Drag the syringe", 0], ["to take a blood sample", 1]].forEach(([t, i]) => { const ts = el("tspan", { x: 618, dy: i ? "1.25em" : "0" }, dockTxt); ts.textContent = t; });
 const hoverRing = el("circle", { r: 11, class: "site-ring", visibility: "hidden" }, G.top);
 const tag = el("text", { class: "lbl site-tag", visibility: "hidden", "text-anchor": "middle" }, G.top);
 function setSyr(x, y) { syr.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`); }
@@ -1132,7 +1139,7 @@ const toLocal = e => new DOMPoint(e.clientX, e.clientY).matrixTransform(G.top.ge
 syr.addEventListener("pointerdown", e => {
   e.preventDefault(); e.stopPropagation();
   dragging = e.pointerId; svgEl.setPointerCapture(e.pointerId); syr.classList.add("dragging");
-  dockTxt.setAttribute("visibility", "hidden");
+  dockTxt.setAttribute("visibility", "hidden"); syrPad.setAttribute("visibility", "hidden");
 });
 svgEl.addEventListener("pointermove", e => {
   if (dragging !== e.pointerId) return;
@@ -1148,7 +1155,7 @@ function endDrag(e, cancel) {
   const p = toLocal(e), s = cancel ? null : findSite(p.x, p.y);
   if (s) takeSample(s, siteName(s.id, s.f));
   else if (site) { setSyr(site.x, site.y); showTag(site.x, site.y, site.name); }
-  else { setSyr(DOCK[0], DOCK[1]); showTag(0, 0, ""); dockTxt.setAttribute("visibility", "visible"); }
+  else { setSyr(DOCK[0], DOCK[1]); showTag(0, 0, ""); dockTxt.setAttribute("visibility", "visible"); syrPad.setAttribute("visibility", "visible"); }
 }
 svgEl.addEventListener("pointerup", e => endDrag(e, false));
 svgEl.addEventListener("pointercancel", e => endDrag(e, true));
@@ -1162,7 +1169,7 @@ siteSel.addEventListener("change", () => {
 function takeSample(s, name, fromList) {
   site = { ...s, name };
   setSyr(s.x, s.y); showTag(s.x, s.y, name);
-  dockTxt.setAttribute("visibility", "hidden");
+  dockTxt.setAttribute("visibility", "hidden"); syrPad.setAttribute("visibility", "hidden");
   if (!fromList) siteSel.value = "";
   syrBlood.setAttribute("width", 0); syrRod.setAttribute("transform", "");
   site.fill = 0;
@@ -1290,10 +1297,10 @@ const SITE_NOTE = {
   lungBed: "In the lungs, oxygen diffuses from the air sacs into these red blood cells and carbon dioxide diffuses out. Watch the oxygen reading rise as you move the syringe from where blood enters the lungs to where it leaves.",
   headBed: "Brain cells take oxygen and glucose from the blood here and give back carbon dioxide.",
   bodyBed: "Muscle, skin and bone cells take oxygen and glucose here and give back carbon dioxide. During exercise the muscles take much more.",
-  gutBed: "The gut wall absorbs digested food here. After a meal, glucose moves from the intestine into this blood.",
+  gutBed: "The intestine wall absorbs digested food here. After a meal, glucose moves from the small intestine into this blood.",
   liverBed: "Liver cells clean and balance the blood. They store or release glucose to keep blood sugar steady, and they make urea from waste nitrogen.",
   kidBed: "The kidneys filter urea and other wastes out of this blood. The wastes leave the body in urine.",
-  portal: "This blood is coming from the gut and is on its way to the liver, carrying nutrients the gut has absorbed.",
+  portal: "This blood is coming from the stomach and intestines and is on its way to the liver, carrying nutrients the intestines have absorbed.",
   vein1: "This blood has just left the liver, so it carries extra urea that the liver made.",
   vein3: "This blood has just left the kidneys, so it has less urea than blood in the renal artery.",
   svc: "This blood is returning from the head after the brain used some of its oxygen.",
