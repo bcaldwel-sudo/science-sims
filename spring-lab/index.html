@@ -39,39 +39,41 @@ body {
   background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 20px 32px;
+  padding-block: 12px;
+  height: 100dvh; box-sizing: border-box; overflow: hidden;
 }
-.wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.wrap { max-width: 1200px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
 header { display: flex; flex-direction: column; gap: 4px; }
-h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 2.4rem; letter-spacing: 0.5px; line-height: 1; text-wrap: balance; }
-.sub { color: var(--muted); max-width: 62ch; line-height: 1.45; margin: 0; }
-.stage { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 16px; }
+h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 1.9rem; letter-spacing: 0.5px; line-height: 1; text-wrap: balance; }
+.sub { color: var(--muted); max-width: 110ch; line-height: 1.45; margin: 0; }
+.stage { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(200px, 280px) minmax(0, 1fr); gap: 12px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .label { font-family: var(--display); font-weight: 600; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
-canvas { display: block; width: 100%; border-radius: 8px; }
-#rig { height: 440px; touch-action: none; cursor: grab; }
+.cv { position: relative; flex: 1; min-height: 140px; }
+canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border-radius: 8px; }
+#rig { touch-action: none; cursor: grab; }
 #rig.dragging { cursor: grabbing; }
-#graph { height: 440px; }
 .readouts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .ro { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
 .ro span:first-child { font-size: 0.8rem; color: var(--muted); }
 .ro b { font-family: var(--mono); font-weight: 500; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.ctrl { display: flex; flex-direction: column; gap: 6px; }
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 4px; border-top: 1px solid var(--line); }
+.ctrl { display: flex; flex-direction: column; gap: 2px; }
 .ctrl label { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; font-size: 0.95rem; }
 .ctrl output { font-family: var(--mono); font-weight: 400; font-variant-numeric: tabular-nums; }
 .ctrl small { color: var(--muted); font-size: 0.85rem; }
 input[type=range] { width: 100%; accent-color: var(--spring); height: 28px; }
 .regime { font-family: var(--mono); font-size: 0.85rem; color: var(--trace); }
 .btns { display: flex; flex-wrap: wrap; gap: 8px; }
-button { font: 600 0.95rem var(--body); padding: 10px 16px; min-height: 44px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+button { font: 600 0.95rem var(--body); padding: 8px 14px; min-height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
 button.primary { background: var(--spring); border-color: var(--spring); color: var(--panel); }
 button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px solid var(--trace); outline-offset: 2px; }
 .note { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin: 0; }
 @media (max-width: 760px) {
-  .stage { grid-template-columns: minmax(0, 1fr); }
-  #rig { height: 360px; }
-  #graph { height: 260px; }
+  body { height: auto; overflow: auto; }
+  .stage { flex: none; grid-template-columns: minmax(0, 1fr); }
+  #rigbox { flex: none; height: 360px; }
+  #graphbox { flex: none; height: 240px; }
   .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .controls { grid-template-columns: minmax(0, 1fr); }
 }
@@ -83,27 +85,23 @@ button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px s
 <div class="wrap">
   <header>
     <h1>Spring Lab</h1>
-    <p class="sub">Drag the mass up or down to stretch the spring, then let go. Set friction to zero for ideal simple harmonic motion, or raise it to see damping.</p>
+    <p class="sub">Drag the mass up or down, then let go. x is measured from equilibrium (up is positive), so F = −kx. With friction on, dashed curves show the decay envelope A·e<sup>−bt/2m</sup>.</p>
   </header>
 
   <div class="stage">
     <div class="panel">
       <div class="label"><span>Spring &amp; mass</span><span>drag me</span></div>
-      <canvas id="rig" tabindex="0" aria-label="Spring and mass. Drag the mass vertically to displace it, then release. Arrow keys also move it; Space releases."></canvas>
+      <div class="cv" id="rigbox"><canvas id="rig" tabindex="0" aria-label="Spring and mass. Drag the mass vertically to displace it, then release. Arrow keys also move it; Space releases."></canvas></div>
     </div>
     <div class="panel">
       <div class="label"><span>Displacement vs time</span><span id="tlabel">last 10 s</span></div>
-      <canvas id="graph" role="img" aria-label="Live graph of displacement in centimetres against time in seconds"></canvas>
+      <div class="cv" id="graphbox"><canvas id="graph" role="img" aria-label="Live graph of displacement in centimetres against time in seconds"></canvas></div>
       <div class="readouts">
         <div class="ro"><span>Displacement x</span><b id="rx">0.0 cm</b></div>
         <div class="ro"><span>Restoring force F = −kx</span><b id="rf">0.00 N</b></div>
         <div class="ro"><span>Velocity v</span><b id="rv">0.00 m/s</b></div>
         <div class="ro"><span>Period T = 2π√(m/k)</span><b id="rt">0.99 s</b></div>
       </div>
-    </div>
-  </div>
-
-  <div class="panel">
     <div class="controls">
       <div class="ctrl">
         <label for="b">Friction (damping) b <output id="bo">0.00 kg/s</output></label>
@@ -127,7 +125,7 @@ button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px s
       <button id="stop">Stop at equilibrium</button>
       <button id="clear">Clear graph</button>
     </div>
-    <p class="note">x is measured from the hanging equilibrium position (up is positive), so gravity drops out and the net force is simply F = −kx. Dashed curves on the graph show the predicted decay envelope A·e<sup>−bt/2m</sup> when the motion is underdamped.</p>
+    </div>
   </div>
 </div>
 
