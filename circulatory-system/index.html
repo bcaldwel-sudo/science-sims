@@ -185,9 +185,14 @@ tr.fresh td{animation:freshRow 1.8s ease-out}
 .side{display:grid;gap:12px;min-width:0}
 .scope{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:6px;min-width:0}
 .scope .row{flex-wrap:nowrap}
-.scope h3{white-space:nowrap}
+.scope{grid-template-columns:minmax(0,1fr)}
+.scope > *{min-width:0}
+canvas#micro{width:100%;min-width:0;max-width:100%}
+.scope h3{white-space:nowrap;flex:none}
+.scope .row > .btn,.scope .mag{flex:none}
+.scope .row > #mName{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
 .scope .mrow{gap:10px;align-items:center}
-.scope .mrow .cap{margin:0}
+.scope .mrow .cap{margin:0;flex:1 1 0;min-width:0;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .scope .cap{text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scope p.cap{text-align:left;white-space:normal}
 header.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-bottom:12px}
@@ -1181,7 +1186,7 @@ const rbcRGB = o2 => { const t = clamp((o2 - 40) / 58, 0, 1); return [Math.round
 function updateSample() {
   if (!site) return;
   const c = chemAt(site.id, site.f); site.chem = c;
-  $("#sName").textContent = site.name; $("#mName").textContent = site.name;
+  $("#sName").textContent = site.name; $("#mName").textContent = site.name; $("#mName").title = site.name;
   $("#sO2").innerHTML = c.o2.toFixed(0) + "<small>%</small>";
   $("#sCO2").innerHTML = c.co2.toFixed(0) + "<small>mm Hg</small>";
   $("#sGlu").innerHTML = c.glu.toFixed(1) + "<small>mmol/L</small>";
