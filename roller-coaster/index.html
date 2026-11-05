@@ -11,124 +11,105 @@
   --blue:#2F6FDE; --purple:#7B5EA7; --grey:#6B7486; --line:#D5DCE8;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:#fff;color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:16px}
-h1,h2,h3,.eq{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
-header{background:var(--navy);color:#fff;padding:12px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
+html,body{margin:0;height:100%;background:#fff;color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
+h1,h2,.eq{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{flex:none;background:var(--navy);color:#fff;padding:7px 16px;display:flex;align-items:center;gap:14px;
   background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
-header .kicker{font-size:13px;letter-spacing:.12em;color:var(--amber);font-weight:700}
-header h1{margin:0;font-size:26px;font-weight:700}
-header .sub{color:#C9D2E3;font-size:15px}
-main{max-width:1280px;margin:0 auto;padding:14px 16px 24px}
-.stage{border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;background:#fff}
-canvas{display:block;width:100%;height:auto}
-.banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);max-width:min(720px,92%);padding:10px 16px;border-radius:10px;
-  font-size:17px;line-height:1.35;text-align:center;display:none;border:2px solid}
+header .kicker{font-size:12px;letter-spacing:.12em;color:var(--amber);font-weight:700}
+header h1{margin:0;font-size:21px;font-weight:700;white-space:nowrap}
+header .eqs{margin-left:auto;display:flex;gap:18px;font-family:Cambria,Georgia,serif;font-size:16px;color:#E6EBF5;white-space:nowrap}
+.wrap{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 10px}
+.stage{flex:1;min-height:200px;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;background:#fff}
+canvas{display:block;position:absolute;left:0;top:0}
+.banner{position:absolute;left:50%;top:8px;transform:translateX(-50%);max-width:min(760px,92%);padding:7px 14px;border-radius:10px;
+  font-size:15px;line-height:1.3;text-align:center;display:none;border:2px solid}
 .banner.ok{background:#E4F4F1;border-color:var(--teal);color:#14564E}
 .banner.bad{background:#FCE9E3;border-color:var(--coral);color:#8A2A10}
 .banner.info{background:var(--cream);border-color:var(--amber);color:#6B4206}
-.grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:14px;margin-top:14px}
-@media (max-width:980px){.grid{grid-template-columns:1fr 1fr}}
-@media (max-width:640px){.grid{grid-template-columns:1fr}}
-@media (max-width:640px){.banner{position:static;transform:none;max-width:none;margin:8px;font-size:14px}}
-.card{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff}
-.card h2{margin:0 0 10px;font-size:19px;color:var(--navy);display:flex;align-items:center;gap:8px}
-.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
-.slider{margin:6px 0 12px}
-.slider .top{display:flex;justify-content:space-between;align-items:baseline}
-.slider label{font-weight:700}
-.slider output{font-family:Cambria,Georgia,serif;font-size:18px;font-weight:700;color:var(--navy)}
-input[type=range]{width:100%;accent-color:var(--navy);height:26px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-button{font:inherit;font-weight:700;border-radius:10px;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:8px 16px;cursor:pointer}
+.panel{flex:none;display:grid;grid-template-columns:1.25fr 1fr 0.9fr;gap:8px}
+.card{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;min-width:0}
+.sliders{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;row-gap:2px}
+.slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.slider label{font-weight:700;white-space:nowrap}
+.slider output{font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700;color:var(--navy);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--navy);height:20px;margin:0}
+.row{display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;margin-top:6px}
+button{font:inherit;font-weight:700;border-radius:9px;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:4px 12px;cursor:pointer}
 button.go{background:var(--navy);color:#fff}
 button:disabled{opacity:.45;cursor:default}
-.toggle{display:flex;align-items:center;gap:8px;margin:6px 0;cursor:pointer;user-select:none}
-.toggle input{width:18px;height:18px;accent-color:var(--navy)}
-.fixed{background:var(--card);border-radius:10px;padding:8px 12px;font-size:15px;margin-top:6px}
-.readouts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ro{background:var(--card);border-radius:10px;padding:7px 10px;border-left:5px solid var(--grey)}
-.ro .k{font-size:13px;color:var(--grey);font-weight:700}
-.ro .v{font-family:Cambria,Georgia,serif;font-size:22px;font-weight:700}
-.ro.h{border-color:var(--coral)} .ro.sp{border-color:var(--teal)}
-.ro.eg{border-color:var(--coral)} .ro.ek{border-color:var(--teal)}
+.toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;white-space:nowrap}
+.toggle input{width:16px;height:16px;margin:0;accent-color:var(--navy)}
+.fixed{font-size:13px;color:var(--grey);margin-top:4px}
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ro{background:var(--card);border-radius:9px;padding:3px 9px;border-left:5px solid var(--grey);display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.ro .k{font-size:13px;color:var(--grey);font-weight:700;white-space:nowrap}
+.ro .v{font-family:Cambria,Georgia,serif;font-size:19px;font-weight:700;white-space:nowrap}
+.ro.h,.ro.eg{border-color:var(--coral)} .ro.sp,.ro.ek{border-color:var(--teal)}
 .ro.th{border-color:var(--purple)} .ro.tot{border-color:var(--navy)}
-.bars{display:flex;gap:12px;align-items:flex-end;height:170px;margin-top:12px;padding:0 4px;border-bottom:2px solid var(--ink);position:relative}
+.vneed{font-size:13px;color:var(--grey);margin-top:5px}
+.bars{display:flex;gap:10px;align-items:flex-end;height:96px;padding:0 2px;border-bottom:2px solid var(--ink)}
 .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
-.bar .fill{width:100%;border-radius:6px 6px 0 0;min-height:0;transition:none}
-.bar .num{font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap}
-.barlabels{display:flex;gap:12px;padding:4px 4px 0}
+.bar .fill{width:100%;border-radius:5px 5px 0 0}
+.bar .num{font-size:12px;font-weight:700;margin-bottom:2px;white-space:nowrap}
+.barlabels{display:flex;gap:10px;padding:2px 2px 0}
 .barlabels div{flex:1;text-align:center;font-size:13px;font-weight:700}
-.check{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:10px}
-.check .t{font-weight:700;color:var(--navy);margin-bottom:4px}
-.eq{font-size:17px}
-.meter{position:relative;height:22px;background:#fff;border:1px solid var(--line);border-radius:11px;margin:8px 0 4px;overflow:hidden}
-.meter .fill{position:absolute;left:0;top:0;bottom:0;background:var(--teal);width:0}
-.meter .mark{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--coral)}
-.small{font-size:14px;color:var(--grey)}
-.pred{display:none;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
-.challenges{margin-top:14px}
-.chgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-@media (max-width:980px){.chgrid{grid-template-columns:1fr 1fr}}
-@media (max-width:640px){.chgrid{grid-template-columns:1fr}}
-.ch{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:8px}
-.ch.done{border:2px solid var(--teal);background:#F2FAF8}
-.ch h3{margin:0;font-size:17px;color:var(--navy)}
-.ch .set{font-size:13px;color:var(--grey)}
-.ch input[type=text]{font:inherit;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
-.ch .status{font-size:14px;font-weight:700;color:var(--teal);min-height:1.2em}
-.remember{margin-top:14px;background:var(--navy);color:#fff;border-radius:14px;padding:12px 18px;display:flex;gap:22px;flex-wrap:wrap;align-items:center}
-.remember b{color:var(--amber);font-family:Calibri,Arial,sans-serif;letter-spacing:.06em}
-.remember span{font-family:Cambria,Georgia,serif;font-size:19px}
-footer{color:var(--grey);font-size:13px;text-align:center;margin-top:10px}
+.small{font-size:12px;color:var(--grey);text-align:center}
 sub,sup{font-size:70%}
+/* small screens (phones, tablets): allow normal scrolling */
+@media (max-width:900px), (max-height:520px){
+  body{height:auto;overflow:auto}
+  .stage{flex:none;height:56vw;min-height:220px}
+  .panel{grid-template-columns:1fr}
+  header .eqs{display:none}
+}
+@media (max-width:560px){.sliders{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
   <span class="kicker">SPH4C · ENERGY</span>
   <h1>Roller Coaster Energy Lab</h1>
-  <span class="sub">Can your coaster make it through the loop and over the hill?</span>
+  <div class="eqs"><span>E<sub>g</sub> = mgh</span><span>E<sub>k</sub> = ½mv²</span><span>E<sub>total</sub> = E<sub>g</sub> + E<sub>k</sub> + E<sub>th</sub></span><span>top of loop: v ≥ √(g r)</span></div>
 </header>
-<main>
-  <div class="stage">
-    <canvas id="cv" width="1240" height="460"></canvas>
+<div class="wrap">
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
     <div id="banner" class="banner"></div>
   </div>
-
-  <div class="grid">
-    <!-- CONTROLS -->
+  <div class="panel">
     <section class="card">
-      <h2>Controls</h2>
-      <div class="slider"><div class="top"><label for="h0">Start height</label><output id="h0o"></output></div>
-        <input type="range" id="h0" min="5" max="60" step="1" value="30"></div>
-      <div class="slider"><div class="top"><label for="v0">Starting speed</label><output id="v0o"></output></div>
-        <input type="range" id="v0" min="0" max="30" step="0.5" value="0"></div>
-      <div class="slider"><div class="top"><label for="dl">Loop height</label><output id="dlo"></output></div>
-        <input type="range" id="dl" min="10" max="40" step="1" value="20"></div>
-      <div class="slider"><div class="top"><label for="h2">Second hill height</label><output id="h2o"></output></div>
-        <input type="range" id="h2" min="5" max="60" step="1" value="20"></div>
-      <div class="row" style="margin:4px 0 8px">
+      <div class="sliders">
+        <div class="slider"><div class="top"><label for="h0">Start height</label><output id="h0o"></output></div>
+          <input type="range" id="h0" min="5" max="60" step="1" value="30"></div>
+        <div class="slider"><div class="top"><label for="v0">Starting speed</label><output id="v0o"></output></div>
+          <input type="range" id="v0" min="0" max="30" step="0.5" value="0"></div>
+        <div class="slider"><div class="top"><label for="dl">Loop height</label><output id="dlo"></output></div>
+          <input type="range" id="dl" min="10" max="40" step="1" value="20"></div>
+        <div class="slider"><div class="top"><label for="h2">Second hill height</label><output id="h2o"></output></div>
+          <input type="range" id="h2" min="5" max="60" step="1" value="20"></div>
+      </div>
+      <div class="row">
         <button id="run" class="go">▶ Run</button>
         <button id="pause">❚❚ Pause</button>
         <button id="reset">↺ Reset</button>
+        <label class="toggle"><input type="checkbox" id="fric"><span>Friction (150 N)</span></label>
+        <label class="toggle"><input type="checkbox" id="eline"><span>Max-height line</span></label>
       </div>
-      <label class="toggle"><input type="checkbox" id="fric"><span>Friction on (150 N, turns energy into thermal energy)</span></label>
-      <label class="toggle"><input type="checkbox" id="slow"><span>Slow motion</span></label>
-      <label class="toggle"><input type="checkbox" id="eline"><span>Show max-height line (where E<sub>k</sub> would be 0)</span></label>
-      <div class="fixed">Cart mass: <b>500 kg</b> (fixed) &nbsp;·&nbsp; g = 9.81 m/s²</div>
+      <div class="fixed">Cart mass: <b>500 kg</b> (fixed) · g = 9.81 m/s² · loop height is the loop's diameter (r = height ÷ 2)</div>
     </section>
-
-    <!-- READOUTS -->
     <section class="card">
-      <h2>Live readings</h2>
       <div class="readouts">
-        <div class="ro h"><div class="k">Height, h</div><div class="v" id="rh">–</div></div>
-        <div class="ro sp"><div class="k">Speed, v</div><div class="v" id="rv">–</div></div>
-        <div class="ro eg"><div class="k">Gravitational E<sub>g</sub></div><div class="v" id="reg">–</div></div>
-        <div class="ro ek"><div class="k">Kinetic E<sub>k</sub></div><div class="v" id="rek">–</div></div>
-        <div class="ro th" id="rthbox"><div class="k">Thermal E<sub>th</sub></div><div class="v" id="rth">–</div></div>
-        <div class="ro tot"><div class="k">Total energy</div><div class="v" id="rtot">–</div></div>
+        <div class="ro h"><span class="k">Height, h</span><span class="v" id="rh">–</span></div>
+        <div class="ro sp"><span class="k">Speed, v</span><span class="v" id="rv">–</span></div>
+        <div class="ro eg"><span class="k">E<sub>g</sub></span><span class="v" id="reg">–</span></div>
+        <div class="ro ek"><span class="k">E<sub>k</sub></span><span class="v" id="rek">–</span></div>
+        <div class="ro th" id="rthbox"><span class="k">E<sub>th</sub></span><span class="v" id="rth">–</span></div>
+        <div class="ro tot"><span class="k">Total</span><span class="v" id="rtot">–</span></div>
       </div>
+      <div class="vneed" id="vneed"></div>
+    </section>
+    <section class="card">
       <div class="bars">
         <div class="bar"><div class="num" id="beg"></div><div class="fill" id="fbeg" style="background:var(--coral)"></div></div>
         <div class="bar"><div class="num" id="bek"></div><div class="fill" id="fbek" style="background:var(--teal)"></div></div>
@@ -136,43 +117,10 @@ sub,sup{font-size:70%}
         <div class="bar"><div class="num" id="btot"></div><div class="fill" id="fbtot" style="background:var(--navy)"></div></div>
       </div>
       <div class="barlabels"><div style="color:var(--coral)">E<sub>g</sub></div><div style="color:var(--teal)">E<sub>k</sub></div><div style="color:var(--purple)">E<sub>th</sub></div><div style="color:var(--navy)">Total</div></div>
-      <div class="small" id="dist" style="margin-top:6px"></div>
-    </section>
-
-    <!-- CHECKS -->
-    <section class="card">
-      <h2>Will it make it?</h2>
-      <div class="check">
-        <div class="t">Loop: speed needed at the top</div>
-        <div class="small">To stay on the track at the top of the loop, the cart must be moving at least this fast. Any slower and it falls.</div>
-        <div class="eq" id="vminEq" style="margin-top:4px"></div>
-        <div class="meter"><div class="fill" id="mfill"></div><div class="mark" id="mmark"></div></div>
-        <div class="small" id="topRes">Run the coaster to measure its speed at the top.</div>
-      </div>
-      <div class="check">
-        <div class="t">Second hill</div>
-        <div class="small">To get over, the cart needs some kinetic energy left at the top (v &gt; 0).</div>
-        <div class="small" id="hillRes" style="margin-top:4px">Highest point reached on hill 2: –</div>
-      </div>
-      <label class="toggle"><input type="checkbox" id="showPred"><span>Show predictions (check your math)</span></label>
-      <div class="pred check" id="pred"></div>
+      <div class="small">Energy in kJ</div>
     </section>
   </div>
-
-  <section class="card challenges">
-    <h2>Challenges <span class="small" style="font-weight:400">Press “Set up”, write your prediction using conservation of energy, then test it. Find the smallest value that works.</span></h2>
-    <div class="chgrid" id="chgrid"></div>
-  </section>
-
-  <div class="remember">
-    <b>REMEMBER:</b>
-    <span>E<sub>g</sub> = mgh</span>
-    <span>E<sub>k</sub> = ½mv²</span>
-    <span>E<sub>total</sub> = E<sub>g</sub> + E<sub>k</sub> + E<sub>th</sub></span>
-    <span>top of loop: v ≥ √(g r)</span>
-  </div>
-  <footer>SPH4C · Roller Coaster Energy Lab. The loop height is the loop's diameter (r = loop height ÷ 2). The cart has no safety wheels, so it can fall off the loop.</footer>
-</main>
+</div>
 
 <script>
 (function(){
@@ -297,7 +245,7 @@ function labels(){
   var p = params();
   $('h0o').textContent = p.h0 + ' m';
   $('v0o').textContent = fmt(p.v0,1) + ' m/s';
-  $('dlo').textContent = p.dl + ' m  (r = ' + fmt(p.dl/2,1) + ' m)';
+  $('dlo').textContent = p.dl + ' m (r = ' + fmt(p.dl/2,1) + ' m)';
   $('h2o').textContent = p.h2 + ' m';
 }
 function reset(){
@@ -305,10 +253,9 @@ function reset(){
   labels();
   S = newSim(params());
   hideBanner();
-  updateChecks(); updatePred(); draw(); readouts();
+  draw(); readouts();
   $('run').disabled = false;
 }
-
 function showBanner(cls, html){ var b=$('banner'); b.className='banner '+cls; b.innerHTML=html; b.style.display='block'; }
 function hideBanner(){ $('banner').style.display='none'; }
 
@@ -328,44 +275,15 @@ function readouts(){
   var max = S.E0 || 1;
   function bar(id, E){ $('f'+id).style.height = Math.max(0, Math.min(100, 100*E/max)) + '%'; $(id).textContent = (E/1000).toFixed(0); }
   bar('beg', st.Eg); bar('bek', st.Ek); bar('bth', S.Eth); bar('btot', S.E0);
-  $('dist').innerHTML = S.p.fric ? 'Distance travelled: <b>' + fmt(S.dist,0) + ' m</b> &nbsp;·&nbsp; E<sub>th</sub> = F<sub>f</sub>Δd = (150 N)(' + fmt(S.dist,0) + ' m)' : 'Bar values in kJ.';
-}
-function updateChecks(){
-  var r = S.T.r, vmin = Math.sqrt(G*r);
-  $('vminEq').innerHTML = 'v<sub>min</sub> = √(g r) = √((9.81 m/s²)(' + fmt(r,1) + ' m)) = <b>' + fmt(vmin,1) + ' m/s</b>';
-  var scale = Math.max(2*vmin, (S.topSpeed||0)*1.1);
-  $('mmark').style.left = (100*vmin/scale) + '%';
-  if(S.topSpeed !== null){
-    $('mfill').style.width = Math.min(100, 100*S.topSpeed/scale) + '%';
-    $('mfill').style.background = S.topSpeed >= vmin - 0.005 ? 'var(--teal)' : 'var(--coral)';
-    $('topRes').innerHTML = 'Speed at the top: <b>' + fmt(S.topSpeed,1) + ' m/s</b>' + (S.topSpeed >= vmin - 0.005 ? ' ✓ fast enough' : '');
-  } else if(S.mode === 'air' || S.reversed === 'loop'){
-    $('mfill').style.width = '0%';
-    $('topRes').innerHTML = '<b style="color:var(--coral)">Never reached the top of the loop.</b>';
-  } else {
-    $('mfill').style.width = '0%';
-    $('topRes').textContent = 'Run the coaster to measure its speed at the top.';
-  }
-  $('hillRes').innerHTML = 'Highest point reached on hill 2: <b>' + (S.maxHill > 0 ? fmt(S.maxHill,1) + ' m' : '–') + '</b> (hill is ' + S.p.h2 + ' m)';
-}
-function updatePred(){
-  var p = S.p, r = p.dl/2, el = $('pred');
-  el.style.display = $('showPred').checked ? 'block' : 'none';
-  var E0 = S.E0, html = '<div class="t">Predictions (no friction)</div>';
-  html += '<div class="small">Starting energy: E = mgh + ½mv² = ' + kJ(E0) + '</div>';
-  var v2 = p.v0*p.v0 + 2*G*(p.h0 - p.dl);
-  html += '<div class="small">Speed at top of loop: v = √(v₀² + 2g(h₀ − ' + p.dl + ' m)) = <b>' + (v2 >= 0 ? fmt(Math.sqrt(v2),1) + ' m/s' : 'can\'t reach the top') + '</b> (need ' + fmt(Math.sqrt(G*r),1) + ' m/s)</div>';
-  html += '<div class="small">Energy needed to reach top of hill 2: mgh = ' + kJ(M*G*p.h2) + '</div>';
-  var hmin = Math.max(2.5*r - p.v0*p.v0/(2*G), p.h2 - p.v0*p.v0/(2*G));
-  html += '<div class="small">Lowest start height that works with this starting speed: <b>' + (hmin > 0 ? fmt(hmin,1) + ' m' : 'any height') + '</b></div>';
-  if(p.fric) html += '<div class="small" style="color:var(--purple)">Friction is on, so these predictions are too low: you need extra energy to cover E<sub>th</sub>.</div>';
-  el.innerHTML = html;
+  var vmin = Math.sqrt(G*S.T.r);
+  $('vneed').innerHTML = 'Speed needed at the top of the loop: v = √(g r) = <b>' + fmt(vmin,1) + ' m/s</b>' +
+    (S.topSpeed !== null ? ' &nbsp;·&nbsp; this run: <b style="color:' + (S.topSpeed >= vmin - 0.005 ? 'var(--teal)' : 'var(--coral)') + '">' + fmt(S.topSpeed,1) + ' m/s</b>' : '');
 }
 
 function finish(){
   running = false;
   var r = S.T.r, vmin = Math.sqrt(G*r), o = S.outcome;
-  updateChecks(); readouts();
+  readouts();
   if(o === 'success'){
     var vEnd = state().v;
     showBanner('ok', '<b>Made it!</b> Speed at the top of the loop was ' + fmt(S.topSpeed,1) + ' m/s (needed ' + fmt(vmin,1) + ' m/s). Finish speed: ' + fmt(vEnd,1) + ' m/s.' + (S.p.fric ? ' Friction made ' + kJ(S.Eth) + ' of thermal energy.' : ''));
@@ -383,16 +301,15 @@ function finish(){
     showBanner('bad', '<b>Stopped.</b> Friction turned all the kinetic energy into thermal energy (h = ' + fmt(S.failH||S.y,1) + ' m).');
   }
   $('run').disabled = true;
-  checkChallenges();
 }
 
 function loop(ts){
   if(!running){ lastT = null; return; }
   if(lastT === null) lastT = ts;
-  var dt = Math.min(0.05, (ts - lastT)/1000); lastT = ts;
-  var simDt = dt * ($('slow').checked ? 0.3 : 1) * 1.0, n = Math.ceil(simDt/0.001);
+  var simDt = Math.min(0.05, (ts - lastT)/1000); lastT = ts;
+  var n = Math.ceil(simDt/0.001);
   for(var i=0;i<n && !S.outcome;i++) step(S, simDt/n);
-  draw(); readouts(); updateChecks();
+  draw(); readouts();
   if(S.outcome){ finish(); draw(); return; }
   requestAnimationFrame(loop);
 }
@@ -400,16 +317,15 @@ function loop(ts){
 /* ---------- Drawing ---------- */
 var VIEW = {};
 function resize(){
-  var w = cv.clientWidth || 1240, dpr = window.devicePixelRatio || 1;
-  var kk = (w-58)/WORLD_W;
-  var h = Math.round(Math.max(240, Math.min(560, 64*kk + 50)));
+  var st = $('stage'), w = st.clientWidth || 1240, h = st.clientHeight || 400, dpr = window.devicePixelRatio || 1;
   cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
-  cv.style.height = h + 'px';
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
   ctx.setTransform(dpr,0,0,dpr,0,0);
   VIEW.w = w; VIEW.h = h;
-  var left = 46, right = 12, top = 18, bottom = 30;
-  VIEW.k = Math.min((w-left-right)/WORLD_W, (h-top-bottom)/66);
-  VIEW.ox = left; VIEW.oy = h - bottom;
+  var left = 46, right = 12, top = 14, bottom = 26;
+  VIEW.k = Math.min((w-left-right)/WORLD_W, (h-top-bottom)/64);
+  VIEW.ox = left + Math.max(0, ((w-left-right) - WORLD_W*VIEW.k)/2);
+  VIEW.oy = h - bottom;
   if(S) draw();
 }
 function X(x){ return VIEW.ox + x*VIEW.k; }
@@ -456,8 +372,8 @@ function draw(){
     var H = (S.E0 - S.Eth)/(M*G);
     ctx.setLineDash([8,6]); ctx.strokeStyle = '#7B5EA7'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(VIEW.ox, Y(H)); ctx.lineTo(w-6, Y(H)); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = '#7B5EA7'; ctx.textAlign='left'; ctx.font='bold 12px Calibri, Arial, sans-serif';
-    ctx.fillText('max height possible = ' + fmt(H,1) + ' m', VIEW.ox+4, Y(H)-5);
+    ctx.fillStyle = '#7B5EA7'; ctx.textAlign='right'; ctx.font='bold 12px Calibri, Arial, sans-serif';
+    ctx.fillText('max height possible = ' + fmt(H,1) + ' m', w-10, Y(H)-5);
   }
   // track rails
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -539,66 +455,8 @@ function roundRect(x,y,w,h,r){
   ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
 }
 
-/* ---------- Challenges ---------- */
-var CH = [
-  {title:'1. Lowest start, from rest', set:{v0:0, dl:20, h2:15, fric:false, h0:40},
-   text:'The cart starts at rest (v₀ = 0). What is the <b>lowest start height</b> that gets it through a 20 m loop?',
-   key:'h0', stepDown:1, need:{v0:0, dl:20, h2:15, fric:false},
-   done:function(p){ return 'Solved: ' + p.h0 + ' m. That\'s higher than the 20 m loop! It needs extra energy so it\'s still moving fast at the top.'; }},
-  {title:'2. Launch from a low start', set:{h0:15, dl:20, h2:15, fric:false, v0:20},
-   text:'Start at 15 m with a 20 m loop. What is the <b>smallest starting speed</b> that gets the cart through the loop?',
-   key:'v0', stepDown:0.5, need:{h0:15, dl:20, h2:15, fric:false},
-   done:function(p){ return 'Solved: ' + fmt(p.v0,1) + ' m/s. The launch gives extra E<sub>k</sub> to make up for the low start.'; }},
-  {title:'3. The big second hill', set:{v0:0, dl:20, h2:45, fric:false, h0:55},
-   text:'From rest, with a 45 m second hill. What is the <b>lowest start height</b> that clears the hill?',
-   key:'h0', stepDown:1, need:{v0:0, dl:20, h2:45, fric:false},
-   done:function(p){ return 'Solved: ' + p.h0 + ' m. With no friction, the cart just has to start higher than the hill.'; }},
-  {title:'4. Add friction', set:{v0:0, dl:20, h2:15, fric:true, h0:40},
-   text:'Repeat Challenge 1 with <b>friction on</b>. What is the lowest start height now? How much higher is it, and why?',
-   key:'h0', stepDown:1, need:{v0:0, dl:20, h2:15, fric:true},
-   done:function(p){ return 'Solved: ' + p.h0 + ' m. Friction turns some energy into thermal energy, so the cart has to start with more E<sub>g</sub>.'; }}
-];
-var solved = {};
-function buildChallenges(){
-  var g = $('chgrid');
-  CH.forEach(function(c, i){
-    var d = document.createElement('div'); d.className = 'ch'; d.id = 'ch'+i;
-    d.innerHTML = '<h3>' + c.title + '</h3><div>' + c.text + '</div>' +
-      '<input type="text" placeholder="My prediction">' +
-      '<button>Set up</button><div class="status" id="chs'+i+'"></div>';
-    d.querySelector('button').onclick = function(){
-      $('h0').value = c.set.h0; $('v0').value = c.set.v0; $('dl').value = c.set.dl; $('h2').value = c.set.h2; $('fric').checked = c.set.fric;
-      reset();
-      $('chs'+i).style.color = 'var(--grey)';
-      $('chs'+i).textContent = solved[i] ? $('chs'+i).textContent : 'Set up. Now change the ' + (c.key==='h0' ? 'start height' : 'starting speed') + ' and run it.';
-    };
-    g.appendChild(d);
-  });
-}
-function checkChallenges(){
-  if(S.outcome !== 'success') return;
-  var p = S.p;
-  CH.forEach(function(c, i){
-    if(solved[i]) return;
-    for(var key in c.need){ if(p[key] !== c.need[key]) return; }
-    var lower = {}; for(var kk in p) lower[kk] = p[kk];
-    lower[c.key] = p[c.key] - c.stepDown;
-    var min = +$(c.key).min;
-    if(lower[c.key] >= min && simulate(lower).outcome === 'success'){
-      $('chs'+i).style.color = 'var(--amberDk)';
-      $('chs'+i).textContent = 'It works, but can you go lower?';
-      return;
-    }
-    solved[i] = true;
-    $('ch'+i).classList.add('done');
-    $('chs'+i).style.color = 'var(--teal)';
-    $('chs'+i).innerHTML = '✓ ' + c.done(p);
-  });
-}
-
 /* ---------- Wiring ---------- */
 ['h0','v0','dl','h2','fric'].forEach(function(id){ $(id).addEventListener('input', reset); });
-$('showPred').addEventListener('change', updatePred);
 $('eline').addEventListener('change', draw);
 $('run').onclick = function(){
   if(!S || S.outcome) reset();
@@ -609,7 +467,6 @@ $('pause').onclick = function(){ running = false; };
 $('reset').onclick = reset;
 window.addEventListener('resize', resize);
 
-buildChallenges();
 resize();
 reset();
 window.__coaster = {simulate:simulate, step:step, newSim:newSim, at:at};
