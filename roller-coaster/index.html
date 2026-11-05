@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roller Coaster Energy Lab</title>
+<style>
+:root{
+  --navy:#0B1630; --ink:#1B2333; --card:#EEF2F8; --cream:#FFF4E3;
+  --amber:#F4A43A; --amberDk:#B86F0E; --teal:#2A9D8F; --coral:#E4572E;
+  --blue:#2F6FDE; --purple:#7B5EA7; --grey:#6B7486; --line:#D5DCE8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff;color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:16px}
+h1,h2,h3,.eq{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
+header{background:var(--navy);color:#fff;padding:12px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
+header .kicker{font-size:13px;letter-spacing:.12em;color:var(--amber);font-weight:700}
+header h1{margin:0;font-size:26px;font-weight:700}
+header .sub{color:#C9D2E3;font-size:15px}
+main{max-width:1280px;margin:0 auto;padding:14px 16px 24px}
+.stage{border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;background:#fff}
+canvas{display:block;width:100%;height:auto}
+.banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);max-width:min(720px,92%);padding:10px 16px;border-radius:10px;
+  font-size:17px;line-height:1.35;text-align:center;display:none;border:2px solid}
+.banner.ok{background:#E4F4F1;border-color:var(--teal);color:#14564E}
+.banner.bad{background:#FCE9E3;border-color:var(--coral);color:#8A2A10}
+.banner.info{background:var(--cream);border-color:var(--amber);color:#6B4206}
+.grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width:980px){.grid{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+@media (max-width:640px){.banner{position:static;transform:none;max-width:none;margin:8px;font-size:14px}}
+.card{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff}
+.card h2{margin:0 0 10px;font-size:19px;color:var(--navy);display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.slider{margin:6px 0 12px}
+.slider .top{display:flex;justify-content:space-between;align-items:baseline}
+.slider label{font-weight:700}
+.slider output{font-family:Cambria,Georgia,serif;font-size:18px;font-weight:700;color:var(--navy)}
+input[type=range]{width:100%;accent-color:var(--navy);height:26px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:700;border-radius:10px;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:8px 16px;cursor:pointer}
+button.go{background:var(--navy);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.toggle{display:flex;align-items:center;gap:8px;margin:6px 0;cursor:pointer;user-select:none}
+.toggle input{width:18px;height:18px;accent-color:var(--navy)}
+.fixed{background:var(--card);border-radius:10px;padding:8px 12px;font-size:15px;margin-top:6px}
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ro{background:var(--card);border-radius:10px;padding:7px 10px;border-left:5px solid var(--grey)}
+.ro .k{font-size:13px;color:var(--grey);font-weight:700}
+.ro .v{font-family:Cambria,Georgia,serif;font-size:22px;font-weight:700}
+.ro.h{border-color:var(--coral)} .ro.sp{border-color:var(--teal)}
+.ro.eg{border-color:var(--coral)} .ro.ek{border-color:var(--teal)}
+.ro.th{border-color:var(--purple)} .ro.tot{border-color:var(--navy)}
+.bars{display:flex;gap:12px;align-items:flex-end;height:170px;margin-top:12px;padding:0 4px;border-bottom:2px solid var(--ink);position:relative}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bar .fill{width:100%;border-radius:6px 6px 0 0;min-height:0;transition:none}
+.bar .num{font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap}
+.barlabels{display:flex;gap:12px;padding:4px 4px 0}
+.barlabels div{flex:1;text-align:center;font-size:13px;font-weight:700}
+.check{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.check .t{font-weight:700;color:var(--navy);margin-bottom:4px}
+.eq{font-size:17px}
+.meter{position:relative;height:22px;background:#fff;border:1px solid var(--line);border-radius:11px;margin:8px 0 4px;overflow:hidden}
+.meter .fill{position:absolute;left:0;top:0;bottom:0;background:var(--teal);width:0}
+.meter .mark{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--coral)}
+.small{font-size:14px;color:var(--grey)}
+.pred{display:none;border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
+.challenges{margin-top:14px}
+.chgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:980px){.chgrid{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.chgrid{grid-template-columns:1fr}}
+.ch{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.ch.done{border:2px solid var(--teal);background:#F2FAF8}
+.ch h3{margin:0;font-size:17px;color:var(--navy)}
+.ch .set{font-size:13px;color:var(--grey)}
+.ch input[type=text]{font:inherit;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.ch .status{font-size:14px;font-weight:700;color:var(--teal);min-height:1.2em}
+.remember{margin-top:14px;background:var(--navy);color:#fff;border-radius:14px;padding:12px 18px;display:flex;gap:22px;flex-wrap:wrap;align-items:center}
+.remember b{color:var(--amber);font-family:Calibri,Arial,sans-serif;letter-spacing:.06em}
+.remember span{font-family:Cambria,Georgia,serif;font-size:19px}
+footer{color:var(--grey);font-size:13px;text-align:center;margin-top:10px}
+sub,sup{font-size:70%}
+</style>
+</head>
+<body>
+<header>
+  <span class="kicker">SPH4C · ENERGY</span>
+  <h1>Roller Coaster Energy Lab</h1>
+  <span class="sub">Can your coaster make it through the loop and over the hill?</span>
+</header>
+<main>
+  <div class="stage">
+    <canvas id="cv" width="1240" height="460"></canvas>
+    <div id="banner" class="banner"></div>
+  </div>
+
+  <div class="grid">
+    <!-- CONTROLS -->
+    <section class="card">
+      <h2>Controls</h2>
+      <div class="slider"><div class="top"><label for="h0">Start height</label><output id="h0o"></output></div>
+        <input type="range" id="h0" min="5" max="60" step="1" value="30"></div>
+      <div class="slider"><div class="top"><label for="v0">Starting speed</label><output id="v0o"></output></div>
+        <input type="range" id="v0" min="0" max="30" step="0.5" value="0"></div>
+      <div class="slider"><div class="top"><label for="dl">Loop height</label><output id="dlo"></output></div>
+        <input type="range" id="dl" min="10" max="40" step="1" value="20"></div>
+      <div class="slider"><div class="top"><label for="h2">Second hill height</label><output id="h2o"></output></div>
+        <input type="range" id="h2" min="5" max="60" step="1" value="20"></div>
+      <div class="row" style="margin:4px 0 8px">
+        <button id="run" class="go">▶ Run</button>
+        <button id="pause">❚❚ Pause</button>
+        <button id="reset">↺ Reset</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="fric"><span>Friction on (150 N, turns energy into thermal energy)</span></label>
+      <label class="toggle"><input type="checkbox" id="slow"><span>Slow motion</span></label>
+      <label class="toggle"><input type="checkbox" id="eline"><span>Show max-height line (where E<sub>k</sub> would be 0)</span></label>
+      <div class="fixed">Cart mass: <b>500 kg</b> (fixed) &nbsp;·&nbsp; g = 9.81 m/s²</div>
+    </section>
+
+    <!-- READOUTS -->
+    <section class="card">
+      <h2>Live readings</h2>
+      <div class="readouts">
+        <div class="ro h"><div class="k">Height, h</div><div class="v" id="rh">–</div></div>
+        <div class="ro sp"><div class="k">Speed, v</div><div class="v" id="rv">–</div></div>
+        <div class="ro eg"><div class="k">Gravitational E<sub>g</sub></div><div class="v" id="reg">–</div></div>
+        <div class="ro ek"><div class="k">Kinetic E<sub>k</sub></div><div class="v" id="rek">–</div></div>
+        <div class="ro th" id="rthbox"><div class="k">Thermal E<sub>th</sub></div><div class="v" id="rth">–</div></div>
+        <div class="ro tot"><div class="k">Total energy</div><div class="v" id="rtot">–</div></div>
+      </div>
+      <div class="bars">
+        <div class="bar"><div class="num" id="beg"></div><div class="fill" id="fbeg" style="background:var(--coral)"></div></div>
+        <div class="bar"><div class="num" id="bek"></div><div class="fill" id="fbek" style="background:var(--teal)"></div></div>
+        <div class="bar"><div class="num" id="bth"></div><div class="fill" id="fbth" style="background:var(--purple)"></div></div>
+        <div class="bar"><div class="num" id="btot"></div><div class="fill" id="fbtot" style="background:var(--navy)"></div></div>
+      </div>
+      <div class="barlabels"><div style="color:var(--coral)">E<sub>g</sub></div><div style="color:var(--teal)">E<sub>k</sub></div><div style="color:var(--purple)">E<sub>th</sub></div><div style="color:var(--navy)">Total</div></div>
+      <div class="small" id="dist" style="margin-top:6px"></div>
+    </section>
+
+    <!-- CHECKS -->
+    <section class="card">
+      <h2>Will it make it?</h2>
+      <div class="check">
+        <div class="t">Loop: speed needed at the top</div>
+        <div class="small">To stay on the track at the top of the loop, the cart must be moving at least this fast. Any slower and it falls.</div>
+        <div class="eq" id="vminEq" style="margin-top:4px"></div>
+        <div class="meter"><div class="fill" id="mfill"></div><div class="mark" id="mmark"></div></div>
+        <div class="small" id="topRes">Run the coaster to measure its speed at the top.</div>
+      </div>
+      <div class="check">
+        <div class="t">Second hill</div>
+        <div class="small">To get over, the cart needs some kinetic energy left at the top (v &gt; 0).</div>
+        <div class="small" id="hillRes" style="margin-top:4px">Highest point reached on hill 2: –</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="showPred"><span>Show predictions (check your math)</span></label>
+      <div class="pred check" id="pred"></div>
+    </section>
+  </div>
+
+  <section class="card challenges">
+    <h2>Challenges <span class="small" style="font-weight:400">Press “Set up”, write your prediction using conservation of energy, then test it. Find the smallest value that works.</span></h2>
+    <div class="chgrid" id="chgrid"></div>
+  </section>
+
+  <div class="remember">
+    <b>REMEMBER:</b>
+    <span>E<sub>g</sub> = mgh</span>
+    <span>E<sub>k</sub> = ½mv²</span>
+    <span>E<sub>total</sub> = E<sub>g</sub> + E<sub>k</sub> + E<sub>th</sub></span>
+    <span>top of loop: v ≥ √(g r)</span>
+  </div>
+  <footer>SPH4C · Roller Coaster Energy Lab. The loop height is the loop's diameter (r = loop height ÷ 2). The cart has no safety wheels, so it can fall off the loop.</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+var G = 9.81, M = 500, F_FRIC = 150;
+var X_CREST = 6, L_DROP = 50, X_LOOP = 86, X_HILL0 = 116, W_HILL = 80, X_END = 222, WORLD_W = 228, U0 = 0.06;
+
+/* ---------- Track ---------- */
+function buildTrack(p){
+  var r = p.dl/2, pts = [], s = 0;
+  function add(x,y,seg){
+    if(pts.length){ var q = pts[pts.length-1]; s += Math.hypot(x-q.x, y-q.y); }
+    pts.push({x:x,y:y,s:s,seg:seg});
+  }
+  var i, n, u, w;
+  // drop (from crest)
+  var norm = 1 + Math.cos(Math.PI*U0);
+  n = 400;
+  for(i=0;i<=n;i++){ u=i/n; w=U0+(1-U0)*u; add(X_CREST+L_DROP*u, p.h0*(1+Math.cos(Math.PI*w))/norm, 'drop'); }
+  // flat to loop
+  n = 60; for(i=1;i<=n;i++){ add(X_CREST+L_DROP+(X_LOOP-X_CREST-L_DROP)*i/n, 0, 'flat1'); }
+  var sLoop0 = s;
+  // loop (analytic, also sampled for drawing)
+  n = 360; for(i=1;i<=n;i++){ var a=2*Math.PI*i/n; pts.push({x:X_LOOP+r*Math.sin(a), y:r-r*Math.cos(a), s:sLoop0+r*a, seg:'loop'}); }
+  s = sLoop0 + 2*Math.PI*r;
+  var sLoop1 = s;
+  n = 60; for(i=1;i<=n;i++){ add(X_LOOP+(X_HILL0-X_LOOP)*i/n, 0, 'flat2'); }
+  var sHill0 = s;
+  n = 480; for(i=1;i<=n;i++){ u=i/n; add(X_HILL0+W_HILL*u, p.h2*(1-Math.cos(2*Math.PI*u))/2, 'hill'); }
+  var sHill1 = s;
+  n = 60; for(i=1;i<=n;i++){ add(X_HILL0+W_HILL+(X_END-X_HILL0-W_HILL)*i/n, 0, 'flat3'); }
+  return {pts:pts, r:r, sLoop0:sLoop0, sLoop1:sLoop1, sHill0:sHill0, sHill1:sHill1, sEnd:s, p:p};
+}
+function at(T, s){
+  if(s < 0) s = 0; if(s > T.sEnd) s = T.sEnd;
+  if(s > T.sLoop0 && s < T.sLoop1){
+    var a = (s - T.sLoop0)/T.r;
+    return {x:X_LOOP+T.r*Math.sin(a), y:T.r-T.r*Math.cos(a), slope:Math.sin(a), tx:Math.cos(a), ty:Math.sin(a), loop:true, a:a, seg:'loop'};
+  }
+  var P = T.pts, lo = 0, hi = P.length-1;
+  while(hi-lo > 1){ var mid=(lo+hi)>>1; if(P[mid].s <= s) lo=mid; else hi=mid; }
+  var A = P[lo], B = P[hi];
+  if(B.seg==='loop' || A.seg==='loop'){ // just at loop boundaries
+    return {x:X_LOOP, y:0, slope:0, tx:1, ty:0, loop:false, seg:'flat'};
+  }
+  var ds = B.s - A.s || 1e-9, t = (s - A.s)/ds;
+  var dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx,dy) || 1e-9;
+  return {x:A.x+dx*t, y:A.y+dy*t, slope:dy/ds, tx:dx/L, ty:dy/L, loop:false, seg:B.seg};
+}
+
+/* ---------- Simulation ---------- */
+function newSim(p){
+  var T = buildTrack(p);
+  return {T:T, p:p, s:0, v:p.v0, Eth:0, E0:M*G*p.h0 + 0.5*M*p.v0*p.v0, mode:'track', t:0,
+          x:X_CREST, y:p.h0, vx:0, vy:0, dist:0, maxHill:0, maxLoop:0, topSpeed:null, passedTop:false,
+          reversed:null, still:0, outcome:null, failH:null, failV:null};
+}
+function step(S, dt){
+  if(S.outcome) return;
+  var T = S.T, fa = S.p.fric ? F_FRIC/M : 0;
+  S.t += dt;
+  if(S.mode === 'air'){
+    S.vy -= G*dt; S.x += S.vx*dt; S.y += S.vy*dt;
+    if(S.y <= 0){ S.y = 0; S.outcome = 'fell'; }
+    return;
+  }
+  var q = at(T, S.s), v = S.v, a;
+  if(Math.abs(v) < 1e-9){
+    var gs = -G*q.slope;
+    if(Math.abs(gs) <= fa) a = 0; else a = gs - Math.sign(gs)*fa;
+  } else a = -G*q.slope - Math.sign(v)*fa;
+  var vn = v + a*dt, ds = 0.5*(v+vn)*dt;
+  if(fa && v*vn < 0){ vn = 0; } // friction: stop rather than overshoot through zero
+  S.s += ds; S.dist += Math.abs(ds); S.Eth += M*fa*Math.abs(ds);
+  q = at(T, S.s);
+  var Ek = S.E0 - M*G*q.y - S.Eth;
+  if(Ek > 0 && Math.abs(vn) > 0.05) vn = Math.sign(vn)*Math.sqrt(2*Ek/M); // keep energy exact
+  // reversal
+  if(v > 0 && vn <= 0 && !S.reversed){
+    if(q.loop){ S.reversed = 'loop'; S.failH = q.y; }
+    else if(q.seg === 'hill'){ S.reversed = 'hill'; S.failH = q.y; }
+  }
+  S.v = vn; S.x = q.x; S.y = q.y;
+  if(q.seg === 'hill') S.maxHill = Math.max(S.maxHill, q.y);
+  if(q.loop){
+    S.maxLoop = Math.max(S.maxLoop, q.y);
+    if(!S.passedTop && q.a >= Math.PI){ S.passedTop = true; S.topSpeed = Math.abs(vn); }
+    var Nm = vn*vn/T.r + G*Math.cos(q.a); // normal force per kg
+    if(Nm < -0.02 && vn > 0){
+      S.mode = 'air'; S.failH = q.y; S.failV = Math.abs(vn);
+      S.vx = vn*q.tx; S.vy = vn*q.ty; return;
+    }
+  }
+  if(S.s >= T.sEnd){ S.s = T.sEnd; S.outcome = 'success'; return; }
+  if(S.reversed === 'loop' && S.s < T.sLoop0 - 4){ S.outcome = 'loopBack'; return; }
+  if(S.reversed === 'hill' && S.s < T.sHill0 - 4){ S.outcome = 'hillBack'; return; }
+  if(Math.abs(S.v) < 0.03){ S.still += dt; } else S.still = 0;
+  if(S.still > 1.2){
+    S.failH = q.y;
+    S.outcome = (q.seg === 'hill' && Math.abs(q.slope) < 0.05) ? 'hillTop' : 'stopped';
+  }
+  if(S.t > 400) S.outcome = 'stopped';
+}
+function simulate(p){
+  var S = newSim(p), n = 0;
+  while(!S.outcome && n < 400000){ step(S, 0.002); n++; }
+  return S;
+}
+
+/* ---------- UI ---------- */
+var $ = function(id){ return document.getElementById(id); };
+var cv = $('cv'), ctx = cv.getContext('2d');
+var S = null, running = false, lastT = null;
+
+function params(){
+  return {h0:+$('h0').value, v0:+$('v0').value, dl:+$('dl').value, h2:+$('h2').value, fric:$('fric').checked};
+}
+function kJ(E){ return (E/1000).toFixed(1) + ' kJ'; }
+function fmt(x,d){ return (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d); }
+
+function labels(){
+  var p = params();
+  $('h0o').textContent = p.h0 + ' m';
+  $('v0o').textContent = fmt(p.v0,1) + ' m/s';
+  $('dlo').textContent = p.dl + ' m  (r = ' + fmt(p.dl/2,1) + ' m)';
+  $('h2o').textContent = p.h2 + ' m';
+}
+function reset(){
+  running = false; lastT = null;
+  labels();
+  S = newSim(params());
+  hideBanner();
+  updateChecks(); updatePred(); draw(); readouts();
+  $('run').disabled = false;
+}
+
+function showBanner(cls, html){ var b=$('banner'); b.className='banner '+cls; b.innerHTML=html; b.style.display='block'; }
+function hideBanner(){ $('banner').style.display='none'; }
+
+function state(){
+  var Eg = M*G*S.y, Ek = Math.max(0, S.E0 - Eg - S.Eth), v = Math.sqrt(2*Ek/M);
+  return {Eg:Eg, Ek:Ek, v:v};
+}
+function readouts(){
+  var st = state();
+  $('rh').textContent = fmt(S.y,1) + ' m';
+  $('rv').textContent = fmt(st.v,1) + ' m/s';
+  $('reg').textContent = kJ(st.Eg);
+  $('rek').textContent = kJ(st.Ek);
+  $('rth').textContent = kJ(S.Eth);
+  $('rtot').textContent = kJ(S.E0);
+  $('rthbox').style.opacity = S.p.fric ? 1 : 0.45;
+  var max = S.E0 || 1;
+  function bar(id, E){ $('f'+id).style.height = Math.max(0, Math.min(100, 100*E/max)) + '%'; $(id).textContent = (E/1000).toFixed(0); }
+  bar('beg', st.Eg); bar('bek', st.Ek); bar('bth', S.Eth); bar('btot', S.E0);
+  $('dist').innerHTML = S.p.fric ? 'Distance travelled: <b>' + fmt(S.dist,0) + ' m</b> &nbsp;·&nbsp; E<sub>th</sub> = F<sub>f</sub>Δd = (150 N)(' + fmt(S.dist,0) + ' m)' : 'Bar values in kJ.';
+}
+function updateChecks(){
+  var r = S.T.r, vmin = Math.sqrt(G*r);
+  $('vminEq').innerHTML = 'v<sub>min</sub> = √(g r) = √((9.81 m/s²)(' + fmt(r,1) + ' m)) = <b>' + fmt(vmin,1) + ' m/s</b>';
+  var scale = Math.max(2*vmin, (S.topSpeed||0)*1.1);
+  $('mmark').style.left = (100*vmin/scale) + '%';
+  if(S.topSpeed !== null){
+    $('mfill').style.width = Math.min(100, 100*S.topSpeed/scale) + '%';
+    $('mfill').style.background = S.topSpeed >= vmin - 0.005 ? 'var(--teal)' : 'var(--coral)';
+    $('topRes').innerHTML = 'Speed at the top: <b>' + fmt(S.topSpeed,1) + ' m/s</b>' + (S.topSpeed >= vmin - 0.005 ? ' ✓ fast enough' : '');
+  } else if(S.mode === 'air' || S.reversed === 'loop'){
+    $('mfill').style.width = '0%';
+    $('topRes').innerHTML = '<b style="color:var(--coral)">Never reached the top of the loop.</b>';
+  } else {
+    $('mfill').style.width = '0%';
+    $('topRes').textContent = 'Run the coaster to measure its speed at the top.';
+  }
+  $('hillRes').innerHTML = 'Highest point reached on hill 2: <b>' + (S.maxHill > 0 ? fmt(S.maxHill,1) + ' m' : '–') + '</b> (hill is ' + S.p.h2 + ' m)';
+}
+function updatePred(){
+  var p = S.p, r = p.dl/2, el = $('pred');
+  el.style.display = $('showPred').checked ? 'block' : 'none';
+  var E0 = S.E0, html = '<div class="t">Predictions (no friction)</div>';
+  html += '<div class="small">Starting energy: E = mgh + ½mv² = ' + kJ(E0) + '</div>';
+  var v2 = p.v0*p.v0 + 2*G*(p.h0 - p.dl);
+  html += '<div class="small">Speed at top of loop: v = √(v₀² + 2g(h₀ − ' + p.dl + ' m)) = <b>' + (v2 >= 0 ? fmt(Math.sqrt(v2),1) + ' m/s' : 'can\'t reach the top') + '</b> (need ' + fmt(Math.sqrt(G*r),1) + ' m/s)</div>';
+  html += '<div class="small">Energy needed to reach top of hill 2: mgh = ' + kJ(M*G*p.h2) + '</div>';
+  var hmin = Math.max(2.5*r - p.v0*p.v0/(2*G), p.h2 - p.v0*p.v0/(2*G));
+  html += '<div class="small">Lowest start height that works with this starting speed: <b>' + (hmin > 0 ? fmt(hmin,1) + ' m' : 'any height') + '</b></div>';
+  if(p.fric) html += '<div class="small" style="color:var(--purple)">Friction is on, so these predictions are too low: you need extra energy to cover E<sub>th</sub>.</div>';
+  el.innerHTML = html;
+}
+
+function finish(){
+  running = false;
+  var r = S.T.r, vmin = Math.sqrt(G*r), o = S.outcome;
+  updateChecks(); readouts();
+  if(o === 'success'){
+    var vEnd = state().v;
+    showBanner('ok', '<b>Made it!</b> Speed at the top of the loop was ' + fmt(S.topSpeed,1) + ' m/s (needed ' + fmt(vmin,1) + ' m/s). Finish speed: ' + fmt(vEnd,1) + ' m/s.' + (S.p.fric ? ' Friction made ' + kJ(S.Eth) + ' of thermal energy.' : ''));
+  } else if(o === 'fell'){
+    showBanner('bad', '<b>Fell off the loop</b> at h = ' + fmt(S.failH,1) + ' m, moving only ' + fmt(S.failV,1) + ' m/s. It needs at least ' + fmt(vmin,1) + ' m/s at the top. Start higher or faster.');
+  } else if(o === 'loopBack'){
+    showBanner('bad', '<b>Not enough energy for the loop.</b> It only climbed to ' + fmt(S.failH,1) + ' m (E<sub>k</sub> = 0 there) and slid back down.');
+  } else if(o === 'hillBack' && S.failH >= S.p.h2 - 0.05){
+    showBanner('info', '<b>Stopped right at the top of hill 2, then rolled back!</b> All of its energy was E<sub>g</sub>, so v = 0 at the top. A tiny bit more energy would get it over.');
+  } else if(o === 'hillBack'){
+    showBanner('bad', '<b>Rolled back from hill 2.</b> It only reached ' + fmt(S.failH,1) + ' m, but the hill is ' + S.p.h2 + ' m tall. All its kinetic energy became E<sub>g</sub> before the top.');
+  } else if(o === 'hillTop'){
+    showBanner('info', '<b>Stuck at the very top of hill 2!</b> All of its energy is E<sub>g</sub>, so v = 0. A tiny bit more energy would get it over.');
+  } else {
+    showBanner('bad', '<b>Stopped.</b> Friction turned all the kinetic energy into thermal energy (h = ' + fmt(S.failH||S.y,1) + ' m).');
+  }
+  $('run').disabled = true;
+  checkChallenges();
+}
+
+function loop(ts){
+  if(!running){ lastT = null; return; }
+  if(lastT === null) lastT = ts;
+  var dt = Math.min(0.05, (ts - lastT)/1000); lastT = ts;
+  var simDt = dt * ($('slow').checked ? 0.3 : 1) * 1.0, n = Math.ceil(simDt/0.001);
+  for(var i=0;i<n && !S.outcome;i++) step(S, simDt/n);
+  draw(); readouts(); updateChecks();
+  if(S.outcome){ finish(); draw(); return; }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Drawing ---------- */
+var VIEW = {};
+function resize(){
+  var w = cv.clientWidth || 1240, dpr = window.devicePixelRatio || 1;
+  var kk = (w-58)/WORLD_W;
+  var h = Math.round(Math.max(240, Math.min(560, 64*kk + 50)));
+  cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+  cv.style.height = h + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  VIEW.w = w; VIEW.h = h;
+  var left = 46, right = 12, top = 18, bottom = 30;
+  VIEW.k = Math.min((w-left-right)/WORLD_W, (h-top-bottom)/66);
+  VIEW.ox = left; VIEW.oy = h - bottom;
+  if(S) draw();
+}
+function X(x){ return VIEW.ox + x*VIEW.k; }
+function Y(y){ return VIEW.oy - y*VIEW.k; }
+
+function draw(){
+  if(!S) return;
+  var w = VIEW.w, h = VIEW.h, k = VIEW.k, T = S.T, p = S.p;
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,w,h);
+  // grid + ruler
+  for(var gy=5; gy<=65; gy+=5){
+    var yy = Y(gy); if(yy < 4) break;
+    ctx.strokeStyle = gy%10===0 ? '#E3E8F1' : '#F2F4F8'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(VIEW.ox, yy); ctx.lineTo(w-6, yy); ctx.stroke();
+  }
+  // ground
+  ctx.fillStyle = '#EEF2F8'; ctx.fillRect(0, Y(0), w, h-Y(0));
+  ctx.strokeStyle = '#1B2333'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0,Y(0)); ctx.lineTo(w,Y(0)); ctx.stroke();
+  ctx.font = '12px Calibri, Arial, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#6B7486';
+  for(gy=0; gy<=60; gy+=10){ if(Y(gy) > 8) ctx.fillText(gy + ' m', VIEW.ox-6, Y(gy) - (gy===0 ? 7 : 0)); }
+  // supports
+  ctx.strokeStyle = '#C3CBD8'; ctx.lineWidth = 1.5;
+  var P = T.pts, lastX = -99;
+  for(var i=0;i<P.length;i++){
+    var q = P[i];
+    if(q.seg==='loop' || q.y < 0.5) continue;
+    if(q.x - lastX >= 5){ ctx.beginPath(); ctx.moveTo(X(q.x),Y(q.y)); ctx.lineTo(X(q.x),Y(0)); ctx.stroke(); lastX = q.x; }
+  }
+  // loop struts
+  var r = T.r;
+  [[-0.9,-1.25],[0.9,1.25]].forEach(function(pr){
+    var ax = X_LOOP + r*Math.sin(Math.PI/2*Math.sign(pr[0]))*0.98;
+    ctx.beginPath(); ctx.moveTo(X(ax), Y(r)); ctx.lineTo(X(X_LOOP + pr[1]*r), Y(0)); ctx.stroke();
+  });
+  // start platform
+  ctx.fillStyle = '#D5DCE8'; ctx.fillRect(X(0), Y(p.h0), X(X_CREST)-X(0), 5);
+  ctx.strokeStyle = '#C3CBD8'; ctx.beginPath(); ctx.moveTo(X(1),Y(p.h0)); ctx.lineTo(X(1),Y(0)); ctx.stroke();
+  // finish
+  ctx.fillStyle = '#FFF4E3'; ctx.fillRect(X(X_END-10), Y(0)-6, X(X_END)-X(X_END-10), 6);
+  ctx.fillStyle = '#B86F0E'; ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.font='bold 12px Calibri, Arial, sans-serif';
+  ctx.fillText('FINISH', X(X_END-5), Y(0)+16);
+  // max-height line
+  if($('eline').checked){
+    var H = (S.E0 - S.Eth)/(M*G);
+    ctx.setLineDash([8,6]); ctx.strokeStyle = '#7B5EA7'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(VIEW.ox, Y(H)); ctx.lineTo(w-6, Y(H)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#7B5EA7'; ctx.textAlign='left'; ctx.font='bold 12px Calibri, Arial, sans-serif';
+    ctx.fillText('max height possible = ' + fmt(H,1) + ' m', VIEW.ox+4, Y(H)-5);
+  }
+  // track rails
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  [[7,'#0B1630'],[2.5,'#6B7486']].forEach(function(st){
+    ctx.strokeStyle = st[1]; ctx.lineWidth = st[0];
+    ctx.beginPath();
+    for(var i=0;i<P.length;i++){ var q=P[i]; if(i===0) ctx.moveTo(X(q.x),Y(q.y)); else ctx.lineTo(X(q.x),Y(q.y)); }
+    ctx.stroke();
+  });
+  // labels on track features
+  ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#0B1630';
+  ctx.fillText('loop ' + p.dl + ' m', X(X_LOOP), Math.max(30, Y(p.dl)-26));
+  ctx.fillText('hill ' + p.h2 + ' m', X(X_HILL0+W_HILL/2), Math.max(14, Y(p.h2)-10));
+  // loop-top speed needed
+  ctx.font = '12px Calibri, Arial, sans-serif'; ctx.fillStyle = '#E4572E';
+  ctx.fillText('needs ≥ ' + fmt(Math.sqrt(G*r),1) + ' m/s at top', X(X_LOOP), Math.max(46, Y(p.dl)-10));
+  // max hill marker
+  if(S.maxHill > 0.2 && S.outcome && S.outcome!=='success'){
+    var xs = null; for(var j=0;j<P.length;j++){ if(P[j].seg==='hill' && P[j].y >= S.maxHill-0.05){ xs=P[j].x; break; } }
+    if(xs!==null){ ctx.strokeStyle='#E4572E'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(xs)-30,Y(S.maxHill)); ctx.lineTo(X(xs)+30,Y(S.maxHill)); ctx.stroke(); ctx.setLineDash([]); }
+  }
+  drawCart();
+}
+function drawCart(){
+  var T = S.T, k = VIEW.k, x, y, tx, ty, v;
+  if(S.mode === 'air'){
+    var sp = Math.hypot(S.vx,S.vy) || 1; x = S.x; y = S.y; tx = S.vx/sp; ty = S.vy/sp; v = sp;
+    if(S.outcome === 'fell'){ tx = 1; ty = 0; }
+  } else {
+    var q = at(T, S.s); x = q.x; y = q.y; tx = q.tx; ty = q.ty; v = S.v;
+  }
+  var nx = -ty, ny = tx; // left normal (up on flats, inward in loop)
+  var Lc = Math.max(22, 3.6*k), Hc = Math.max(12, 1.9*k), lift = 4;
+  var cx = X(x) , cy = Y(y);
+  // height line
+  ctx.setLineDash([5,4]); ctx.strokeStyle = '#E4572E'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, Y(0)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(Math.atan2(-ty, tx));
+  // in screen coords the normal "up" is -y after rotation
+  ctx.translate(0, -lift);
+  ctx.fillStyle = '#F4A43A'; ctx.strokeStyle = '#0B1630'; ctx.lineWidth = 2;
+  roundRect(-Lc/2, -Hc, Lc, Hc, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0B1630';
+  ctx.beginPath(); ctx.arc(-Lc/3, 0, 3.5, 0, 2*Math.PI); ctx.fill();
+  ctx.beginPath(); ctx.arc(Lc/3, 0, 3.5, 0, 2*Math.PI); ctx.fill();
+  // seat
+  ctx.fillStyle = '#FFF4E3'; roundRect(-Lc/2+4, -Hc+3, Lc*0.38, Hc*0.45, 2); ctx.fill();
+  ctx.restore();
+  // velocity arrow
+  var st = state(), vs = st.v, dir = (S.mode==='air') ? 1 : (v < 0 ? -1 : 1);
+  if(vs > 0.3 && !S.outcome){
+    var len = Math.min(100, 8 + vs*3.5), ex = tx*dir, ey = -ty*dir;
+    var px = cx + nx*(Hc/2+lift), pyy = cy - ny*(Hc/2+lift); // cart centre
+    var sx0 = px + ex*(Lc/2+2), sy0 = pyy + ey*(Lc/2+2);
+    ctx.strokeStyle = '#2A9D8F'; ctx.fillStyle = '#2A9D8F'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(sx0 + ex*len, sy0 + ey*len); ctx.stroke();
+    var hx = sx0 + ex*len, hy = sy0 + ey*len, a = Math.atan2(ey, ex);
+    ctx.beginPath(); ctx.moveTo(hx + Math.cos(a)*8, hy + Math.sin(a)*8);
+    ctx.lineTo(hx + Math.cos(a+2.4)*9, hy + Math.sin(a+2.4)*9);
+    ctx.lineTo(hx + Math.cos(a-2.4)*9, hy + Math.sin(a-2.4)*9); ctx.closePath(); ctx.fill();
+    ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    var lx = hx + ex*24, ly = hy + ey*14;
+    ctx.fillStyle = 'rgb(255,255,255)'; var tw = ctx.measureText('00.0 m/s').width; ctx.fillRect(lx-tw/2-2, ly-8, tw+4, 16);
+    ctx.fillStyle = '#2A9D8F'; ctx.fillText(fmt(vs,1) + ' m/s', lx, ly);
+  }
+  // height label
+  ctx.fillStyle = '#E4572E'; ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  if(y > 2) ctx.fillText('h = ' + fmt(y,1) + ' m', cx + 6, (cy + Y(0))/2);
+  if(S.outcome === 'fell'){
+    ctx.fillStyle = '#E4572E'; ctx.font = 'bold 16px Calibri, Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('CRASH!', cx, Y(0) - 30);
+  }
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+/* ---------- Challenges ---------- */
+var CH = [
+  {title:'1. Lowest start, from rest', set:{v0:0, dl:20, h2:15, fric:false, h0:40},
+   text:'The cart starts at rest (v₀ = 0). What is the <b>lowest start height</b> that gets it through a 20 m loop?',
+   key:'h0', stepDown:1, need:{v0:0, dl:20, h2:15, fric:false},
+   done:function(p){ return 'Solved: ' + p.h0 + ' m. That\'s higher than the 20 m loop! It needs extra energy so it\'s still moving fast at the top.'; }},
+  {title:'2. Launch from a low start', set:{h0:15, dl:20, h2:15, fric:false, v0:20},
+   text:'Start at 15 m with a 20 m loop. What is the <b>smallest starting speed</b> that gets the cart through the loop?',
+   key:'v0', stepDown:0.5, need:{h0:15, dl:20, h2:15, fric:false},
+   done:function(p){ return 'Solved: ' + fmt(p.v0,1) + ' m/s. The launch gives extra E<sub>k</sub> to make up for the low start.'; }},
+  {title:'3. The big second hill', set:{v0:0, dl:20, h2:45, fric:false, h0:55},
+   text:'From rest, with a 45 m second hill. What is the <b>lowest start height</b> that clears the hill?',
+   key:'h0', stepDown:1, need:{v0:0, dl:20, h2:45, fric:false},
+   done:function(p){ return 'Solved: ' + p.h0 + ' m. With no friction, the cart just has to start higher than the hill.'; }},
+  {title:'4. Add friction', set:{v0:0, dl:20, h2:15, fric:true, h0:40},
+   text:'Repeat Challenge 1 with <b>friction on</b>. What is the lowest start height now? How much higher is it, and why?',
+   key:'h0', stepDown:1, need:{v0:0, dl:20, h2:15, fric:true},
+   done:function(p){ return 'Solved: ' + p.h0 + ' m. Friction turns some energy into thermal energy, so the cart has to start with more E<sub>g</sub>.'; }}
+];
+var solved = {};
+function buildChallenges(){
+  var g = $('chgrid');
+  CH.forEach(function(c, i){
+    var d = document.createElement('div'); d.className = 'ch'; d.id = 'ch'+i;
+    d.innerHTML = '<h3>' + c.title + '</h3><div>' + c.text + '</div>' +
+      '<input type="text" placeholder="My prediction">' +
+      '<button>Set up</button><div class="status" id="chs'+i+'"></div>';
+    d.querySelector('button').onclick = function(){
+      $('h0').value = c.set.h0; $('v0').value = c.set.v0; $('dl').value = c.set.dl; $('h2').value = c.set.h2; $('fric').checked = c.set.fric;
+      reset();
+      $('chs'+i).style.color = 'var(--grey)';
+      $('chs'+i).textContent = solved[i] ? $('chs'+i).textContent : 'Set up. Now change the ' + (c.key==='h0' ? 'start height' : 'starting speed') + ' and run it.';
+    };
+    g.appendChild(d);
+  });
+}
+function checkChallenges(){
+  if(S.outcome !== 'success') return;
+  var p = S.p;
+  CH.forEach(function(c, i){
+    if(solved[i]) return;
+    for(var key in c.need){ if(p[key] !== c.need[key]) return; }
+    var lower = {}; for(var kk in p) lower[kk] = p[kk];
+    lower[c.key] = p[c.key] - c.stepDown;
+    var min = +$(c.key).min;
+    if(lower[c.key] >= min && simulate(lower).outcome === 'success'){
+      $('chs'+i).style.color = 'var(--amberDk)';
+      $('chs'+i).textContent = 'It works, but can you go lower?';
+      return;
+    }
+    solved[i] = true;
+    $('ch'+i).classList.add('done');
+    $('chs'+i).style.color = 'var(--teal)';
+    $('chs'+i).innerHTML = '✓ ' + c.done(p);
+  });
+}
+
+/* ---------- Wiring ---------- */
+['h0','v0','dl','h2','fric'].forEach(function(id){ $(id).addEventListener('input', reset); });
+$('showPred').addEventListener('change', updatePred);
+$('eline').addEventListener('change', draw);
+$('run').onclick = function(){
+  if(!S || S.outcome) reset();
+  if(running) return;
+  hideBanner(); running = true; lastT = null; requestAnimationFrame(loop);
+};
+$('pause').onclick = function(){ running = false; };
+$('reset').onclick = reset;
+window.addEventListener('resize', resize);
+
+buildChallenges();
+resize();
+reset();
+window.__coaster = {simulate:simulate, step:step, newSim:newSim, at:at};
+})();
+</script>
+</body>
+</html>
