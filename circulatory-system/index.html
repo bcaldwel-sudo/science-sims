@@ -1,0 +1,1288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Circulation Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: a lab bench. The live diagram is the instrument on the left; a tabbed notebook panel sits beside it and stacks below on phones. */
+:root{
+  --bg:#edf1f3; --surface:#ffffff; --surface-2:#f4f7f8; --ink:#14212b; --muted:#536577; --line:#d3dce2;
+  --oxy:#cc2a41; --deoxy:#3758cc; --lumen:#fdf8f7;
+  --muscle:#efc6bf; --muscle-edge:#b87268; --lung:#f7dde0; --lung-edge:#d7a0a8;
+  --valve:#fff6e3; --valve-edge:#5e3f22; --sel:#df9400; --ok:#1d8048; --bad:#c03d0c; --halo:#ffffff;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e151b; --surface:#151f27; --surface-2:#1b2731; --ink:#e4ecf1; --muted:#97a8b6; --line:#2a3946;
+  --oxy:#f2566b; --deoxy:#7290ff; --lumen:#1b232a;
+  --muscle:#4b2a2f; --muscle-edge:#86494f; --lung:#3a252a; --lung-edge:#6e4249;
+  --valve:#f6e6c6; --valve-edge:#120c06; --sel:#f5b739; --ok:#4cc27c; --bad:#ff8a5c; --halo:#151f27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151b; --surface:#151f27; --surface-2:#1b2731; --ink:#e4ecf1; --muted:#97a8b6; --line:#2a3946;
+  --oxy:#f2566b; --deoxy:#7290ff; --lumen:#1b232a;
+  --muscle:#4b2a2f; --muscle-edge:#86494f; --lung:#3a252a; --lung-edge:#6e4249;
+  --valve:#f6e6c6; --valve-edge:#120c06; --sel:#f5b739; --ok:#4cc27c; --bad:#ff8a5c; --halo:#151f27; color-scheme:dark}
+
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:10px 24px;margin-bottom:14px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,36px);line-height:1.05;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:50%;display:inline-block;flex:none}
+.sw.oxy{background:var(--oxy)} .sw.deoxy{background:var(--deoxy)}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:920px){.lab{grid-template-columns:minmax(0,1fr)}}
+.stage,.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.toolbar .spacer{flex:1}
+.btn{font:inherit;font-weight:700;font-size:14px;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.primary,.btn[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,[role="tab"]:focus-visible,.hit:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+select{font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.tl{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+
+#dia{display:block;width:100%;height:auto;touch-action:manipulation}
+.cycle{border-top:1px solid var(--line);padding:10px 14px 12px;display:grid;gap:8px}
+.cycle-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;font-size:13px}
+.beat{font-weight:700;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+.chip b{font-weight:700}
+.chip.open b{color:var(--ok)} .chip.shut b{color:var(--muted)}
+.phases{position:relative;display:grid;grid-template-columns:12fr 33fr 55fr;height:30px;border-radius:7px;overflow:hidden;border:1px solid var(--line);font-size:12px}
+.phases div{display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);border-right:1px solid var(--line);white-space:nowrap;overflow:hidden;padding:0 4px;transition:background .15s,color .15s}
+.phases div:last-of-type{border-right:0}
+.phases div.on{background:var(--ink);color:var(--surface);font-weight:700}
+.phases .short{display:none}
+@media (max-width:560px){.phases .long{display:none}.phases .short{display:inline}}
+.marker{position:absolute;top:0;bottom:0;width:3px;background:var(--sel);left:0;pointer-events:none}
+
+.tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line);padding:0 8px}
+[role="tab"]{white-space:nowrap;font:inherit;font-weight:700;font-size:14px;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:12px 10px 9px;cursor:pointer}
+[role="tab"][aria-selected="true"]{color:var(--ink);border-bottom-color:var(--sel)}
+.tabpanel{padding:16px;display:grid;gap:16px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;font-weight:700}
+h2{font-family:var(--f-display);font-weight:800;font-size:23px;line-height:1.15;margin:2px 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0;text-wrap:balance}
+p{margin:0}
+.info{display:grid;gap:8px}
+.blood{justify-self:start}
+.fact{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.sec{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+dl.readout{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:14px}
+dl.readout dt{color:var(--muted)}
+dl.readout dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;min-width:0}
+canvas#chart{width:100%;height:120px;display:block;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.cap{font-size:12.5px;color:var(--muted)}
+
+.meters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.meter{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);min-width:0}
+.meter .k{font-size:12px;color:var(--muted);line-height:1.3}
+.meter .v{font-family:var(--f-display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;line-height:1.2}
+.meter .r{font-size:11.5px;color:var(--muted);line-height:1.3;margin-top:2px}
+canvas#micro{width:100%;height:230px;display:block;border-radius:10px;background:#0b0b0c}
+.syringe{cursor:grab;touch-action:none}
+.syringe.dragging{cursor:grabbing}
+.syr-grab{fill:transparent}
+.syr-needle{stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+.syr-hub,.syr-flange,.syr-rod{fill:var(--muted)}
+.syr-barrel{fill:var(--surface);fill-opacity:.35;stroke:var(--ink);stroke-width:1.6}
+.syr-tick{stroke:var(--ink);stroke-width:1}
+.site-ring{pointer-events:none;fill:none;stroke:var(--sel);stroke-width:2.5;stroke-dasharray:4 3}
+.site-tag{font-size:12px;pointer-events:none}
+.meter .v small{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--muted);margin-left:3px}
+input[type=range]{width:100%;accent-color:var(--sel)}
+.ticks{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:-4px}
+.actname{font-family:var(--f-display);font-weight:800;font-size:20px}
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:minmax(0,9em) 1fr auto;gap:8px;align-items:center;font-size:13px}
+.bar .track{height:10px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--oxy);width:0;transition:width .3s}
+.bar .n{font-variant-numeric:tabular-nums;font-weight:700;min-width:5.5em;text-align:right}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;color:var(--muted);font-weight:700;background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+.empty td{color:var(--muted);text-align:left;white-space:normal}
+.note{font-size:12.5px;color:var(--muted)}
+
+.checks{display:grid;gap:6px;font-size:14px}
+.checks label{display:flex;gap:8px;align-items:center}
+#tMsg{min-height:3em;font-size:14.5px}
+#tMsg.good{color:var(--ok)} #tMsg.bad{color:var(--bad)}
+ol#tList{margin:0;padding-left:1.6em;display:grid;gap:3px;font-size:14px}
+ol#tList li::marker{color:var(--muted);font-variant-numeric:tabular-nums}
+.score{font-weight:700}
+
+/* diagram */
+.lungLobe{fill:var(--lung);stroke:var(--lung-edge);stroke-width:2}
+.airway{fill:none;stroke:var(--lung-edge);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.bedBg{fill:var(--surface-2);stroke:var(--line);stroke-width:1}
+.bedLine{fill:none;stroke-linecap:round}
+.lbl.org{font-family:var(--f-display);font-weight:600;font-size:17px}
+.lbl.ch{font-size:8.5px}
+.groove{fill:none;stroke:var(--muscle-edge);stroke-width:1.5;stroke-opacity:.6;stroke-dasharray:1 0}
+.heartWall{fill:var(--muscle);stroke:var(--muscle-edge);stroke-width:2.5}
+.wall{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.lumen{fill:none;stroke:var(--lumen);stroke-linecap:round;stroke-linejoin:round}
+.oxyS{stroke:var(--oxy)} .deoxyS{stroke:var(--deoxy)}
+.cav{fill:var(--lumen);stroke-width:2.2}
+.chan{fill:var(--lumen)}
+.lbl{font-family:var(--f-body);font-weight:700;font-size:12.5px;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:4px;stroke-linejoin:round;cursor:pointer}
+.lbl.sm{font-size:12.5px}
+.lbl.row{font-weight:400;font-size:11.5px;fill:var(--muted)}
+.lead{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+#gLabels.off{display:none}
+.cell{stroke:var(--lumen);stroke-width:.8}
+.ring{fill:none;stroke:var(--sel);stroke-width:2.6}
+.leaf-e{stroke:var(--valve-edge);stroke-width:5;stroke-linecap:round}
+.leaf{stroke:var(--valve);stroke-width:2.6;stroke-linecap:round}
+.hit{fill:transparent;stroke:transparent;cursor:pointer;outline:none}
+.hit.line{fill:none;stroke-width:26;stroke-linecap:round;stroke-linejoin:round}
+.hit.area{stroke-width:3.5}
+.hit.line:hover{stroke:var(--sel);stroke-opacity:.18}
+.hit.area:hover{stroke:var(--sel);stroke-opacity:.55}
+.hit.line.sel{stroke:var(--sel);stroke-opacity:.34}
+.hit.area.sel{stroke:var(--sel);stroke-opacity:1;stroke-width:4.5}
+.hit.line.good{stroke:var(--ok);stroke-opacity:.4} .hit.area.good{stroke:var(--ok);stroke-opacity:1;stroke-width:4.5}
+.hit.line.bad{stroke:var(--bad);stroke-opacity:.4} .hit.area.bad{stroke:var(--bad);stroke-opacity:1;stroke-width:4.5}
+
+/* one-screen layout for laptops: diagram fills the left, results top-right, microscope bottom-right */
+.side{display:grid;gap:12px;min-width:0}
+.scope{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:6px;min-width:0}
+.scope .row{flex-wrap:nowrap}
+.scope .cap{text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scope p.cap{text-align:left;white-space:normal}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-bottom:12px}
+header.top h1{font-size:clamp(22px,2.4vw,30px)}
+header.top .toolbar{border:0;padding:0;flex:1}
+.hint{font-size:14px}
+.sfrom{font-size:15px;display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline}
+.sfrom b{font-family:var(--f-display);font-weight:600;font-size:17px}
+.meters.four .meter .v small{display:block;margin:0}
+.hint select{margin-top:4px;max-width:100%}
+@media (min-width: 900px) and (min-height: 540px){
+  html,body{height:100%}
+  body{overflow:hidden}
+  .wrap{box-sizing:border-box;height:100%;max-width:none;display:grid;grid-template-rows:auto minmax(0,1fr);padding-block:10px}
+  header.top{margin-bottom:10px}
+  .lab{min-height:0;height:100%;grid-template-columns:minmax(0,1fr) clamp(340px,31vw,440px);gap:12px}
+  .stage{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:0;height:100%}
+  .dia-box{min-height:0;position:relative}
+  #dia{position:absolute;inset:0;width:100%;height:100%}
+  .cycle{padding:8px 12px 10px;gap:6px}
+  .side{min-height:0;height:100%;grid-template-rows:minmax(0,1fr) minmax(170px,36%)}
+  .tabs [role="tab"]{padding:9px 9px 7px}
+  .scope{padding:8px 12px}
+  .panel{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0}
+  .tabpanel{overflow-y:auto;min-height:0;padding:12px 14px;gap:12px;align-content:start}
+  .scope{grid-template-rows:auto minmax(0,1fr) auto;min-height:0}
+  canvas#micro{height:100%;min-height:110px}
+  .meter{padding:6px 10px}
+  .meter .v{font-size:20px}
+  .meters.four{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .meters.four .meter{padding:6px 7px}
+  .meters.four .k{font-size:11.5px}
+  .meters.four .r{font-size:10.5px}
+  .meters.four .v{font-size:19px}
+}
+canvas#micro{cursor:zoom-in}
+.btn.sm{font-size:12.5px;padding:4px 9px;flex:none}
+.zoom{position:fixed;inset:0;z-index:50;background:rgba(8,12,16,.62);display:grid;place-items:center;padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.zoom-card{position:relative;width:min(1240px,100%);height:min(760px,100%);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:20px;padding:18px;box-sizing:border-box}
+canvas#bigMic{width:100%;height:100%;min-height:0;display:block;border-radius:12px;background:#0b0b0c}
+.zinfo{overflow-y:auto;min-height:0;display:grid;gap:10px;align-content:start;padding-right:40px;font-size:15.5px;line-height:1.55}
+.zinfo h2{margin:0}
+#zText{display:grid;gap:10px}
+.zclose{position:absolute;top:12px;right:12px;width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);background:var(--surface);color:var(--ink);font-size:30px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0 0 3px}
+.zclose:hover{background:var(--ink);color:var(--surface)}
+.zclose:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+@media (max-width:760px){.zoom-card{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.1fr) minmax(0,1fr)}.zinfo{padding-right:0}}
+@media (prefers-reduced-motion: reduce){.bar .fill,.phases div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Circulation Lab</h1>
+    <div class="toolbar">
+      <button class="btn primary" id="play" type="button">Pause</button>
+      <label class="tl" for="speed">Speed
+        <select id="speed">
+          <option value="1">Real heart rate</option>
+          <option value="0.5" selected>½ slow motion</option>
+          <option value="0.25">¼ slow motion</option>
+          <option value="0.1">Super slow</option>
+        </select>
+      </label>
+      <button class="btn" id="labels" type="button" aria-pressed="true">Labels</button>
+      <button class="btn" id="sound" type="button" aria-pressed="false">Heart sounds</button>
+    </div>
+    <div class="legend" aria-label="Colour key">
+      <span><i class="sw oxy"></i>Oxygen-rich blood</span>
+      <span><i class="sw deoxy"></i>Oxygen-poor blood</span>
+    </div>
+  </header>
+
+  <div class="lab">
+    <section class="stage" aria-label="Circulatory system diagram">
+      <div class="dia-box">
+      <svg id="dia" viewBox="20 0 705 726" role="img" aria-label="Diagram of the circulatory system: heart, lungs, head, liver, gut, kidneys and rest of body, with blood cells moving through them">
+        <defs></defs>
+        <g>
+          <g id="gBack"></g>
+          <g id="gV0"></g><g id="gC0"></g>
+          <g id="gV1"></g><g id="gC1"></g>
+          <g id="gHeart"></g><g id="gC2"></g>
+          <g id="gV3"></g><g id="gC3"></g>
+          <g id="gValves"></g>
+          <g id="gTop"></g>
+          <g id="gLabels"></g>
+          <g id="gHits"></g>
+        </g>
+      </svg>
+      </div>
+      <div class="cycle" aria-label="Heartbeat">
+        <div class="cycle-top">
+          <span class="beat" id="beatTxt">Heart rate 70 beats per minute</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="side">
+    <section class="panel">
+      <div class="tabs" role="tablist" aria-label="Activities">
+        <button role="tab" id="t-blood" aria-controls="p-blood" aria-selected="true">Blood test</button>
+        <button role="tab" id="t-explore" aria-controls="p-explore" aria-selected="false" tabindex="-1">Explore</button>
+        <button role="tab" id="t-exercise" aria-controls="p-exercise" aria-selected="false" tabindex="-1">Exercise</button>
+        <button role="tab" id="t-trace" aria-controls="p-trace" aria-selected="false" tabindex="-1">Trace the path</button>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-blood" aria-labelledby="t-blood">
+        <p class="hint">Drag the syringe onto a vessel, chamber or capillary, or pick a site: <select id="siteSel" aria-label="Sample site"><option value="">Choose a location</option></select></p>
+        <p class="sfrom"><span class="eyebrow">Sample from</span> <b id="sName">No sample yet</b></p>
+        <div class="meters four">
+          <div class="meter"><div class="k">Oxygen saturation</div><div class="v" id="sO2">–</div><div class="r">Arteries 97–100%</div></div>
+          <div class="meter"><div class="k">Carbon dioxide</div><div class="v" id="sCO2">–</div><div class="r">Arteries 35–45</div></div>
+          <div class="meter"><div class="k">Glucose (sugar)</div><div class="v" id="sGlu">–</div><div class="r">Fasting 4–6</div></div>
+          <div class="meter"><div class="k">Urea (waste)</div><div class="v" id="sUrea">–</div><div class="r">Normal 2.5–7</div></div>
+        </div>
+        <div class="row">
+          <label class="tl"><input type="checkbox" id="meal"> Person has just eaten a meal</label>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn primary" id="srec" type="button">Record sample</button>
+            <button class="btn" id="scopy" type="button">Copy</button>
+            <button class="btn" id="sclear" type="button">Clear</button>
+          </div>
+        </div>
+          <div class="tablebox">
+            <table id="stbl">
+              <thead><tr><th>Location</th><th>O₂ (%)</th><th>CO₂ (mm Hg)</th><th>Glucose (mmol/L)</th><th>Urea (mmol/L)</th><th>Conditions</th></tr></thead>
+              <tbody id="sbody"></tbody>
+            </table>
+          </div>
+          <p class="note" id="scopyMsg">Copy puts the table on your clipboard so you can paste it into a spreadsheet or document.</p>
+        <p class="note">Values are typical for a healthy person. The liver makes urea and the kidneys remove it. The liver also releases stored sugar into the blood, and after a meal the digestive system absorbs more.</p>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-explore" aria-labelledby="t-explore" hidden>
+        <div class="info" aria-live="polite">
+          <p class="eyebrow" id="infoKind">Start here</p>
+          <h2 id="infoName">Your circulatory system</h2>
+          <span class="chip blood" id="infoBlood" hidden></span>
+          <p id="infoText">The heart is two pumps side by side. The right side sends oxygen-poor blood to the lungs. The left side sends oxygen-rich blood to the rest of the body. Click any chamber, valve, vessel or organ in the diagram to learn what it does.</p>
+          <p class="fact" id="infoFact">Blue is a diagram colour for oxygen-poor blood. Real oxygen-poor blood is dark red.</p>
+        </div>
+        <div class="sec">
+          <div class="row">
+            <h3>Follow one red blood cell</h3>
+            <button class="btn" id="followBtn" type="button">Follow a different cell</button>
+          </div>
+          <dl class="readout">
+            <dt>Location</dt><dd id="fLoc">–</dd>
+            <dt>Oxygen saturation</dt><dd id="fO2">–</dd>
+            <dt>Carbon dioxide (approx.)</dt><dd id="fCO2">–</dd>
+            <dt>Trips through the heart</dt><dd id="fTrips">0</dd>
+          </dl>
+          <canvas id="chart" aria-label="Graph of the followed cell's oxygen saturation over time"></canvas>
+          <p class="cap">Oxygen saturation of the followed cell (percent of its haemoglobin carrying oxygen) over the last 30 seconds of simulation. The ringed cell in the diagram is the one being followed.</p>
+        </div>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-exercise" aria-labelledby="t-exercise" hidden>
+        <div>
+          <div class="row"><label for="act"><h3>Activity level</h3></label><span class="actname" id="actName">Resting</span></div>
+          <input type="range" id="act" min="0" max="100" value="0" step="1">
+          <div class="ticks"><span>Rest</span><span>Walk</span><span>Jog</span><span>Sprint</span></div>
+        </div>
+        <div class="meters">
+          <div class="meter"><div class="k">Heart rate</div><div class="v" id="mHR">70<small>beats/min</small></div></div>
+          <div class="meter"><div class="k">Stroke volume (blood per beat)</div><div class="v" id="mSV">70<small>mL</small></div></div>
+          <div class="meter"><div class="k">Cardiac output</div><div class="v" id="mCO">4.9<small>L/min</small></div></div>
+          <div class="meter"><div class="k">Breathing rate</div><div class="v" id="mBR">14<small>breaths/min</small></div></div>
+          <div class="meter"><div class="k">O₂ in blood leaving the lungs</div><div class="v" id="mOut">98<small>%</small></div></div>
+          <div class="meter"><div class="k">O₂ in blood returning to the heart (measured)</div><div class="v" id="mIn">75<small>%</small></div></div>
+        </div>
+        <div class="sec">
+          <h3>Where the blood goes each minute</h3>
+          <div class="bars">
+            <div class="bar"><span>Brain &amp; head</span><span class="track"><span class="fill" id="bB"></span></span><span class="n" id="nB"></span></div>
+            <div class="bar"><span>Liver (own artery)</span><span class="track"><span class="fill" id="bL"></span></span><span class="n" id="nL"></span></div>
+            <div class="bar"><span>Gut (then liver)</span><span class="track"><span class="fill" id="bG"></span></span><span class="n" id="nG"></span></div>
+            <div class="bar"><span>Kidneys</span><span class="track"><span class="fill" id="bK"></span></span><span class="n" id="nK"></span></div>
+            <div class="bar"><span>Rest of body</span><span class="track"><span class="fill" id="bR"></span></span><span class="n" id="nR"></span></div>
+            <p class="note">Rest of body includes the muscles, skin and bones.</p>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="row">
+            <h3>Data table</h3>
+            <div class="row" style="justify-content:flex-end">
+              <button class="btn primary" id="rec" type="button">Record data</button>
+              <button class="btn" id="copy" type="button">Copy</button>
+              <button class="btn" id="clear" type="button">Clear</button>
+            </div>
+          </div>
+          <div class="tablebox">
+            <table id="tbl">
+              <thead><tr><th>Activity</th><th>Heart rate</th><th>Stroke vol. (mL)</th><th>Output (L/min)</th><th>Breaths/min</th><th>O₂ returning</th><th>Muscle flow (L/min)</th></tr></thead>
+              <tbody id="tbody"><tr class="empty"><td colspan="7">No data yet. Set an activity level, wait for the returning O₂ reading to settle, then press Record data.</td></tr></tbody>
+            </table>
+          </div>
+          <p class="note" id="copyMsg">Copy puts the table on your clipboard so you can paste it into a spreadsheet or document.</p>
+        </div>
+        <p class="note">Numbers are typical values for a healthy teenager or young adult. Blood speed in the diagram is exaggerated so you can follow it. A real trip around the body takes about a minute at rest.</p>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-trace" aria-labelledby="t-trace" hidden>
+        <div class="info">
+          <h2>Trace the path of blood</h2>
+          <p>A blood cell has just dropped off its oxygen in the body's capillaries. Click each structure it passes through, in order, until it is back in the body.</p>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="tValves" checked> Include the four heart valves</label>
+          <label><input type="checkbox" id="tHide" checked> Hide labels while tracing</label>
+        </div>
+        <div class="row"><button class="btn primary" id="tStart" type="button">Start tracing</button><span class="score" id="tScore"></span></div>
+        <p id="tMsg" aria-live="polite">Press Start tracing when you are ready.</p>
+        <ol id="tList"></ol>
+      </div>
+    </section>
+
+    <section class="scope" aria-label="Microscope">
+      <div class="row"><h3>Microscope view</h3><span class="cap" id="mName">No sample yet</span><button class="btn sm" id="zBtn" type="button">Enlarge</button></div>
+      <canvas id="micro" tabindex="0" role="button" aria-label="Microscope view of the blood sample. Click to enlarge."></canvas>
+      <p class="cap">True colours: oxygen-rich cells are bright red, oxygen-poor cells dark red. Click the view to enlarge it.</p>
+    </section>
+    </div>
+  </div>
+</div>
+
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-labelledby="zTitle">
+  <div class="zoom-card">
+    <canvas id="bigMic" aria-label="Enlarged microscope view of the blood sample"></canvas>
+    <div class="zinfo">
+      <p class="eyebrow">Microscope view</p>
+      <h2 id="zTitle">No sample yet</h2>
+      <div id="zText"></div>
+    </div>
+    <button class="zclose" id="zClose" type="button" aria-label="Close enlarged view">&times;</button>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const $ = s => document.querySelector(s);
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const G = { back: $("#gBack"), heart: $("#gHeart"), valves: $("#gValves"), top: $("#gTop"), labels: $("#gLabels"), hits: $("#gHits"),
+  V: [$("#gV0"), $("#gV1"), null, $("#gV3")], C: [$("#gC0"), $("#gC1"), $("#gC2"), $("#gC3")] };
+
+/* ---------- geometry ---------- */
+function cr(pts, per) {
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || pts[i + 1];
+    for (let s = 0; s < per; s++) {
+      const t = s / per, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1].map(k => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)));
+    }
+  }
+  out.push(pts[pts.length - 1].slice());
+  return out;
+}
+// polyline with rounded corners, sampled densely
+function rounded(pts, r) {
+  r = r || 22;
+  const out = [pts[0].slice()];
+  const line = (a, b) => { const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 6)); for (let i = 1; i <= n; i++) out.push([a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]); };
+  let cur = pts[0];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = pts[i], a = pts[i - 1], b = pts[i + 1];
+    const la = Math.hypot(p[0] - a[0], p[1] - a[1]), lb = Math.hypot(b[0] - p[0], b[1] - p[1]), rr = Math.min(r, la / 2, lb / 2);
+    const s = [p[0] + (a[0] - p[0]) / la * rr, p[1] + (a[1] - p[1]) / la * rr], e = [p[0] + (b[0] - p[0]) / lb * rr, p[1] + (b[1] - p[1]) / lb * rr];
+    line(cur, s);
+    for (let k = 1; k <= 8; k++) { const t = k / 8, u = 1 - t; out.push([u * u * s[0] + 2 * u * t * p[0] + t * t * e[0], u * u * s[1] + 2 * u * t * p[1] + t * t * e[1]]); }
+    cur = e;
+  }
+  line(cur, pts[pts.length - 1]);
+  return out;
+}
+function measure(pts) {
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  return { pts, cum, len: cum[cum.length - 1] };
+}
+function at(m, s) {
+  const { pts, cum } = m; s = clamp(s, 0, m.len);
+  let lo = 0, hi = cum.length - 1;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= s) lo = mid; else hi = mid; }
+  const a = pts[lo], b = pts[hi], L = (cum[hi] - cum[lo]) || 1, t = (s - cum[lo]) / L;
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, (b[0] - a[0]) / L, (b[1] - a[1]) / L];
+}
+const toD = pts => "M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L");
+
+/* The heart is drawn in its own small frame and enlarged into place. */
+const HS = 1.3, HTF = `translate(380 325) scale(${HS}) translate(-380 -318)`;
+const T = p => [(p[0] - 380) * HS + 380, (p[1] - 318) * HS + 325];
+const Tinv = p => [(p[0] - 380) / HS + 380, (p[1] - 325) / HS + 318];
+const Tsvc = T([306, 282]), Tivc = T([309, 304]), Tpul = T([367, 257]), Tpv = T([457, 282]), Tao = T([445, 337]);
+const J = [690, Tao[1]];  // where the aorta splits up and down
+const ROW = { head: 50, lungs: 150, liver: 470, gut: 545, kid: 620, body: 695 };
+const BED = { head: [380, ROW.head], lungs: [380, ROW.lungs], liver: [290, ROW.liver], gut: [470, ROW.gut], kid: [380, ROW.kid], body: [380, ROW.body] };
+const BRX = 45;
+const bedPts = (k, dir) => { const [cx, cy] = BED[k], p = []; for (let i = 0; i <= 30; i++) { const t = i / 30, x = dir > 0 ? cx - BRX + 2 * BRX * t : cx + BRX - 2 * BRX * t; p.push([x, cy + 2.5 * Math.sin(t * Math.PI * 3)]); } return p; };
+
+const RAW = {
+  aortaOut: rounded([Tao, J]),
+  headArt: rounded([J, [690, ROW.head], [BED.head[0] + BRX, ROW.head]]),
+  headBed: bedPts("head", -1),
+  svc: rounded([[BED.head[0] - BRX, ROW.head], [60, ROW.head], [60, Tsvc[1]], Tsvc]),
+  raS: cr([[306, 282], [322, 292], [330, 319]].map(T), 10),
+  raI: cr([[309, 304], [320, 308], [330, 319]].map(T), 10),
+  rv: cr([[330, 319], [332, 345], [352, 365], [368, 348], [367, 300], [367, 257]].map(T), 10),
+  trunk: rounded([Tpul, [Tpul[0], 200], [180, 200], [180, ROW.lungs], [BED.lungs[0] - BRX, ROW.lungs]]),
+  lungBed: bedPts("lungs", 1),
+  pv: rounded([[BED.lungs[0] + BRX, ROW.lungs], [540, ROW.lungs], [540, Tpv[1]], Tpv]),
+  la: cr([[457, 282], [440, 292], [425, 319]].map(T), 10),
+  lv: cr([[425, 319], [420, 345], [402, 368], [428, 358], [445, 337]].map(T), 10),
+  art1: rounded([[690, ROW.liver], [BED.liver[0] + BRX, ROW.liver]]),
+  liverBed: bedPts("liver", -1),
+  vein1: rounded([[BED.liver[0] - BRX, ROW.liver], [100, ROW.liver]]),
+  art2: rounded([[690, ROW.gut], [BED.gut[0] + BRX, ROW.gut]]),
+  gutBed: bedPts("gut", -1),
+  portal: cr([[BED.gut[0] - BRX, ROW.gut], [400, ROW.gut - 3], [372, 510], [352, 482], [BED.liver[0] + BRX, ROW.liver]], 10),
+  art3: rounded([[690, ROW.kid], [BED.kid[0] + BRX, ROW.kid]]),
+  kidBed: bedPts("kid", -1),
+  vein3: rounded([[BED.kid[0] - BRX, ROW.kid], [100, ROW.kid]]),
+  art4: rounded([[690, ROW.body], [BED.body[0] + BRX, ROW.body]]),
+  bodyBed: bedPts("body", -1),
+  vein4: rounded([[BED.body[0] - BRX, ROW.body], [100, ROW.body]])
+};
+[["1", ROW.liver], ["2", ROW.gut], ["3", ROW.kid], ["4", ROW.body]].forEach(([k, y]) => {
+  RAW["down" + k] = rounded([J, [690, y]]);
+  RAW["ivc" + k] = rounded([[100, y], [100, Tivc[1]], Tivc]);
+});
+RAW.ivc2 = RAW.ivc1;
+const REG = {
+  aortaOut: { name: "Aorta", part: "aorta" }, headArt: { name: "Artery to the head", part: "aorta" },
+  headBed: { name: "Capillaries of the brain & head", part: "head", bed: "head" },
+  svc: { name: "Superior vena cava", part: "vc" },
+  raS: { name: "Right atrium", part: "ra", L: 2 }, raI: { name: "Right atrium", part: "ra", L: 2 },
+  rv: { name: "Right ventricle", part: "rv", L: 2 },
+  trunk: { name: "Pulmonary artery", part: "pa" },
+  lungBed: { name: "Capillaries of the lungs", part: "lungs", bed: "lungs" },
+  pv: { name: "Pulmonary vein", part: "pv" },
+  la: { name: "Left atrium", part: "la", L: 2 }, lv: { name: "Left ventricle", part: "lv", L: 2 },
+  art1: { name: "Hepatic artery", part: "orgart" }, liverBed: { name: "Capillaries of the liver", part: "liver", bed: "liver" },
+  vein1: { name: "Hepatic vein", part: "orgvein" },
+  art2: { name: "Artery to the gut", part: "orgart" }, gutBed: { name: "Capillaries of the gut", part: "gut", bed: "gut" },
+  portal: { name: "Hepatic portal vein", part: "portal" },
+  art3: { name: "Renal artery", part: "orgart" }, kidBed: { name: "Capillaries of the kidneys", part: "kidneys", bed: "kid" },
+  vein3: { name: "Renal vein", part: "orgvein" },
+  art4: { name: "Artery to the rest of the body", part: "orgart" }, bodyBed: { name: "Capillaries of the rest of the body", part: "rest", bed: "body" },
+  vein4: { name: "Vein from the rest of the body", part: "orgvein" }
+};
+for (const k of ["1", "2", "3", "4"]) { REG["down" + k] = { name: "Aorta", part: "aorta" }; REG["ivc" + k] = { name: "Inferior vena cava", part: "vc" }; }
+for (const k in REG) if (REG[k].L === undefined) REG[k].L = 0;
+const M = {};
+for (const k in RAW) M[k] = measure(RAW[k]);
+
+const ORGANS = ["head", "liver", "gut", "kidneys", "rest"];
+const loopIds = b => [
+  ...[["aortaOut", "headArt", "headBed", "svc", "raS"],
+      ["aortaOut", "down1", "art1", "liverBed", "vein1", "ivc1", "raI"],
+      ["aortaOut", "down2", "art2", "gutBed", "portal", "liverBed", "vein1", "ivc2", "raI"],
+      ["aortaOut", "down3", "art3", "kidBed", "vein3", "ivc3", "raI"],
+      ["aortaOut", "down4", "art4", "bodyBed", "vein4", "ivc4", "raI"]][b],
+  "rv", "trunk", "lungBed", "pv", "la", "lv"];
+const loops = [0, 1, 2, 3, 4].map(b => {
+  let start = 0;
+  const segs = loopIds(b).map(id => { const s = { id, r: REG[id], m: M[id], start, len: M[id].len }; start += M[id].len; return s; });
+  const end = part => { const s = segs.find(x => x.r.part === part); return s.start + s.len; };
+  return { b, segs, total: start, gates: [
+    { v: "tricuspid", pos: end("ra") }, { v: "pulmonary", pos: end("rv") },
+    { v: "mitral", pos: end("la") }, { v: "aortic", pos: start } ] };
+});
+const segAt = (L, d) => { for (const s of L.segs) if (d < s.start + s.len) return s; return L.segs[L.segs.length - 1]; };
+
+/* ---------- information about each part ---------- */
+const PARTS = {
+  vc: { name: "Vena cavae", kind: "Veins", blood: "poor", text: "Two large veins that bring oxygen-poor blood back to the heart. The superior vena cava drains the head and arms. The inferior vena cava collects blood from the liver, kidneys and the rest of the body. Both empty into the right atrium.", fact: "Veins carry blood toward the heart. Blood pressure here is very low, so one-way valves in the veins and squeezing muscles help push blood back." },
+  ra: { name: "Right atrium", kind: "Heart chamber", blood: "poor", text: "Collects oxygen-poor blood arriving from the superior and inferior vena cavae. It has a thin wall because it only has to push blood a short distance, down into the right ventricle.", fact: "The heart's natural pacemaker, the SA node, sits in the wall of the right atrium. It starts every heartbeat." },
+  tricuspid: { name: "Tricuspid valve", kind: "Heart valve", blood: "poor", text: "A one-way valve with three flaps between the right atrium and right ventricle. It opens to let the ventricle fill, then snaps shut when the ventricle squeezes so blood cannot flow back into the atrium.", fact: "The tricuspid and mitral valves closing together make the first heart sound, the \"lub\"." },
+  rv: { name: "Right ventricle", kind: "Heart chamber", blood: "poor", text: "Pumps oxygen-poor blood up through the pulmonary valve to the lungs. Its wall is thinner than the left ventricle's because the lungs are close by and fragile, so they need only a gentle push.", fact: "Peak pressure in the right ventricle is about 25 mm Hg. The left ventricle reaches about 120 mm Hg." },
+  pulmonary: { name: "Pulmonary valve", kind: "Heart valve", blood: "poor", text: "A one-way valve between the right ventricle and the pulmonary artery. It opens when the ventricle squeezes and closes when the ventricle relaxes, so blood cannot fall back into the heart.", fact: "The pulmonary and aortic valves closing together make the second heart sound, the \"dub\"." },
+  pa: { name: "Pulmonary artery", kind: "Artery", blood: "poor", text: "Carries oxygen-poor blood from the right ventricle to the lungs.", fact: "Arteries carry blood away from the heart. This is the only artery in an adult that carries oxygen-poor blood." },
+  lungs: { name: "Lungs", kind: "Organ (gas exchange)", blood: "both", text: "Blood flows through tiny capillaries wrapped around the air sacs (alveoli). Carbon dioxide diffuses out of the blood into the air you breathe out, and oxygen diffuses from the air into the red blood cells.", fact: "Blood leaves the lungs about 98% saturated with oxygen. Sample either side of the lungs to compare." },
+  pv: { name: "Pulmonary vein", kind: "Vein", blood: "rich", text: "Carries oxygen-rich blood from the lungs back to the left atrium.", fact: "The pulmonary veins are the only veins in an adult that carry oxygen-rich blood." },
+  la: { name: "Left atrium", kind: "Heart chamber", blood: "rich", text: "Collects oxygen-rich blood from the pulmonary vein and passes it down to the left ventricle.", fact: "Both atria squeeze at the same moment, just before the ventricles do." },
+  mitral: { name: "Mitral (bicuspid) valve", kind: "Heart valve", blood: "rich", text: "A one-way valve with two flaps between the left atrium and left ventricle. It opens to fill the ventricle and closes when the ventricle squeezes.", fact: "Thin cords called chordae tendineae hold the flaps so they cannot flip backward into the atrium." },
+  lv: { name: "Left ventricle", kind: "Heart chamber", blood: "rich", text: "The strongest chamber. It pumps oxygen-rich blood through the aortic valve into the aorta and out to the whole body. Its muscular wall is thicker than the right ventricle's.", fact: "At rest it pumps about 70 mL of blood with every beat. That amount is the stroke volume." },
+  aortic: { name: "Aortic valve", kind: "Heart valve", blood: "rich", text: "A one-way valve between the left ventricle and the aorta. It opens when the left ventricle squeezes and closes when it relaxes, stopping blood from leaking back.", fact: "If this valve leaks, the left ventricle has to pump the same blood twice and slowly enlarges." },
+  aorta: { name: "Aorta", kind: "Artery", blood: "rich", text: "The body's largest artery. It carries oxygen-rich blood from the left ventricle. Branches go up to the head and down to the liver, gut, kidneys and the rest of the body.", fact: "Its elastic wall stretches with each heartbeat. You feel that stretch travelling through your arteries as your pulse." },
+  orgart: { name: "Arteries to the organs", kind: "Arteries", blood: "rich", text: "Branches of the aorta carry oxygen-rich blood to each organ: the hepatic artery to the liver, an artery to the gut, the renal artery to the kidneys and arteries to the rest of the body.", fact: "Arteries have thick, stretchy walls because the blood in them is under high pressure." },
+  orgvein: { name: "Veins from the organs", kind: "Veins", blood: "poor", text: "Veins carry blood out of each organ: the hepatic vein from the liver, the renal vein from the kidneys and veins from the rest of the body. They all join the inferior vena cava.", fact: "Compare a sample from the renal artery with one from the renal vein to see what the kidneys removed." },
+  portal: { name: "Hepatic portal vein", kind: "Vein", blood: "poor", text: "Carries blood from the gut to the liver. It is unusual because it links two sets of capillaries instead of going straight back to the heart. The liver gets first pick of the nutrients the gut has absorbed.", fact: "After a meal this vein carries the highest blood sugar in the body. Try the meal option, then sample it." },
+  head: { name: "Brain & head", kind: "Organ capillaries", blood: "both", text: "Capillaries in the brain and head. Brain cells need a steady supply of oxygen and glucose every second, and they give off carbon dioxide.", fact: "The brain is about 2% of body mass but uses about 20% of the body's oxygen at rest." },
+  liver: { name: "Liver", kind: "Organ capillaries", blood: "both", text: "The liver gets blood from two places: the hepatic artery brings oxygen-rich blood, and the hepatic portal vein brings nutrient-rich blood from the gut. The liver stores extra glucose after a meal, releases glucose between meals and turns waste nitrogen into urea.", fact: "Blood leaves the liver through the hepatic vein and joins the inferior vena cava." },
+  gut: { name: "Gut", kind: "Organ capillaries", blood: "both", text: "Capillaries in the stomach and intestines. After a meal, glucose and other nutrients are absorbed into the blood here. This blood goes to the liver first, through the hepatic portal vein.", fact: "The gut's own cells use some oxygen and glucose too." },
+  kidneys: { name: "Kidneys", kind: "Organ capillaries", blood: "both", text: "The kidneys filter the blood. They remove urea and other wastes, which leave the body in urine, and they keep the glucose. Blood leaving the kidneys has less urea than blood going in.", fact: "At rest about a fifth of all the blood the heart pumps goes through the kidneys." },
+  rest: { name: "Rest of body", kind: "Organ capillaries", blood: "both", text: "Capillaries in the muscles, skin and bones. Muscles use oxygen and glucose and release carbon dioxide. During exercise they use far more.", fact: "During exercise the arteries feeding your muscles widen, so they get most of the blood. Try the Exercise tab." },
+  body: { name: "Body organs", kind: "Organ capillaries", blood: "both", text: "", fact: "" }
+};
+
+/* ---------- draw static scene ---------- */
+const defs = $("#dia defs");
+function grad(id, x1, x2, from, to) {
+  const g = el("linearGradient", { id, gradientUnits: "userSpaceOnUse", x1, y1: 0, x2, y2: 0 }, defs);
+  el("stop", { offset: 0, style: `stop-color:var(--${from})` }, g); el("stop", { offset: 1, style: `stop-color:var(--${to})` }, g);
+  return `url(#${id})`;
+}
+const VSTYLE = {
+  aortaOut: ["oxyS", 18, 12], headArt: ["oxyS", 18, 12], down4: ["oxyS", 18, 12],
+  svc: ["deoxyS", 18, 12], ivc4: ["deoxyS", 18, 12], trunk: ["deoxyS", 18, 12], pv: ["oxyS", 18, 12],
+  art1: ["oxyS", 13, 8], art2: ["oxyS", 13, 8], art3: ["oxyS", 13, 8], art4: ["oxyS", 13, 8],
+  vein1: ["deoxyS", 13, 8], vein3: ["deoxyS", 13, 8], vein4: ["deoxyS", 13, 8], portal: ["deoxyS", 13, 8]
+};
+for (const id in VSTYLE) {
+  const [cls, wo, wi] = VSTYLE[id], d = toD(M[id].pts);
+  el("path", { d, class: "wall " + cls, "stroke-width": wo }, G.V[0]);
+  el("path", { d, class: "lumen", "stroke-width": wi }, G.V[0]);
+}
+// capillary beds: an oval of fine vessels, coloured from the incoming to the outgoing blood
+const bedHitEls = {};
+for (const k in BED) {
+  const [cx, cy] = BED[k], st = k === "lungs" ? grad("g" + k, cx - BRX, cx + BRX, "deoxy", "oxy") : grad("g" + k, cx + BRX, cx - BRX, "oxy", "deoxy");
+  const g = el("g", {}, G.V[0]);
+  el("ellipse", { cx, cy, rx: BRX + 4, ry: 25, class: "bedBg" }, g);
+  const arc = (h) => `M${cx - BRX} ${cy} C${cx - BRX * 0.55} ${cy + h} ${cx + BRX * 0.55} ${cy + h} ${cx + BRX} ${cy}`;
+  [[-26, 6], [26, 6], [-12, 3.2], [12, 3.2]].forEach(([h, w]) => el("path", { d: arc(h), class: "bedLine", stroke: st, "stroke-width": w }, g));
+  el("path", { d: toD(M[{ head: "headBed", lungs: "lungBed", liver: "liverBed", gut: "gutBed", kid: "kidBed", body: "bodyBed" }[k]].pts), class: "bedLine", stroke: st, "stroke-width": 7 }, g);
+}
+// heart
+const H = el("g", { transform: HTF }, G.heart);
+el("path", { d: "M380 262 C360 238 318 230 300 255 C282 280 290 330 315 355 C340 380 365 392 380 400 C395 392 420 380 445 355 C470 330 478 280 460 255 C442 230 400 238 380 262 Z", class: "heartWall" }, H);
+const CAV = {
+  ra: { d: "M306 272 C306 257 326 252 342 256 C356 261 358 280 354 298 C349 311 333 314 320 311 C307 306 304 288 306 272 Z", c: [330, 284], cls: "deoxyS" },
+  la: { d: "M394 270 C398 257 418 252 436 256 C454 261 460 280 455 297 C450 311 428 314 410 311 C396 307 391 286 394 270 Z", c: [426, 284], cls: "oxyS" },
+  rv: { d: "M304 324 C320 320 345 320 358 321 L358 262 C358 254 376 254 376 262 L376 384 C360 380 330 366 314 350 C304 340 300 330 304 324 Z", c: [340, 345], cls: "deoxyS" },
+  lv: { d: "M386 324 L440 324 C446 332 446 342 442 350 C430 366 406 378 386 384 Z", c: [412, 345], cls: "oxyS" }
+};
+for (const k in CAV) { CAV[k].g = el("g", {}, H); el("path", { d: CAV[k].d, class: "cav " + CAV[k].cls, "stroke-width": 2.2 }, CAV[k].g); }
+el("rect", { x: 318, y: 310, width: 24, height: 16, class: "chan" }, H);
+el("rect", { x: 413, y: 310, width: 24, height: 16, class: "chan" }, H);
+
+/* valves (in the heart's own frame) */
+const VALVES = {
+  tricuspid: { c: [330, 318], dir: [0, 1], w: 11, type: "av" },
+  mitral: { c: [425, 318], dir: [0, 1], w: 11, type: "av" },
+  pulmonary: { c: [367, 258], dir: [0, -1], w: 7, type: "sl" },
+  aortic: { c: [443, 337], dir: [1, 0], w: 7, type: "sl" }
+};
+const VG = el("g", { transform: HTF }, G.valves);
+for (const k in VALVES) {
+  const v = VALVES[k]; v.th = 0.06; v.lines = [];
+  for (let i = 0; i < 2; i++) v.lines.push([el("line", { class: "leaf-e", "stroke-width": 5 }, VG), el("line", { class: "leaf", "stroke-width": 2.6 }, VG)]);
+}
+function drawValves() {
+  for (const k in VALVES) {
+    const v = VALVES[k], px = -v.dir[1], py = v.dir[0];
+    [-1, 1].forEach((s, i) => {
+      const hx = v.c[0] + px * s * v.w, hy = v.c[1] + py * s * v.w, c = Math.cos(v.th), sn = Math.sin(v.th);
+      const ex = hx + (-px * s * c + v.dir[0] * sn) * v.w * 0.96, ey = hy + (-py * s * c + v.dir[1] * sn) * v.w * 0.96;
+      for (const ln of v.lines[i]) { ln.setAttribute("x1", hx.toFixed(1)); ln.setAttribute("y1", hy.toFixed(1)); ln.setAttribute("x2", ex.toFixed(1)); ln.setAttribute("y2", ey.toFixed(1)); }
+    });
+  }
+}
+
+/* labels */
+function label(x, y, lines, o) {
+  o = o || {};
+  const parent = o.heart ? HL : G.labels;
+  if (o.leader) el("path", { d: o.leader, class: "lead" }, parent);
+  const t = el("text", { x, y, "text-anchor": o.anchor || "middle", class: "lbl" + (o.cls ? " " + o.cls : ""), "data-part": o.part }, parent);
+  if (o.rotate) t.setAttribute("transform", `rotate(${o.rotate} ${x} ${y})`);
+  lines.forEach((ln, i) => { const ts = el("tspan", { x, dy: i ? "1.15em" : "0" }, t); ts.textContent = ln; });
+}
+const HL = el("g", { transform: HTF }, G.labels);
+label(330, 281, ["Right", "atrium"], { part: "ra", heart: true, cls: "ch" });
+label(426, 281, ["Left", "atrium"], { part: "la", heart: true, cls: "ch" });
+label(337, 341, ["Right", "ventricle"], { part: "rv", heart: true, cls: "ch" });
+label(410, 341, ["Left", "ventricle"], { part: "lv", heart: true, cls: "ch" });
+label(380, 24, ["Head"], { part: "head", cls: "org" });
+label(380, 121, ["Lungs"], { part: "lungs", cls: "org" });
+label(290, 441, ["Liver"], { part: "liver", cls: "org" });
+label(470, 516, ["Gut"], { part: "gut", cls: "org" });
+label(380, 591, ["Kidneys"], { part: "kidneys", cls: "org" });
+label(380, 666, ["Rest of body"], { part: "rest", cls: "org" });
+label(228, 345, ["Heart"], { cls: "org" });
+label(46, 165, ["Superior vena cava"], { part: "vc", rotate: -90, cls: "sm" });
+label(125, 545, ["Inferior vena cava"], { part: "vc", rotate: -90, cls: "sm" });
+label(716, 520, ["Aorta"], { part: "aorta", rotate: -90, cls: "sm" });
+label(716, 200, ["Aorta"], { part: "aorta", rotate: -90, cls: "sm" });
+label(262, 190, ["Pulmonary artery"], { part: "pa", cls: "sm" });
+label(486, 139, ["Pulmonary vein"], { part: "pv", cls: "sm" });
+label(600, 461, ["Hepatic artery"], { part: "orgart", cls: "sm" });
+label(180, 461, ["Hepatic vein"], { part: "orgvein", cls: "sm" });
+label(345, 520, ["Hepatic", "portal vein"], { part: "portal", anchor: "end", cls: "sm" });
+label(600, 611, ["Renal artery"], { part: "orgart", cls: "sm" });
+label(200, 611, ["Renal vein"], { part: "orgvein", cls: "sm" });
+label(262, 238, ["Pulmonary valve"], { part: "pulmonary", anchor: "end", cls: "sm", leader: "M265 235 L355 245" });
+label(262, 378, ["Tricuspid valve"], { part: "tricuspid", anchor: "end", cls: "sm", leader: "M265 374 L307 330" });
+label(566, 330, ["Mitral valve"], { part: "mitral", anchor: "start", cls: "sm", leader: "M563 326 L445 327" });
+label(566, 382, ["Aortic valve"], { part: "aortic", anchor: "start", cls: "sm", leader: "M563 377 L470 355" });
+
+/* hit targets */
+const hitEls = {};
+function addHit(part, node) {
+  node.setAttribute("data-part", part); node.setAttribute("tabindex", "0"); node.setAttribute("role", "button");
+  node.setAttribute("aria-label", PARTS[part].name);
+  (hitEls[part] = hitEls[part] || []).push(node);
+}
+const lineHit = (part, id) => addHit(part, el("path", { d: toD(M[id].pts), class: "hit line" }, G.hits));
+lineHit("vc", "svc"); lineHit("vc", "ivc4");
+lineHit("pa", "trunk"); lineHit("pv", "pv");
+lineHit("aorta", "aortaOut"); lineHit("aorta", "headArt"); lineHit("aorta", "down4");
+["art1", "art2", "art3", "art4"].forEach(id => lineHit("orgart", id));
+["vein1", "vein3", "vein4"].forEach(id => lineHit("orgvein", id));
+lineHit("portal", "portal");
+const BEDPART = { head: "head", lungs: "lungs", liver: "liver", gut: "gut", kid: "kidneys", body: "rest" };
+for (const k in BED) addHit(BEDPART[k], el("ellipse", { cx: BED[k][0], cy: BED[k][1], rx: BRX + 6, ry: 27, class: "hit area" }, G.hits));
+const HH = el("g", { transform: HTF }, G.hits);
+for (const k in CAV) addHit(k, el("path", { d: CAV[k].d, class: "hit area" }, HH));
+for (const k in VALVES) addHit(k, el("circle", { cx: VALVES[k].c[0], cy: VALVES[k].c[1], r: VALVES[k].type === "av" ? 10 : 8, class: "hit area" }, HH));
+
+/* ---------- colours ---------- */
+let OXY = [204, 42, 65], DEOXY = [55, 88, 204];
+const hex = h => { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  try { OXY = hex(cs.getPropertyValue("--oxy").trim()); DEOXY = hex(cs.getPropertyValue("--deoxy").trim()); } catch (e) {}
+  for (const c of cells) c.ck = -1;
+  drawChart();
+}
+const satColor = sat => { const t = clamp((sat - 72) / 24, 0, 1); return `rgb(${OXY.map((o, i) => Math.round(DEOXY[i] + (o - DEOXY[i]) * t)).join(",")})`; };
+
+/* ---------- physiology model ---------- */
+const DATA = { hr: [70, 100, 140, 185], sv: [70, 85, 100, 110], br: [14, 20, 30, 45], musO2: [70, 55, 35, 20], mus: [1.0, 4.6, 9.8, 16.8] };
+const interp = (arr, a) => { const x = clamp(a, 0, 1) * 3, i = Math.min(2, Math.floor(x)), t = x - i; return arr[i] + (arr[i + 1] - arr[i]) * t; };
+let MEAL = false;
+function model(a) {
+  const hr = interp(DATA.hr, a), sv = interp(DATA.sv, a), co = hr * sv / 1000;
+  const mus = interp(DATA.mus, a);
+  // blood flow (L/min) through each route: head, liver's own artery, gut (then liver), kidneys, rest of body
+  const flows = [0.75, interp([0.4, 0.35, 0.3, 0.25], a), interp([1.1, 1.0, 0.7, 0.4], a), interp([1.1, 1.0, 0.8, 0.6], a), mus + 0.5];
+  const tot = flows.reduce((x, y) => x + y, 0), W = flows.map(x => x / tot);
+  const bed = {
+    head: { o2: 65, co2: 48, g: -0.5, u: 0 },
+    gut: { o2: 75, co2: 46, g: MEAL ? 3.0 : -0.1, u: 0 },
+    kid: { o2: 88, co2: 44, g: -0.1, u: -1.2 },
+    body: { o2: interp(DATA.musO2, a), co2: interp([46, 52, 60, 68], a), g: MEAL ? interp([-0.8, -0.5, -0.3, -0.2], a) : interp([-0.25, -0.2, -0.15, -0.12], a), u: 0 },
+    liver: { o2: 70, co2: 47, g: 0, u: 0 },
+    lungs: { o2: 98.5, co2: 40, g: 0, u: 0 }
+  };
+  // the liver releases or stores glucose so blood sugar stays steady, and makes the urea the kidneys remove
+  bed.liver.g = clamp(-(W[0] * bed.head.g + W[2] * bed.gut.g + W[3] * bed.kid.g + W[4] * bed.body.g) / (W[1] + W[2]), -5, 5);
+  bed.liver.u = -(W[3] * bed.kid.u) / (W[1] + W[2]);
+  return { a, hr, sv, co, br: interp(DATA.br, a), mus, flows, W, bed, glu: MEAL ? 6.5 : 5.0, urea: 5.0 };
+}
+const actName = a => a < 0.15 ? "Resting" : a < 0.5 ? "Walking" : a < 0.83 ? "Jogging" : "Sprinting";
+let MOD = model(0);
+const pickLoop = () => { let r = Math.random(), b = 0; const w = MOD.W; while (b < 4 && r >= w[b]) { r -= w[b]; b++; } return b; };
+
+/* ---------- cells ---------- */
+const N = 160, avgTotal = loops.reduce((s, L) => s + L.total, 0) / loops.length;
+const cells = [];
+for (let i = 0; i < N; i++) {
+  const li = pickLoop();
+  const c = { li, d: (i / N) * loops[li].total, sat: 85, j: Math.random() * 2 - 1, q: Math.random() * 12, amp: 4, ck: -1, trips: 0, layer: -1 };
+  c.e = el("circle", { r: 4.3, class: "cell" });
+  cells.push(c);
+}
+const ring = el("circle", { r: 9, class: "ring" }, G.top);
+
+let beat = 0, phase = 0, playing = true, simSpeed = 0.5;
+const avOpen = p => p < 0.12 || p >= 0.48;
+const slOpen = p => p >= 0.15 && p < 0.43;
+const valveOpen = v => VALVES[v].type === "av" ? avOpen(phase) : slOpen(phase);
+let follow = 0, history = [], histT = 0, returnO2 = 75;
+
+function step(dt) {
+  const prev = phase;
+  beat += dt * MOD.hr / 60; phase = beat % 1;
+  if (soundOn) { if (crossed(prev, phase, 0.12)) thump(52, 0.13, 0.7); if (crossed(prev, phase, 0.43)) thump(74, 0.09, 0.5); }
+  const atria = phase < 0.12, vent = phase >= 0.12 && phase < 0.45;
+  const v = (avgTotal / 20) * (MOD.co / 4.9);
+  let vcSum = 0, vcN = 0;
+  for (const c of cells) {
+    const L = loops[c.li], seg = segAt(L, c.d), part = seg.r.part;
+    let mult = 1;
+    if (part === "rv" || part === "lv") mult = vent ? 2.6 : 0.9;
+    else if (part === "ra" || part === "la") mult = atria ? 2 : 1;
+    else if (seg.r.bed) mult = 0.55;
+    let nd = c.d + v * mult * dt;
+    for (const g of L.gates) {
+      const stop = g.pos - 0.5 - c.q;
+      if (c.d <= g.pos && nd > stop && !valveOpen(g.v)) nd = Math.max(c.d, Math.min(nd, stop));
+    }
+    const ds = nd - c.d;
+    const bk = seg.r.bed;
+    if (bk) c.sat += (MOD.bed[bk].o2 - c.sat) * (1 - Math.exp(-ds / (seg.len / (bk === "lungs" ? 3.4 : 3.2))));
+    else if (part === "vc") { vcSum += c.sat; vcN++; }
+    if (nd >= L.total) { nd -= L.total; c.li = pickLoop(); c.trips++; }
+    c.d = nd;
+  }
+  if (vcN) returnO2 += (vcSum / vcN - returnO2) * Math.min(1, dt * 1.5);
+  histT += dt;
+  while (histT >= 0.1) { histT -= 0.1; history.push(cells[follow].sat); if (history.length > 300) history.shift(); }
+  for (const k in VALVES) { const V = VALVES[k], target = valveOpen(k) ? 1.25 : 0.06; V.th += (target - V.th) * Math.min(1, dt * 30); }
+}
+const crossed = (a, b, x) => a < b ? (a < x && b >= x) : (a < x || b >= x);
+
+function render(dtReal) {
+  for (const c of cells) {
+    const L = loops[c.li], seg = segAt(L, c.d), r = seg.r;
+    if (r.L !== c.layer) { c.layer = r.L; G.C[r.L].appendChild(c.e); }
+    const [x, y, tx, ty] = at(seg.m, c.d - seg.start);
+    let a = r.bed ? 2.2 : r.L === 2 ? (r.part === "rv" || r.part === "lv" ? 11 : 9) : 3.2;
+    for (const g of L.gates) { let dd = Math.abs(c.d - g.pos); if (g.v === "aortic") dd = Math.min(dd, c.d); a = Math.min(a, 1.5 + dd * 0.35); }
+    c.amp += (a - c.amp) * Math.min(1, dtReal * 10);
+    const px = x - ty * c.j * c.amp, py = y + tx * c.j * c.amp;
+    c.e.setAttribute("cx", px.toFixed(1)); c.e.setAttribute("cy", py.toFixed(1));
+    const ck = Math.round(c.sat);
+    if (ck !== c.ck) { c.ck = ck; c.e.setAttribute("fill", satColor(c.sat)); }
+    if (c === cells[follow]) {
+      ring.setAttribute("cx", px.toFixed(1)); ring.setAttribute("cy", py.toFixed(1)); c.region = seg.id;
+    }
+  }
+  const sA = phase < 0.12 ? 1 - 0.07 * Math.sin(Math.PI * phase / 0.12) : 1;
+  const sV = phase >= 0.12 && phase < 0.45 ? 1 - 0.07 * Math.sin(Math.PI * (phase - 0.12) / 0.33) : 1;
+  for (const k in CAV) { const s = (k === "ra" || k === "la") ? sA : sV, [cx, cy] = CAV[k].c; CAV[k].g.setAttribute("transform", `translate(${cx} ${cy}) scale(${s.toFixed(4)}) translate(${-cx} ${-cy})`); }
+  drawValves();
+}
+
+/* ---------- UI: heartbeat strip and readouts ---------- */
+let uiT = 0;
+function ui() {
+  const c = cells[follow];
+  if (c.region) {
+    $("#fLoc").textContent = REG[c.region].name;
+    $("#fO2").textContent = c.sat.toFixed(0) + "%";
+    $("#fCO2").textContent = chemAt(c.region, clamp((c.d - segAt(loops[c.li], c.d).start) / M[c.region].len, 0, 1)).co2.toFixed(0) + " mm Hg";
+    $("#fTrips").textContent = c.trips;
+  }
+  $("#mIn").innerHTML = returnO2.toFixed(0) + "<small>%</small>";
+  updateSample();
+  drawChart();
+}
+function setActivity(a) {
+  MOD = model(a);
+  $("#actName").textContent = actName(a);
+  $("#mHR").innerHTML = Math.round(MOD.hr) + "<small>beats/min</small>";
+  $("#mSV").innerHTML = Math.round(MOD.sv) + "<small>mL</small>";
+  $("#mCO").innerHTML = MOD.co.toFixed(1) + "<small>L/min</small>";
+  $("#mBR").innerHTML = Math.round(MOD.br) + "<small>breaths/min</small>";
+  $("#beatTxt").textContent = `Heart rate ${Math.round(MOD.hr)} beats per minute`;
+  const max = 20.5;
+  [["B", MOD.flows[0]], ["L", MOD.flows[1]], ["G", MOD.flows[2]], ["K", MOD.flows[3]], ["R", MOD.flows[4]]].forEach(([k, v]) => { $("#b" + k).style.width = (v / max * 100).toFixed(1) + "%"; $("#n" + k).textContent = v.toFixed(1) + " L/min"; });
+}
+
+/* chart */
+const chart = $("#chart"), ctx = chart.getContext("2d");
+function drawChart() {
+  const dpr = window.devicePixelRatio || 1, w = chart.clientWidth, h = chart.clientHeight;
+  if (!w || !h) return;
+  if (chart.width !== Math.round(w * dpr) || chart.height !== Math.round(h * dpr)) { chart.width = Math.round(w * dpr); chart.height = Math.round(h * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  const cs = getComputedStyle(document.documentElement);
+  const muted = cs.getPropertyValue("--muted").trim(), line = cs.getPropertyValue("--line").trim();
+  const L = 34, R = 8, T = 8, B = 8, ph = h - T - B, pw = w - L - R;
+  const y = v => T + ph * (1 - v / 100);
+  ctx.font = "11px " + cs.getPropertyValue("--f-body"); ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  [0, 50, 100].forEach(v => { ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, y(v) + 0.5); ctx.lineTo(w - R, y(v) + 0.5); ctx.stroke(); ctx.fillStyle = muted; ctx.fillText(v + "%", L - 6, y(v)); });
+  if (history.length < 2) return;
+  const n = 300, dx = pw / (n - 1), off = n - history.length;
+  ctx.lineWidth = 2.4; ctx.lineJoin = "round"; ctx.lineCap = "round";
+  for (let i = 1; i < history.length; i++) {
+    ctx.strokeStyle = satColor((history[i] + history[i - 1]) / 2);
+    ctx.beginPath(); ctx.moveTo(L + (off + i - 1) * dx, y(history[i - 1])); ctx.lineTo(L + (off + i) * dx, y(history[i])); ctx.stroke();
+  }
+  const last = history[history.length - 1];
+  ctx.fillStyle = satColor(last); ctx.beginPath(); ctx.arc(L + (n - 1) * dx, y(last), 3.5, 0, Math.PI * 2); ctx.fill();
+}
+
+/* ---------- sound ---------- */
+let soundOn = false, actx = null;
+function thump(f, dur, vol) {
+  if (!actx) return;
+  const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+  o.type = "sine"; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.6, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+}
+$("#sound").addEventListener("click", e => {
+  soundOn = !soundOn; e.currentTarget.setAttribute("aria-pressed", soundOn);
+  if (soundOn) { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (err) { soundOn = false; e.currentTarget.setAttribute("aria-pressed", "false"); } }
+});
+
+/* ---------- controls ---------- */
+const playBtn = $("#play");
+function setPlaying(p) { playing = p; playBtn.textContent = p ? "Pause" : "Play"; }
+playBtn.addEventListener("click", () => setPlaying(!playing));
+$("#speed").addEventListener("change", e => simSpeed = parseFloat(e.target.value));
+let labelsOn = true;
+function setLabels(on) { labelsOn = on; G.labels.classList.toggle("off", !on); $("#labels").setAttribute("aria-pressed", on); }
+$("#labels").addEventListener("click", () => setLabels(!labelsOn));
+$("#act").addEventListener("input", e => setActivity(e.target.value / 100));
+$("#followBtn").addEventListener("click", () => { let n; do { n = Math.floor(Math.random() * N); } while (n === follow); follow = n; history = []; cells[follow].trips = 0; });
+
+/* tabs */
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function showTab(t) { tabs.forEach(x => { const on = x === t; x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1; $("#" + x.getAttribute("aria-controls")).hidden = !on; }); drawChart(); }
+tabs.forEach((t, i) => {
+  t.addEventListener("click", () => showTab(t));
+  t.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length]; n.focus(); showTab(n); } });
+});
+
+/* selecting parts */
+let selected = null, svgClick;
+function mark(part, cls, on) { (hitEls[part] || []).forEach(n => n.classList.toggle(cls, on)); }
+function select(part) {
+  if (selected) mark(selected, "sel", false);
+  selected = part; mark(part, "sel", true);
+  const P = PARTS[part];
+  $("#infoKind").textContent = P.kind; $("#infoName").textContent = P.name; $("#infoText").textContent = P.text; $("#infoFact").textContent = P.fact;
+  const b = $("#infoBlood"); b.hidden = false;
+  b.innerHTML = P.blood === "rich" ? '<i class="sw oxy"></i>Carries oxygen-rich blood' : P.blood === "poor" ? '<i class="sw deoxy"></i>Carries oxygen-poor blood' : '<i class="sw deoxy"></i><i class="sw oxy"></i>Gas exchange happens here';
+  const ex = $("#t-explore"); if (ex.getAttribute("aria-selected") !== "true") showTab(ex);
+}
+function activate(part) { if (trace.active) traceClick(part); else select(part); }
+svgClick = e => { const t = e.target.closest("[data-part]"); if (t) activate(t.getAttribute("data-part")); };
+G.hits.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.dataset.part) { e.preventDefault(); activate(e.target.dataset.part); } });
+
+/* ---------- trace challenge ---------- */
+const TRACE_ALL = ["vc", "ra", "tricuspid", "rv", "pulmonary", "pa", "lungs", "pv", "la", "mitral", "lv", "aortic", "aorta", "body"];
+const trace = { active: false, order: [], idx: 0, mistakes: 0, hidLabels: false };
+const tMsg = $("#tMsg");
+function say(txt, cls) { tMsg.textContent = txt; tMsg.className = cls || ""; }
+function flash(part, cls) { mark(part, cls, true); setTimeout(() => mark(part, cls, false), 700); }
+$("#tStart").addEventListener("click", () => {
+  const valves = $("#tValves").checked;
+  trace.order = TRACE_ALL.filter(p => valves || !VALVES[p]);
+  trace.idx = 0; trace.mistakes = 0; trace.active = true;
+  if (selected) { mark(selected, "sel", false); selected = null; }
+  if ($("#tHide").checked) { trace.hidLabels = labelsOn; setLabels(false); }
+  $("#tList").innerHTML = ""; $("#tScore").textContent = "";
+  $("#tStart").textContent = "Start over";
+  say("Step 1: The blood is leaving the body's capillaries. Which structure does it enter first?");
+});
+function traceClick(part) {
+  const want = trace.order[trace.idx];
+  if (VALVES[part] && !trace.order.includes(part)) { say("Valves are switched off for this round. Click a chamber, vessel or organ.", "bad"); return; }
+  if (part === want || (want === "body" && ORGANS.includes(part))) {
+    flash(part, "good");
+    const li = document.createElement("li"); li.textContent = PARTS[part].name; $("#tList").appendChild(li);
+    trace.idx++;
+    if (trace.idx >= trace.order.length) {
+      trace.active = false;
+      if (trace.hidLabels) setLabels(true);
+      $("#tScore").textContent = trace.mistakes === 0 ? "Perfect trace" : `${trace.mistakes} mistake${trace.mistakes === 1 ? "" : "s"}`;
+      say("Done! The blood is back in the body. It passed through the heart twice on one trip, once on each side. That is why this is called double circulation.", "good");
+      $("#tStart").textContent = "Trace again";
+    } else say(`Correct: ${PARTS[part].name}. Step ${trace.idx + 1}: where does the blood go next?`, "good");
+  } else {
+    trace.mistakes++; flash(part, "bad");
+    const here = trace.idx === 0 ? "the body's capillaries" : "the " + PARTS[trace.order[trace.idx - 1]].name.toLowerCase().replace("(bicuspid) ", "");
+    say(`Not quite. You clicked the ${PARTS[part].name.toLowerCase()}. The blood is in ${here} now. Where does it go next?`, "bad");
+    $("#tScore").textContent = `${trace.mistakes} mistake${trace.mistakes === 1 ? "" : "s"}`;
+  }
+}
+
+/* ---------- data table ---------- */
+const rows = [];
+function renderTable() {
+  const tb = $("#tbody");
+  if (!rows.length) { tb.innerHTML = '<tr class="empty"><td colspan="7">No data yet. Set an activity level, wait for the returning O₂ reading to settle, then press Record data.</td></tr>'; return; }
+  tb.innerHTML = rows.map(r => `<tr><td>${r[0]}</td>${r.slice(1).map(v => `<td>${v}</td>`).join("")}</tr>`).join("");
+}
+$("#rec").addEventListener("click", () => { rows.push([actName(MOD.a), Math.round(MOD.hr), Math.round(MOD.sv), MOD.co.toFixed(1), Math.round(MOD.br), returnO2.toFixed(0) + "%", MOD.mus.toFixed(1)]); renderTable(); });
+$("#clear").addEventListener("click", () => { rows.length = 0; renderTable(); });
+$("#copy").addEventListener("click", () => {
+  const head = ["Activity", "Heart rate (beats/min)", "Stroke volume (mL)", "Cardiac output (L/min)", "Breaths/min", "O2 returning (%)", "Muscle flow (L/min)"];
+  const txt = [head, ...rows].map(r => r.join("\t")).join("\n");
+  const msg = $("#copyMsg");
+  const fallback = () => { const s = window.getSelection(), r = document.createRange(); r.selectNodeContents($("#tbl")); s.removeAllRanges(); s.addRange(r); msg.textContent = "The table is selected. Press Ctrl+C (or Cmd+C) to copy it."; };
+  try { navigator.clipboard.writeText(txt).then(() => { msg.textContent = rows.length ? `Copied ${rows.length} row${rows.length === 1 ? "" : "s"}. Paste into a spreadsheet or document.` : "Copied the column headings. Record some data first."; }, fallback); } catch (e) { fallback(); }
+});
+
+/* ---------- blood sampling ---------- */
+const K_BODY = 3.2, K_LUNG = 3.4;
+function bedAt(inp, k, f) {
+  const B = MOD.bed[k], e = 1 - Math.exp(-(k === "lungs" ? K_LUNG : K_BODY) * f);
+  return { o2: inp.o2 + (B.o2 - inp.o2) * e, co2: inp.co2 + (B.co2 - inp.co2) * e, glu: inp.glu + B.g * f, urea: inp.urea + B.u * f };
+}
+function wavg(list, w) {
+  const r = { o2: 0, co2: 0, glu: 0, urea: 0 }; let ws = 0;
+  list.forEach((v, i) => { for (const k in r) r[k] += v[k] * w[i]; ws += w[i]; });
+  for (const k in r) r[k] /= ws; return r;
+}
+function chemState() {
+  const W = MOD.W;
+  let A = { o2: 98, co2: 40, glu: MOD.glu, urea: MOD.urea }, S;
+  for (let it = 0; it < 2; it++) {
+    const head = bedAt(A, "head", 1), gut = bedAt(A, "gut", 1), liverIn = wavg([A, gut], [W[1], W[2]]), liver = bedAt(liverIn, "liver", 1);
+    const kid = bedAt(A, "kid", 1), body = bedAt(A, "body", 1);
+    const MV = wavg([head, liver, kid, body], [W[0], W[1] + W[2], W[3], W[4]]);
+    S = { A, head, gut, liverIn, liver, kid, body, MV };
+    A = { ...bedAt(MV, "lungs", 1), glu: MOD.glu, urea: MOD.urea };
+  }
+  S.A = A; return S;
+}
+function chemAt(id, f) {
+  const S = chemState(), W = MOD.W;
+  switch (id) {
+    case "headBed": return bedAt(S.A, "head", f);
+    case "svc": return S.head;
+    case "gutBed": return bedAt(S.A, "gut", f);
+    case "portal": return S.gut;
+    case "liverBed": return bedAt(S.liverIn, "liver", f);
+    case "vein1": return S.liver;
+    case "kidBed": return bedAt(S.A, "kid", f);
+    case "vein3": return S.kid;
+    case "bodyBed": return bedAt(S.A, "body", f);
+    case "vein4": return S.body;
+    case "raS": case "raI": case "rv": case "trunk": return S.MV;
+    case "lungBed": return bedAt(S.MV, "lungs", f);
+  }
+  if (/^ivc/.test(id)) {
+    const y = at(M[id], f * M[id].len)[1], list = [S.body], w = [W[4]];
+    if (y <= ROW.kid + 1) { list.push(S.kid); w.push(W[3]); }
+    if (y <= ROW.liver + 1) { list.push(S.liver); w.push(W[1] + W[2]); }
+    return wavg(list, w);
+  }
+  return S.A;
+}
+function siteName(id, f) {
+  const r = REG[id];
+  if (r.bed) return r.name + (f < 0.25 ? " (blood entering)" : f > 0.75 ? " (blood leaving)" : "");
+  return r.name;
+}
+const SITES = [
+  ["aortaOut", 0.5, "Aorta, leaving the heart"], ["headArt", 0.9, "Artery to the head"], ["headBed", 0.5, "Brain capillaries"],
+  ["svc", 0.4, "Superior vena cava"], ["raS", 0.6, "Right atrium"], ["rv", 0.3, "Right ventricle"], ["trunk", 0.5, "Pulmonary artery"],
+  ["lungBed", 0.5, "Lung capillaries"], ["pv", 0.3, "Pulmonary vein"], ["la", 0.5, "Left atrium"], ["lv", 0.3, "Left ventricle"],
+  ["art1", 0.5, "Hepatic artery"], ["gutBed", 0.5, "Gut capillaries"], ["portal", 0.5, "Hepatic portal vein"], ["liverBed", 0.5, "Liver capillaries"],
+  ["vein1", 0.5, "Hepatic vein"], ["art3", 0.5, "Renal artery"], ["kidBed", 0.5, "Kidney capillaries"], ["vein3", 0.5, "Renal vein"],
+  ["bodyBed", 0.5, "Rest of body capillaries"], ["vein4", 0.5, "Vein from the rest of the body"], ["ivc4", 0.75, "Inferior vena cava, near the heart"]
+];
+const siteSel = $("#siteSel");
+SITES.forEach((s, i) => { const o = document.createElement("option"); o.value = i; o.textContent = s[2]; siteSel.appendChild(o); });
+
+const CHAMBER_SEG = { ra: "raS", rv: "rv", la: "la", lv: "lv" };
+const cavEls = {}; for (const k in CAV) cavEls[k] = CAV[k].g.firstChild;
+function nearestOn(id, x, y) {
+  const m = M[id]; let bi = 0, bd = Infinity;
+  m.pts.forEach((p, i) => { const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < bd) { bd = d; bi = i; } });
+  return { id, f: m.cum[bi] / m.len, x: m.pts[bi][0], y: m.pts[bi][1], d: bd };
+}
+function findSite(x, y) {
+  const [lx, ly] = Tinv([x, y]);
+  for (const k in cavEls) {
+    try { if (cavEls[k].isPointInFill(new DOMPoint(lx, ly))) return nearestOn(CHAMBER_SEG[k], x, y); } catch (e) {}
+  }
+  let best = null, bd = 22 * 22;
+  for (const id in M) {
+    if (REG[id].L === 2) continue;
+    M[id].pts.forEach((p, i) => {
+      const d = (p[0] - x) ** 2 + (p[1] - y) ** 2;
+      if (d < bd) { bd = d; best = { id, f: M[id].cum[i] / M[id].len, x: p[0], y: p[1] }; }
+    });
+  }
+  return best;
+}
+
+/* syringe drawing (tip at 0,0, body up and to the right) */
+G.top.parentNode.appendChild(G.top);  // syringe sits above everything so it can always be grabbed
+const DOCK = [590, 265];
+const syr = el("g", { class: "syringe", role: "img", "aria-label": "Syringe" }, G.top);
+const syrInner = el("g", { transform: "rotate(-45)" }, syr);
+el("rect", { x: -6, y: -20, width: 92, height: 40, class: "syr-grab" }, syrInner);
+el("line", { x1: 0, y1: 0, x2: 20, y2: 0, class: "syr-needle" }, syrInner);
+el("rect", { x: 20, y: -3, width: 4, height: 6, class: "syr-hub" }, syrInner);
+const syrBlood = el("rect", { x: 25, y: -5.5, width: 0, height: 11, fill: "#b3202f" }, syrInner);
+el("rect", { x: 24, y: -7, width: 40, height: 14, rx: 2, class: "syr-barrel" }, syrInner);
+[32, 40, 48, 56].forEach(t => el("line", { x1: t, y1: -7, x2: t, y2: -3, class: "syr-tick" }, syrInner));
+el("rect", { x: 63, y: -12, width: 3, height: 24, rx: 1, class: "syr-flange" }, syrInner);
+const syrRod = el("g", {}, syrInner);
+el("rect", { x: 40, y: -2, width: 34, height: 4, class: "syr-rod" }, syrRod);
+el("rect", { x: 74, y: -9, width: 4, height: 18, rx: 1.5, class: "syr-rod" }, syrRod);
+const dockTxt = el("text", { x: 572, y: 292, class: "lbl row" }, G.top);
+[["Drag the syringe", 0], ["to take a blood sample", 1]].forEach(([t, i]) => { const ts = el("tspan", { x: 572, dy: i ? "1.2em" : "0" }, dockTxt); ts.textContent = t; });
+const hoverRing = el("circle", { r: 11, class: "site-ring", visibility: "hidden" }, G.top);
+const tag = el("text", { class: "lbl site-tag", visibility: "hidden", "text-anchor": "middle" }, G.top);
+function setSyr(x, y) { syr.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`); }
+function showTag(x, y, txt) {
+  if (!txt) { tag.setAttribute("visibility", "hidden"); return; }
+  tag.textContent = txt; tag.setAttribute("x", clamp(x, 60, 760)); tag.setAttribute("y", y < 40 ? y + 34 : y - 18); tag.setAttribute("visibility", "visible");
+}
+setSyr(DOCK[0], DOCK[1]);
+
+let site = null, dragging = null, justDragged = false;
+const svgEl = $("#dia");
+const toLocal = e => new DOMPoint(e.clientX, e.clientY).matrixTransform(G.top.getScreenCTM().inverse());
+syr.addEventListener("pointerdown", e => {
+  e.preventDefault(); e.stopPropagation();
+  dragging = e.pointerId; svgEl.setPointerCapture(e.pointerId); syr.classList.add("dragging");
+  dockTxt.setAttribute("visibility", "hidden");
+});
+svgEl.addEventListener("pointermove", e => {
+  if (dragging !== e.pointerId) return;
+  const p = toLocal(e); setSyr(p.x, p.y);
+  const s = findSite(p.x, p.y);
+  if (s) { hoverRing.setAttribute("cx", s.x); hoverRing.setAttribute("cy", s.y); hoverRing.setAttribute("visibility", "visible"); showTag(s.x, s.y, siteName(s.id, s.f)); }
+  else { hoverRing.setAttribute("visibility", "hidden"); showTag(0, 0, ""); }
+});
+function endDrag(e, cancel) {
+  if (dragging !== e.pointerId) return;
+  dragging = null; justDragged = true; setTimeout(() => justDragged = false, 50);
+  syr.classList.remove("dragging"); hoverRing.setAttribute("visibility", "hidden");
+  const p = toLocal(e), s = cancel ? null : findSite(p.x, p.y);
+  if (s) takeSample(s, siteName(s.id, s.f));
+  else if (site) { setSyr(site.x, site.y); showTag(site.x, site.y, site.name); }
+  else { setSyr(DOCK[0], DOCK[1]); showTag(0, 0, ""); dockTxt.setAttribute("visibility", "visible"); }
+}
+svgEl.addEventListener("pointerup", e => endDrag(e, false));
+svgEl.addEventListener("pointercancel", e => endDrag(e, true));
+svgEl.addEventListener("click", e => { if (justDragged) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+siteSel.addEventListener("change", () => {
+  if (siteSel.value === "") return;
+  const [id, f, name] = SITES[+siteSel.value], [x, y] = at(M[id], f * M[id].len);
+  takeSample({ id, f, x, y }, name, true);
+});
+
+function takeSample(s, name, fromList) {
+  site = { ...s, name };
+  setSyr(s.x, s.y); showTag(s.x, s.y, name);
+  dockTxt.setAttribute("visibility", "hidden");
+  if (!fromList) siteSel.value = "";
+  syrBlood.setAttribute("width", 0); syrRod.setAttribute("transform", "");
+  site.fill = 0;
+  showTab($("#t-blood"));
+  updateSample();
+  updateZoomText();
+}
+const rbcRGB = o2 => { const t = clamp((o2 - 40) / 58, 0, 1); return [Math.round(96 + (222 - 96) * t), Math.round(10 + (34 - 10) * t), Math.round(30 + (48 - 30) * t)]; };
+function updateSample() {
+  if (!site) return;
+  const c = chemAt(site.id, site.f); site.chem = c;
+  $("#sName").textContent = site.name; $("#mName").textContent = site.name;
+  $("#sO2").innerHTML = c.o2.toFixed(0) + "<small>%</small>";
+  $("#sCO2").innerHTML = c.co2.toFixed(0) + "<small>mm Hg</small>";
+  $("#sGlu").innerHTML = c.glu.toFixed(1) + "<small>mmol/L</small>";
+  $("#sUrea").innerHTML = c.urea.toFixed(1) + "<small>mmol/L</small>";
+  syrBlood.setAttribute("fill", `rgb(${rbcRGB(c.o2).join(",")})`);
+  if (zoomOpen && (zT = (zT + 1) % 6) === 0) updateZoomText();
+}
+$("#meal").addEventListener("change", e => { MEAL = e.target.checked; setActivity($("#act").value / 100); updateSample(); });
+
+/* samples table */
+const srows = [];
+function renderSamples() {
+  const tb = $("#sbody");
+  if (!srows.length) { tb.innerHTML = '<tr class="empty"><td colspan="6">No samples yet. Take a sample, then press Record sample.</td></tr>'; return; }
+  tb.innerHTML = srows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("");
+}
+$("#srec").addEventListener("click", () => {
+  if (!site) { $("#scopyMsg").textContent = "Take a sample first by dragging the syringe onto the diagram."; return; }
+  const c = site.chem;
+  srows.push([site.name, c.o2.toFixed(0), c.co2.toFixed(0), c.glu.toFixed(1), c.urea.toFixed(1), actName(MOD.a) + (MEAL ? ", after a meal" : "")]);
+  renderSamples();
+});
+$("#sclear").addEventListener("click", () => { srows.length = 0; renderSamples(); });
+$("#scopy").addEventListener("click", () => {
+  const head = ["Location", "Oxygen saturation (%)", "Carbon dioxide (mm Hg)", "Glucose (mmol/L)", "Urea (mmol/L)", "Conditions"];
+  const txt = [head, ...srows].map(r => r.join("\t")).join("\n"), msg = $("#scopyMsg");
+  const fallback = () => { const s = window.getSelection(), r = document.createRange(); r.selectNodeContents($("#stbl")); s.removeAllRanges(); s.addRange(r); msg.textContent = "The table is selected. Press Ctrl+C (or Cmd+C) to copy it."; };
+  try { navigator.clipboard.writeText(txt).then(() => { msg.textContent = srows.length ? `Copied ${srows.length} sample${srows.length === 1 ? "" : "s"}. Paste into a spreadsheet or document.` : "Copied the column headings. Record a sample first."; }, fallback); } catch (e) { fallback(); }
+});
+renderSamples();
+
+/* microscope */
+const mic = $("#micro"), mctx = mic.getContext("2d");
+const rnd = (a, b) => a + Math.random() * (b - a);
+const micRBC = Array.from({ length: 60 }, () => ({ x: rnd(0, 1), y: rnd(0, 1), r: rnd(0.92, 1.08), a: rnd(0, 6.28), sp: rnd(0.8, 1.2) }));
+const micPLT = Array.from({ length: 12 }, () => ({ x: rnd(0, 1), y: rnd(0, 1), a: rnd(0, 6.28) }));
+const micWBC = { x: rnd(0, 1), y: rnd(0.25, 0.75) };
+let micPhase = 0;
+let zoomOpen = false;
+const bigMic = $("#bigMic");
+function drawMicro(dt) {
+  const cv = zoomOpen ? bigMic : mic, g = cv.getContext("2d");
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (playing) micPhase += dt * simSpeed * 2;
+  if (!w || !h) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = "#0b0b0c"; g.fillRect(0, 0, w, h);
+  const R = zoomOpen ? Math.min(w, h) / 2 - 12 : Math.min(w / 2 - 8, h * 0.85), cx = w / 2, cy = h / 2;
+  const s = zoomOpen ? clamp(R / 115, 1.3, 3) : 1;
+  const font = getComputedStyle(document.documentElement).getPropertyValue("--f-body");
+  g.save(); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
+  g.fillStyle = "#f2e4bd"; g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+  if (!site) {
+    g.fillStyle = "#7a6a45"; g.font = `600 ${Math.round(14 * (zoomOpen ? 1.4 : 1))}px ${font}`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("Drag the syringe onto", cx, cy - 10 * s); g.fillText("the diagram to take a sample", cx, cy + 10 * s); g.restore(); return;
+  }
+  const rbc = 9 * s, col = rbcRGB(site.chem.o2), x0 = cx - R, span = 2 * R;
+  const cap = !!REG[site.id].bed, chamber = REG[site.id].L === 2;
+  const speed = (cap ? 14 : chamber ? 34 : /aorta|headArt|art\d|down|trunk/.test(site.id) ? 70 : 38) * s;
+  const disc = (x, y, rx, ry, rot) => {
+    g.save(); g.translate(x, y); g.rotate(rot); g.scale(1, ry / rx);
+    const gr = g.createRadialGradient(0, 0, rx * 0.15, 0, 0, rx);
+    gr.addColorStop(0, `rgb(${col.map(v => Math.round(v + (255 - v) * 0.45)).join(",")})`);
+    gr.addColorStop(0.55, `rgb(${col.map(v => Math.round(v + (255 - v) * 0.12)).join(",")})`);
+    gr.addColorStop(1, `rgb(${col.join(",")})`);
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = `rgba(${col.map(v => Math.round(v * 0.6)).join(",")},.8)`; g.lineWidth = s; g.stroke(); g.restore();
+  };
+  if (cap) {
+    const ch = 26 * s, wall = 30 * s;
+    g.fillStyle = "#e3b3a3"; g.fillRect(x0, cy - ch / 2 - wall, span, wall); g.fillRect(x0, cy + ch / 2, span, wall);
+    g.strokeStyle = "#b97f6d"; g.lineWidth = 2 * s;
+    g.beginPath(); g.moveTo(x0, cy - ch / 2); g.lineTo(x0 + span, cy - ch / 2); g.moveTo(x0, cy + ch / 2); g.lineTo(x0 + span, cy + ch / 2); g.stroke();
+    g.fillStyle = "#c98f7c";
+    for (let i = 0; i < 6; i++) { const nx = x0 + ((i * 0.19 + 0.05) % 1) * span; g.beginPath(); g.ellipse(nx, cy - ch / 2 - 6 * s, 9 * s, 3 * s, 0, 0, Math.PI * 2); g.ellipse(nx + span * 0.09, cy + ch / 2 + 6 * s, 9 * s, 3 * s, 0, 0, Math.PI * 2); g.fill(); }
+    const gap = 24 * s, n = Math.ceil(span / gap) + 2, off = (micPhase * speed) % gap;
+    for (let i = 0; i < n; i++) { const x = x0 + i * gap + off - gap; disc(x, cy + Math.sin(i * 1.7) * 1.5 * s, rbc * 1.05, rbc * 0.8, 0.12 * Math.sin(i)); }
+  } else {
+    for (const p of micPLT) { const x = x0 + ((p.x + micPhase * speed / span) % 1) * span, y = cy - R + p.y * 2 * R; g.fillStyle = "#9a76b8"; g.beginPath(); g.ellipse(x, y, 2.6 * s, 1.7 * s, p.a, 0, Math.PI * 2); g.fill(); }
+    const nShow = clamp(Math.round(R * R / (230 * s * s)), 12, micRBC.length);
+    for (const c of micRBC.slice(0, nShow)) {
+      const drift = chamber ? Math.sin(micPhase * 1.3 + c.a) * 0.03 : 0;
+      const x = x0 + ((c.x + micPhase * speed * c.sp / span) % 1) * span, y = cy - R + ((c.y + drift + 1) % 1) * 2 * R;
+      disc(x, y, rbc * c.r, rbc * c.r * (0.82 + 0.18 * Math.abs(Math.cos(c.a))), c.a);
+    }
+    const wx = x0 + ((micWBC.x + micPhase * speed * 0.7 / span) % 1) * span, wy = cy - R + micWBC.y * 2 * R;
+    g.fillStyle = "#ece6f2"; g.strokeStyle = "#b9a8cc"; g.lineWidth = s; g.beginPath(); g.arc(wx, wy, 15 * s, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = "#6a3d9a"; [[-5, -3, 5], [3, -5, 4.5], [5, 3, 5], [-2, 5, 4]].forEach(([dx, dy, r]) => { g.beginPath(); g.arc(wx + dx * s, wy + dy * s, r * s, 0, Math.PI * 2); g.fill(); });
+  }
+  g.restore();
+  g.strokeStyle = "#2a2a2d"; g.lineWidth = 6; g.beginPath(); g.arc(cx, cy, R + 2, 0, Math.PI * 2); g.stroke();
+  const bar = rbc * 2 / 7.5 * 10, fs = zoomOpen ? 14 : 11;
+  g.fillStyle = "#e8e8e8"; g.fillRect(w - 20 - bar, h - 22, bar, 3);
+  g.font = `${fs}px ${font}`; g.textAlign = "right"; g.textBaseline = "bottom"; g.fillText("10 µm", w - 20, h - 26);
+  if (site.fill < 31) { site.fill = Math.min(31, site.fill + dt * 40); syrBlood.setAttribute("width", site.fill.toFixed(1)); syrRod.setAttribute("transform", `translate(${(site.fill * 0.9).toFixed(1)} 0)`); }
+}
+
+/* enlarged microscope view with a description */
+const zoom = $("#zoom"), zText = $("#zText");
+const SITE_NOTE = {
+  lungBed: "In the lungs, oxygen diffuses from the air sacs into these red blood cells and carbon dioxide diffuses out. Watch the oxygen reading rise as you move the syringe from where blood enters the lungs to where it leaves.",
+  headBed: "Brain cells take oxygen and glucose from the blood here and give back carbon dioxide.",
+  bodyBed: "Muscle, skin and bone cells take oxygen and glucose here and give back carbon dioxide. During exercise the muscles take much more.",
+  gutBed: "The gut wall absorbs digested food here. After a meal, glucose moves from the intestine into this blood.",
+  liverBed: "Liver cells clean and balance the blood. They store or release glucose to keep blood sugar steady, and they make urea from waste nitrogen.",
+  kidBed: "The kidneys filter urea and other wastes out of this blood. The wastes leave the body in urine.",
+  portal: "This blood is coming from the gut and is on its way to the liver, carrying nutrients the gut has absorbed.",
+  vein1: "This blood has just left the liver, so it carries extra urea that the liver made.",
+  vein3: "This blood has just left the kidneys, so it has less urea than blood in the renal artery.",
+  svc: "This blood is returning from the head after the brain used some of its oxygen.",
+  pv: "This blood has just picked up oxygen in the lungs and is heading to the left side of the heart."
+};
+function microInfo() {
+  if (!site) return "<p>Drag the syringe onto any blood vessel, heart chamber or organ to take a sample. The enlarged view will then show the blood under the microscope.</p>";
+  const c = site.chem, r = REG[site.id], cap = !!r.bed, chamber = r.L === 2;
+  const art = /aorta|headArt|art\d|down/.test(site.id) || site.id === "pv";
+  const P = [];
+  P.push(c.o2 > 92
+    ? `<p><b>Bright red cells.</b> About ${c.o2.toFixed(0)}% of the haemoglobin in these red blood cells is carrying oxygen, which makes them bright cherry red.</p>`
+    : `<p><b>Darker red cells.</b> Only about ${c.o2.toFixed(0)}% of the haemoglobin in these red blood cells is carrying oxygen, so they are a darker, purplish red. Real blood is never blue; diagrams use blue to show oxygen-poor blood.</p>`);
+  if (cap) P.push("<p><b>A capillary.</b> Capillaries are the smallest blood vessels, about 8 µm wide, so red blood cells squeeze through in single file. The wall is only one cell thick, which lets oxygen, glucose, carbon dioxide and waste pass between the blood and the surrounding cells.</p>");
+  else if (chamber) P.push("<p><b>Inside the heart.</b> Blood swirls in the chamber as it fills, then is pushed out when the chamber squeezes.</p>");
+  else if (art) P.push("<p><b>An artery.</b> Blood here has just been pumped by the heart, so it moves quickly and under high pressure.</p>");
+  else P.push("<p><b>A vein.</b> Blood here is on its way back to the heart. It moves more slowly and under low pressure.</p>");
+  if (!cap) P.push("<p><b>Other cells.</b> The large pale cell with a purple, lobed nucleus is a white blood cell, which helps fight infection. Real blood has only about 1 white cell for every 600 red cells, so this view shows more than you would usually see. The tiny purple fragments are platelets, which help blood clot.</p>");
+  if (SITE_NOTE[site.id]) P.push(`<p>${SITE_NOTE[site.id]}</p>`);
+  P.push(`<p class="note">You can't see dissolved substances under a microscope. This sample has ${c.glu.toFixed(1)} mmol/L of glucose, ${c.urea.toFixed(1)} mmol/L of urea and ${c.co2.toFixed(0)} mm Hg of carbon dioxide. A red blood cell is about 7.5 µm across; the scale bar shows 10 µm.</p>`);
+  return P.join("");
+}
+function updateZoomText() { if (!zoomOpen) return; $("#zTitle").textContent = site ? site.name : "No sample yet"; zText.innerHTML = microInfo(); }
+let zoomReturn = null;
+function openZoom() { zoomOpen = true; zoomReturn = document.activeElement; zoom.hidden = false; updateZoomText(); $("#zClose").focus(); }
+function closeZoom() { zoomOpen = false; zoom.hidden = true; if (zoomReturn && zoomReturn.focus) zoomReturn.focus(); }
+mic.addEventListener("click", openZoom);
+mic.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openZoom(); } });
+$("#zBtn").addEventListener("click", openZoom);
+$("#zClose").addEventListener("click", closeZoom);
+zoom.addEventListener("click", e => { if (e.target === zoom) closeZoom(); });
+document.addEventListener("keydown", e => { if (zoomOpen && e.key === "Escape") closeZoom(); });
+let zT = 0;
+
+$("#dia").addEventListener("click", svgClick);
+
+/* ---------- start ---------- */
+new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors); } catch (e) {}
+setActivity(0);
+for (let i = 0; i < 1800; i++) step(1 / 30);  // warm up so oxygen levels are realistic from the first frame
+history = []; cells[follow].trips = 0;
+for (let i = 0; i < 120; i++) step(1 / 30);
+readColors();
+render(1);
+ui();
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) setPlaying(false);
+let last = performance.now();
+function frame(t) {
+  const dtReal = Math.min(0.05, (t - last) / 1000); last = t;
+  if (playing) { let dt = dtReal * simSpeed; while (dt > 0) { const s = Math.min(dt, 1 / 60); step(s); dt -= s; } }
+  render(dtReal);
+  uiT += dtReal; if (uiT > 0.08) { uiT = 0; ui(); }
+  drawMicro(dtReal);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.addEventListener("resize", drawChart);
+})();
+</script>
+
+</body>
+</html>
