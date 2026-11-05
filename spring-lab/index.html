@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab bench — spring rig on the left, chart recorder on the right, control strip below; stacks on phones */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #15202b;
+  --muted: #566372;
+  --line: #d8dee6;
+  --grid: #e8ecf1;
+  --spring: #3a5a7c;
+  --mass: #24384e;
+  --trace: #c9501f;
+  --force: #2c7a57;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1318; --panel: #151c23; --ink: #e6ebf0; --muted: #9ba7b4;
+    --line: #2a343f; --grid: #1f2830; --spring: #8db2d8; --mass: #c9d6e3;
+    --trace: #f08a5c; --force: #5fc195; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1318; --panel: #151c23; --ink: #e6ebf0; --muted: #9ba7b4;
+  --line: #2a343f; --grid: #1f2830; --spring: #8db2d8; --mass: #c9d6e3;
+  --trace: #f08a5c; --force: #5fc195; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 32px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 2.4rem; letter-spacing: 0.5px; line-height: 1; text-wrap: balance; }
+.sub { color: var(--muted); max-width: 62ch; line-height: 1.45; margin: 0; }
+.stage { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.label { font-family: var(--display); font-weight: 600; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+canvas { display: block; width: 100%; border-radius: 8px; }
+#rig { height: 440px; touch-action: none; cursor: grab; }
+#rig.dragging { cursor: grabbing; }
+#graph { height: 440px; }
+.readouts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ro { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.ro span:first-child { font-size: 0.8rem; color: var(--muted); }
+.ro b { font-family: var(--mono); font-weight: 500; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ctrl { display: flex; flex-direction: column; gap: 6px; }
+.ctrl label { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+.ctrl output { font-family: var(--mono); font-weight: 400; font-variant-numeric: tabular-nums; }
+.ctrl small { color: var(--muted); font-size: 0.85rem; }
+input[type=range] { width: 100%; accent-color: var(--spring); height: 28px; }
+.regime { font-family: var(--mono); font-size: 0.85rem; color: var(--trace); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 0.95rem var(--body); padding: 10px 16px; min-height: 44px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--spring); border-color: var(--spring); color: var(--panel); }
+button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px solid var(--trace); outline-offset: 2px; }
+.note { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin: 0; }
+@media (max-width: 760px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  #rig { height: 360px; }
+  #graph { height: 260px; }
+  .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .controls { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+<style>html{color-scheme:light dark}body{margin:0}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Spring Lab</h1>
+    <p class="sub">Drag the mass up or down to stretch the spring, then let go. Set friction to zero for ideal simple harmonic motion, or raise it to see damping.</p>
+  </header>
+
+  <div class="stage">
+    <div class="panel">
+      <div class="label"><span>Spring &amp; mass</span><span>drag me</span></div>
+      <canvas id="rig" tabindex="0" aria-label="Spring and mass. Drag the mass vertically to displace it, then release. Arrow keys also move it; Space releases."></canvas>
+    </div>
+    <div class="panel">
+      <div class="label"><span>Displacement vs time</span><span id="tlabel">last 10 s</span></div>
+      <canvas id="graph" role="img" aria-label="Live graph of displacement in centimetres against time in seconds"></canvas>
+      <div class="readouts">
+        <div class="ro"><span>Displacement x</span><b id="rx">0.0 cm</b></div>
+        <div class="ro"><span>Restoring force F = −kx</span><b id="rf">0.00 N</b></div>
+        <div class="ro"><span>Velocity v</span><b id="rv">0.00 m/s</b></div>
+        <div class="ro"><span>Period T = 2π√(m/k)</span><b id="rt">0.99 s</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="ctrl">
+        <label for="b">Friction (damping) b <output id="bo">0.00 kg/s</output></label>
+        <input type="range" id="b" min="0" max="10" step="0.05" value="0">
+        <span class="regime" id="regime">Ideal — no damping</span>
+      </div>
+      <div class="ctrl">
+        <label for="k">Spring constant k <output id="ko">20 N/m</output></label>
+        <input type="range" id="k" min="5" max="40" step="1" value="20">
+        <small>Stiffer spring: more force per cm, shorter period.</small>
+      </div>
+      <div class="ctrl">
+        <label for="m">Mass m <output id="mo">0.50 kg</output></label>
+        <input type="range" id="m" min="0.1" max="2" step="0.05" value="0.5">
+        <small>Heavier mass: longer period, same amplitude.</small>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="pull">Pull down 15 cm &amp; release</button>
+      <button id="pause">Pause</button>
+      <button id="stop">Stop at equilibrium</button>
+      <button id="clear">Clear graph</button>
+    </div>
+    <p class="note">x is measured from the hanging equilibrium position (up is positive), so gravity drops out and the net force is simply F = −kx. Dashed curves on the graph show the predicted decay envelope A·e<sup>−bt/2m</sup> when the motion is underdamped.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const rig = document.getElementById('rig');
+  const graph = document.getElementById('graph');
+  const rc = rig.getContext('2d');
+  const gc = graph.getContext('2d');
+  const $ = id => document.getElementById(id);
+
+  const XMAX = 0.20;            // m, drag limit
+  const WINDOW = 10;            // s shown on graph
+  let k = 20, m = 0.5, b = 0;
+  let x = -0.15, v = 0, t = 0;  // start pulled down 15 cm and released
+  let dragging = false, paused = false;
+  let samples = [];
+  let env = null;               // {t0, A}
+
+  let C = {};
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    ['panel','ink','muted','line','grid','spring','mass','trace','force'].forEach(n => C[n] = s.getPropertyValue('--' + n).trim());
+  }
+  readColors();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors); } catch (e) {}
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  function fit(cv, ctx) {
+    const r = cv.getBoundingClientRect();
+    const d = window.devicePixelRatio || 1;
+    const w = Math.round(r.width * d), h = Math.round(r.height * d);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+    return { w: r.width, h: r.height };
+  }
+
+  function setEnvelope() {
+    const A = Math.sqrt(x * x + m * v * v / k);
+    env = (b > 0 && b < 2 * Math.sqrt(m * k) && A > 0.002) ? { t0: t, A } : null;
+  }
+
+  function regimeText() {
+    const bc = 2 * Math.sqrt(m * k);
+    if (b === 0) return 'Ideal — no damping';
+    if (Math.abs(b - bc) < 0.04 * bc) return 'Critically damped (b ≈ ' + bc.toFixed(2) + ')';
+    return b < bc ? 'Underdamped (critical b = ' + bc.toFixed(2) + ')' : 'Overdamped (critical b = ' + bc.toFixed(2) + ')';
+  }
+
+  function updateControls() {
+    $('bo').textContent = b.toFixed(2) + ' kg/s';
+    $('ko').textContent = k + ' N/m';
+    $('mo').textContent = m.toFixed(2) + ' kg';
+    $('regime').textContent = regimeText();
+    $('rt').textContent = (2 * Math.PI * Math.sqrt(m / k)).toFixed(2) + ' s';
+    setEnvelope();
+  }
+  ['b','k','m'].forEach(id => $(id).addEventListener('input', e => {
+    const val = parseFloat(e.target.value);
+    if (id === 'b') b = val; else if (id === 'k') k = val; else m = val;
+    updateControls();
+  }));
+
+  // ---------- rig geometry ----------
+  let geo = {};
+  function rigGeo(w, h) {
+    const eqY = h * 0.56;
+    const ppm = (h * 0.30) / XMAX;
+    return { w, h, eqY, ppm, cx: w * 0.55, anchorY: 22, bw: 70, bh: 50 };
+  }
+
+  function yToX(py) {
+    return Math.max(-XMAX, Math.min(XMAX, (geo.eqY - py) / geo.ppm));
+  }
+
+  function drawRig() {
+    const { w, h } = fit(rig, rc);
+    geo = rigGeo(w, h);
+    const { eqY, ppm, cx, anchorY, bw, bh } = geo;
+    rc.clearRect(0, 0, w, h);
+
+    // ruler (cm from equilibrium)
+    const rx = 30;
+    rc.strokeStyle = C.line; rc.lineWidth = 1;
+    rc.beginPath(); rc.moveTo(rx, eqY - XMAX * ppm - 6); rc.lineTo(rx, eqY + XMAX * ppm + 6); rc.stroke();
+    rc.font = '500 10px "IBM Plex Mono", monospace';
+    rc.textAlign = 'right'; rc.textBaseline = 'middle';
+    for (let cm = -20; cm <= 20; cm++) {
+      const y = eqY - cm / 100 * ppm;
+      const major = cm % 5 === 0;
+      rc.strokeStyle = major ? C.muted : C.line;
+      rc.beginPath(); rc.moveTo(rx, y); rc.lineTo(rx + (major ? 10 : 5), y); rc.stroke();
+      if (major) { rc.fillStyle = C.muted; rc.fillText(cm > 0 ? '+' + cm : String(cm), rx - 4, y); }
+    }
+    rc.save(); rc.translate(10, eqY); rc.rotate(-Math.PI / 2);
+    rc.textAlign = 'center'; rc.fillStyle = C.muted; rc.font = '600 10px Barlow, sans-serif';
+    rc.fillText('cm', 0, 0); rc.restore();
+
+    // equilibrium line
+    rc.setLineDash([5, 5]); rc.strokeStyle = C.muted; rc.lineWidth = 1;
+    rc.beginPath(); rc.moveTo(rx + 14, eqY); rc.lineTo(w - 8, eqY); rc.stroke(); rc.setLineDash([]);
+    rc.fillStyle = C.muted; rc.textAlign = 'right'; rc.textBaseline = 'bottom';
+    rc.font = '500 11px "IBM Plex Mono", monospace'; rc.fillText('x = 0', w - 8, eqY - 3);
+
+    // ceiling
+    rc.fillStyle = C.line; rc.fillRect(cx - 60, anchorY - 10, 120, 10);
+    rc.strokeStyle = C.muted; rc.lineWidth = 1;
+    for (let i = -60; i < 60; i += 10) { rc.beginPath(); rc.moveTo(cx + i, anchorY - 10); rc.lineTo(cx + i + 8, anchorY - 18); rc.stroke(); }
+
+    // spring
+    const top = eqY - x * ppm - bh / 2;
+    const lead = 10, coils = 14, amp = 18;
+    const len = top - anchorY - 2 * lead;
+    rc.strokeStyle = C.spring; rc.lineWidth = 2.5; rc.lineJoin = 'round';
+    rc.beginPath(); rc.moveTo(cx, anchorY); rc.lineTo(cx, anchorY + lead);
+    for (let i = 1; i <= coils * 2; i++) {
+      const y = anchorY + lead + len * (i - 0.5) / (coils * 2);
+      rc.lineTo(cx + (i % 2 ? amp : -amp), y);
+    }
+    rc.lineTo(cx, top - lead); rc.lineTo(cx, top); rc.stroke();
+
+    // mass
+    rc.fillStyle = C.mass;
+    roundRect(rc, cx - bw / 2, top, bw, bh, 6); rc.fill();
+    rc.fillStyle = C.panel; rc.textAlign = 'center'; rc.textBaseline = 'middle';
+    rc.font = '600 13px "IBM Plex Mono", monospace';
+    rc.fillText(m.toFixed(2) + ' kg', cx, top + bh / 2);
+
+    // force arrow (F = -kx), 14 px per newton
+    const F = -k * x;
+    const midY = top + bh / 2;
+    const ax = cx + bw / 2 + 22;
+    const L = Math.max(-150, Math.min(150, F * 14));
+    if (Math.abs(L) > 3) {
+      const end = midY - L;
+      rc.strokeStyle = C.force; rc.fillStyle = C.force; rc.lineWidth = 3;
+      rc.beginPath(); rc.moveTo(ax, midY); rc.lineTo(ax, end + (L > 0 ? 8 : -8)); rc.stroke();
+      rc.beginPath();
+      rc.moveTo(ax, end); rc.lineTo(ax - 7, end + (L > 0 ? 11 : -11)); rc.lineTo(ax + 7, end + (L > 0 ? 11 : -11)); rc.closePath(); rc.fill();
+      rc.font = '600 11px "IBM Plex Mono", monospace'; rc.textAlign = 'left'; rc.textBaseline = 'middle';
+      rc.fillText('F', ax + 10, (midY + end) / 2);
+    }
+  }
+
+  function roundRect(c, x0, y0, w, h, r) {
+    c.beginPath(); c.moveTo(x0 + r, y0); c.arcTo(x0 + w, y0, x0 + w, y0 + h, r);
+    c.arcTo(x0 + w, y0 + h, x0, y0 + h, r); c.arcTo(x0, y0 + h, x0, y0, r); c.arcTo(x0, y0, x0 + w, y0, r); c.closePath();
+  }
+
+  // ---------- graph ----------
+  function drawGraph() {
+    const { w, h } = fit(graph, gc);
+    gc.clearRect(0, 0, w, h);
+    const L = 44, R = 12, T = 12, B = 28;
+    const pw = w - L - R, ph = h - T - B;
+    const YR = 0.22;
+    const t1 = Math.max(t, WINDOW), t0 = t1 - WINDOW;
+    const X = tt => L + (tt - t0) / WINDOW * pw;
+    const Y = xx => T + ph / 2 - xx / YR * (ph / 2);
+
+    gc.font = '500 10px "IBM Plex Mono", monospace';
+    gc.lineWidth = 1;
+    // horizontal grid every 5 cm
+    gc.textAlign = 'right'; gc.textBaseline = 'middle';
+    for (let cm = -20; cm <= 20; cm += 5) {
+      const y = Y(cm / 100);
+      gc.strokeStyle = cm === 0 ? C.muted : C.grid;
+      gc.beginPath(); gc.moveTo(L, y); gc.lineTo(L + pw, y); gc.stroke();
+      gc.fillStyle = C.muted; gc.fillText(cm > 0 ? '+' + cm : String(cm), L - 6, y);
+    }
+    // vertical grid every 1 s
+    gc.textAlign = 'center'; gc.textBaseline = 'top';
+    for (let s = Math.ceil(t0); s <= t1; s++) {
+      const xp = X(s);
+      gc.strokeStyle = C.grid;
+      gc.beginPath(); gc.moveTo(xp, T); gc.lineTo(xp, T + ph); gc.stroke();
+      gc.fillStyle = C.muted; gc.fillText(s + ' s', xp, T + ph + 6);
+    }
+    gc.save(); gc.translate(11, T + ph / 2); gc.rotate(-Math.PI / 2);
+    gc.textAlign = 'center'; gc.textBaseline = 'middle'; gc.font = '600 10px Barlow, sans-serif';
+    gc.fillText('x (cm)', 0, 0); gc.restore();
+
+    gc.save();
+    gc.beginPath(); gc.rect(L, T, pw, ph); gc.clip();
+
+    // envelope
+    if (env) {
+      gc.setLineDash([4, 5]); gc.strokeStyle = C.muted; gc.lineWidth = 1.2;
+      [1, -1].forEach(sg => {
+        gc.beginPath();
+        for (let px = Math.max(X(env.t0), L); px <= L + pw; px += 3) {
+          const tt = t0 + (px - L) / pw * WINDOW;
+          const e = sg * env.A * Math.exp(-b * (tt - env.t0) / (2 * m));
+          px === Math.max(X(env.t0), L) ? gc.moveTo(px, Y(e)) : gc.lineTo(px, Y(e));
+        }
+        gc.stroke();
+      });
+      gc.setLineDash([]);
+    }
+
+    // trace
+    gc.strokeStyle = C.trace; gc.lineWidth = 2.5; gc.lineJoin = 'round';
+    gc.beginPath();
+    let started = false;
+    for (const p of samples) {
+      if (p.t < t0 - 0.1) continue;
+      const px = X(p.t), py = Y(p.x);
+      if (!started) { gc.moveTo(px, py); started = true; } else gc.lineTo(px, py);
+    }
+    gc.stroke();
+    if (samples.length) {
+      const p = samples[samples.length - 1];
+      gc.fillStyle = C.trace;
+      gc.beginPath(); gc.arc(X(p.t), Y(p.x), 4.5, 0, Math.PI * 2); gc.fill();
+    }
+    gc.restore();
+  }
+
+  // ---------- readouts ----------
+  function readouts() {
+    $('rx').textContent = (x * 100 >= 0 ? '+' : '') + (x * 100).toFixed(1) + ' cm';
+    const F = -k * x;
+    $('rf').textContent = (F >= 0 ? '+' : '') + F.toFixed(2) + ' N';
+    $('rv').textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + ' m/s';
+  }
+
+  // ---------- physics loop ----------
+  let last = performance.now();
+  function frame(now) {
+    let dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!paused) {
+      if (!dragging) {
+        const n = Math.max(1, Math.ceil(dt / 0.001));
+        const hstep = dt / n;
+        for (let i = 0; i < n; i++) {
+          const a = (-k * x - b * v) / m;
+          v += a * hstep;
+          x += v * hstep;
+        }
+        if (Math.abs(x) > 0.3) { x = Math.sign(x) * 0.3; v = 0; }
+      }
+      t += dt;
+      samples.push({ t, x });
+      const cut = t - WINDOW - 0.5;
+      while (samples.length && samples[0].t < cut) samples.shift();
+    }
+    drawRig(); drawGraph(); readouts();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- interaction ----------
+  function pointerY(e) { return e.clientY - rig.getBoundingClientRect().top; }
+  rig.addEventListener('pointerdown', e => {
+    dragging = true; rig.classList.add('dragging');
+    rig.setPointerCapture(e.pointerId);
+    x = yToX(pointerY(e)); v = 0; env = null;
+    e.preventDefault();
+  });
+  rig.addEventListener('pointermove', e => { if (dragging) { x = yToX(pointerY(e)); v = 0; } });
+  const release = () => {
+    if (!dragging) return;
+    dragging = false; rig.classList.remove('dragging'); v = 0; setEnvelope();
+  };
+  rig.addEventListener('pointerup', release);
+  rig.addEventListener('pointercancel', release);
+
+  rig.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      dragging = true; v = 0; env = null;
+      x = Math.max(-XMAX, Math.min(XMAX, x + (e.key === 'ArrowUp' ? 0.01 : -0.01)));
+      e.preventDefault();
+    } else if (e.key === ' ' || e.key === 'Enter') {
+      dragging = true; release(); e.preventDefault();
+    }
+  });
+
+  $('pull').addEventListener('click', () => { dragging = false; rig.classList.remove('dragging'); x = -0.15; v = 0; paused = false; $('pause').textContent = 'Pause'; setEnvelope(); });
+  $('pause').addEventListener('click', () => { paused = !paused; $('pause').textContent = paused ? 'Resume' : 'Pause'; });
+  $('stop').addEventListener('click', () => { x = 0; v = 0; env = null; });
+  $('clear').addEventListener('click', () => { samples = []; t = 0; if (env) setEnvelope(); });
+
+  updateControls();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
