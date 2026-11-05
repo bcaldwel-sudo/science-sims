@@ -5,3 +5,4 @@ Interactive science simulations for students, built as single self-contained HTM
 | Simulation | Folder |
 | --- | --- |
 | Circulation Lab: circulatory system, blood sampling, microscope, exercise | `circulatory-system/` |
+| Roller Coaster Energy Lab: gravitational, kinetic and thermal energy, loop and hill challenges | `roller-coaster/` |
