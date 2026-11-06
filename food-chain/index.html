@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Meadow Food Chain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;900&family=Lexend:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: field notebook. A living meadow cross-section on the left (one band per feeding level, top predator at the top); population records on the right: graph on top, tabs for bars, energy pyramid and data table below. */
+:root{
+  --bg:#eef1e8; --surface:#ffffff; --surface-2:#f5f7f0; --ink:#1a2419; --muted:#56634f; --line:#d4dbc9; --grid:#e6eadf;
+  --grass:#2f8a2a; --hopper:#d08300; --frog:#0f86a8; --heron:#8a45c2; --sick:#c22d2d; --accent:#2b5d3a;
+  --band-heron:#e6eef6; --band-frog:#e0efe9; --band-hopper:#eef2d9; --band-grass:#e9ecd3; --soil:#c9b58e;
+  --f-display:"Chivo","Arial Black",system-ui,sans-serif;
+  --f-body:"Lexend","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10150f; --surface:#171e16; --surface-2:#1d261c; --ink:#e3ead9; --muted:#9daa93; --line:#2d3a2a; --grid:#232d21;
+  --grass:#6cc35d; --hopper:#f2ab35; --frog:#3cc0e6; --heron:#c290f2; --sick:#ff6b6b; --accent:#8fd29e;
+  --band-heron:#18212b; --band-frog:#152520; --band-hopper:#1f2414; --band-grass:#1d2213; --soil:#4a3f2b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10150f; --surface:#171e16; --surface-2:#1d261c; --ink:#e3ead9; --muted:#9daa93; --line:#2d3a2a; --grid:#232d21;
+  --grass:#6cc35d; --hopper:#f2ab35; --frog:#3cc0e6; --heron:#c290f2; --sick:#ff6b6b; --accent:#8fd29e;
+  --band-heron:#18212b; --band-frog:#152520; --band-hopper:#1f2414; --band-grass:#1d2213; --soil:#4a3f2b; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.4;
+  box-sizing:border-box;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow:hidden}
+*,*::before,*::after{box-sizing:inherit}
+.wrap{max-width:1400px;height:100%;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+h1{font-family:var(--f-display);font-weight:900;font-size:26px;line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{margin:0;color:var(--muted);font-size:13.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lab{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0;min-height:0;display:flex;flex-direction:column}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--line)}
+.toolbar .spacer{flex:1}
+.month{font-family:var(--f-mono);font-size:15px;font-variant-numeric:tabular-nums;padding:0 4px;white-space:nowrap}
+.month b{font-weight:500}
+button,select{font:500 13.5px var(--f-body);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;line-height:1.2}
+button:hover,select:hover{border-color:var(--muted)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600;min-width:74px}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--hopper);outline-offset:2px}
+.scen{display:flex;gap:4px;align-items:center}
+.scen select{max-width:200px}
+
+/* meadow pyramid: one canvas, tiers line up with the control cards beside it */
+.meadow{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 188px;gap:10px;padding:8px}
+.pyrcv{position:relative;min-height:0;min-width:0}
+.pyrcv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ctls{display:flex;flex-direction:column;gap:16px;min-height:0}
+.ctl{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);border-left:5px solid var(--c)}
+.ctl .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.ctl .name{font-weight:600;font-size:14px}
+.ctl .role{font-size:10.5px;line-height:1.2;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ctl .count{font-family:var(--f-mono);font-size:18px;line-height:1.1;font-variant-numeric:tabular-nums}
+.ctl .trend{font-size:11px;line-height:1.2;color:var(--muted);font-family:var(--f-mono);white-space:nowrap}
+.ctl .row{display:flex;gap:4px}
+.ctl .row button{padding:3px 0;flex:1;font-size:13px}
+.ctl .row button.pm{flex:0 0 32px;font-family:var(--f-mono);font-size:16px;padding:2px 0}
+.ctl button[aria-pressed="true"]{background:var(--sick);border-color:var(--sick);color:var(--surface);font-weight:600}
+.status{font-size:11.5px;color:var(--sick);font-weight:600;min-height:0}
+
+/* right column */
+.right{display:grid;grid-template-rows:minmax(0,1.05fr) minmax(0,1fr);gap:10px;min-height:0;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px 0}
+.ph h2{margin:0;font-family:var(--f-display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.ph small{color:var(--muted);font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;font-weight:500;justify-content:flex-end}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:16px;height:4px;border-radius:2px;background:var(--c)}
+.chartbox{flex:1;min-height:0;position:relative;margin:4px 8px 8px}
+.chartbox canvas{position:absolute;inset:0;width:100%;height:100%}
+[role="tablist"]{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line)}
+[role="tab"]{border:none;background:none;border-radius:8px 8px 0 0;padding:7px 12px;color:var(--muted);font-weight:500;border-bottom:3px solid transparent}
+[role="tab"][aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.tabpanel{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 12px 10px;gap:6px}
+.note{margin:0;color:var(--muted);font-size:12.5px}
+.tablebar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tablebar .spacer{flex:1}
+.tablewrap{flex:1;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:4px 8px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface-2);font-weight:600;font-size:12px}
+td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-space:normal;min-width:120px}
+.empty td{text-align:center;color:var(--muted);font-family:var(--f-body)}
+.toast{font-size:12px;color:var(--accent)}
+
+/* smaller laptop windows: tighten, never scroll */
+@media (max-width:1100px){
+  .meadow{grid-template-columns:minmax(0,1fr) 156px}
+  .lab{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+  [role="tab"]{padding:7px 8px}
+  .legend{gap:2px 8px;font-size:11.5px}
+}
+@media (max-height:620px){
+  body{padding-block:6px}
+  .wrap,.lab,.right{gap:6px}
+  h1{font-size:22px}
+  .toolbar{padding:5px 8px}
+  button,select{padding:4px 8px}
+  .ctls{gap:14px}
+  .ctl{gap:1px;padding:2px 8px}
+  .ctl .count{font-size:16px}
+}
+/* phones only: stack and allow scrolling */
+@media (max-width:640px){
+  body{overflow:auto;height:auto}
+  html,body{height:auto}
+  .wrap{height:auto}
+  .lab{grid-template-columns:minmax(0,1fr)}
+  .meadow{height:540px;flex:none;grid-template-columns:minmax(0,1fr) 128px}
+  .right{grid-template-rows:300px 340px}
+  .ctl .row{flex-wrap:wrap}
+  .ctl .row button:not(.pm){flex-basis:100%}
+  header{flex-direction:column}
+  .sub{white-space:normal}
+  .scen select{max-width:170px}
+}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Meadow Food Chain</h1>
+  <p class="sub">Energy moves up the chain from grass to herons. Change one population and watch how every other level responds over the months that follow.</p>
+</header>
+
+<div class="lab">
+  <section class="card" aria-label="Meadow">
+    <div class="toolbar">
+      <button id="play" class="primary" aria-pressed="false">▶ Play</button>
+      <button id="step" title="Advance one month">+1 month</button>
+      <select id="speed" aria-label="Speed">
+        <option value="1">1 month/s</option>
+        <option value="2" selected>2 months/s</option>
+        <option value="4">4 months/s</option>
+        <option value="8">8 months/s</option>
+      </select>
+      <span class="month">Month <b id="month">0</b></span>
+      <span class="spacer"></span>
+      <div class="scen">
+        <select id="scenario" aria-label="Choose an event">
+          <option value="">What if…</option>
+          <option value="noHerons">Herons leave the meadow</option>
+          <option value="spray">Pesticide kills most grasshoppers</option>
+          <option value="frogDisease">Disease spreads through the frogs</option>
+          <option value="drought">Drought slows grass growth</option>
+          <option value="rain">Rain returns (end drought)</option>
+          <option value="fire">Fire burns most of the grass</option>
+          <option value="extraHerons">More herons move in</option>
+        </select>
+        <button id="apply">Go</button>
+      </div>
+      <button id="reset" title="Back to a balanced meadow at month 0">Reset</button>
+    </div>
+    <div class="meadow" id="meadow"></div>
+  </section>
+
+  <div class="right">
+    <section class="card" aria-label="Population graph">
+      <div class="ph"><h2>Populations over time</h2><div class="legend" id="legend"></div></div>
+      <div class="chartbox"><canvas id="chart" role="img" aria-label="Line graph of each population as a percent of its balanced level, by month"></canvas></div>
+    </section>
+
+    <section class="card" aria-label="Results">
+      <div role="tablist" aria-label="Results views">
+        <button role="tab" id="tab-bars" aria-selected="true" aria-controls="p-bars">Bar graph</button>
+        <button role="tab" id="tab-pyr" aria-selected="false" aria-controls="p-pyr" tabindex="-1">Energy pyramid</button>
+        <button role="tab" id="tab-data" aria-selected="false" aria-controls="p-data" tabindex="-1">Data table</button>
+      </div>
+      <div class="tabpanel" id="p-bars" role="tabpanel" aria-labelledby="tab-bars">
+        <div class="chartbox" style="margin:0"><canvas id="bars" role="img" aria-label="Bar graph of each population compared with its balanced level"></canvas></div>
+      </div>
+      <div class="tabpanel" id="p-pyr" role="tabpanel" aria-labelledby="tab-pyr" hidden>
+        <div class="chartbox" style="margin:0"><canvas id="pyr" role="img" aria-label="Energy pyramid"></canvas></div>
+        <p class="note">At balance each level holds only about 10% of the energy in the level below it. The rest is used for living (moving, growing, keeping warm) or lost as heat.</p>
+      </div>
+      <div class="tabpanel" id="p-data" role="tabpanel" aria-labelledby="tab-data" hidden>
+        <div class="tablebar">
+          <button id="record" class="primary">Record this month</button>
+          <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="auto"> Record every 6 months</label>
+          <span class="spacer"></span>
+          <span class="toast" id="toast" aria-live="polite"></span>
+          <button id="copy">Copy table</button>
+          <button id="clear">Clear</button>
+        </div>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Month</th><th>Grass</th><th>Grasshoppers</th><th>Frogs</th><th>Herons</th><th>What happened</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table></div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+
+<script>
+(()=>{
+/* ---------- species ---------- */
+const SP=[
+  {key:'grass', name:'Grass', unit:'50 grass plants', role:'Producer', color:'--grass', band:'--band-grass', norm:4000, per:50, step:1000, sickName:'Blight'},
+  {key:'hopper',name:'Grasshoppers', unit:'10 grasshoppers', role:'Herbivore', color:'--hopper', band:'--band-hopper', norm:800, per:10, step:200},
+  {key:'frog',  name:'Frogs', unit:'2 frogs', role:'Predator', color:'--frog', band:'--band-frog', norm:120, per:2, step:30},
+  {key:'heron', name:'Herons', unit:'1 heron', role:'Top predator', color:'--heron', band:'--band-heron', norm:16, per:1, step:4},
+];
+const N=SP.length;
+
+/* ---------- model ----------
+   Grass grows logistically. Each consumer eats the level below with a saturating
+   feeding rate that also drops when its own kind crowds the food (interference),
+   which lets the chain bounce back to balance after a disturbance. */
+const T=SP.map(s=>s.norm), C=[1,4,3], W=0.8, S=0.5;
+const M={r:0.4,K:8000,m:[0.3,0.2,0.05],q:0.005,e:[0.9,0.15,0.13/3],a:[],h:[],w:[]};
+for(let i=0;i<3;i++){const den=1+S+W;M.a[i]=den*C[i]/T[i];M.h[i]=S/(M.a[i]*T[i]);M.w[i]=W/T[i+1];}
+const DIS=[0.35,0.6,0.6,0.5];  // extra death rate per month while sick
+
+let pop, month, hist, events, sick, drought, pending;
+function reset(){
+  pop=T.slice(); month=0; hist=[{t:0,p:pop.slice()}]; events=[]; sick=[false,false,false,false]; drought=false; pending=[];
+}
+function deriv(s){
+  const K=drought?M.K*0.45:M.K, r=drought?M.r*0.6:M.r;
+  const c=[0,1,2].map(i=>M.a[i]*s[i]/(1+M.a[i]*M.h[i]*s[i]+M.w[i]*s[i+1]));
+  const d=sick.map((v,i)=>v?DIS[i]:0);
+  return [r*s[0]*(1-s[0]/K)-c[0]*s[1]-d[0]*s[0],
+    M.e[0]*c[0]*s[1]-M.m[0]*s[1]-c[1]*s[2]-d[1]*s[1],
+    M.e[1]*c[1]*s[2]-M.m[1]*s[2]-c[2]*s[3]-d[2]*s[2],
+    M.e[2]*c[2]*s[3]-M.m[2]*s[3]-M.q*s[3]*s[3]-d[3]*s[3]];
+}
+function advance(){
+  let s=pop.slice();
+  for(let k=0;k<20;k++){const v=deriv(s);s=s.map((x,i)=>Math.max(0,x+v[i]*0.05));}
+  s[0]=Math.max(s[0],20);                      // seeds in the soil always regrow some grass
+  for(let i=1;i<N;i++) if(s[i]<0.5) s[i]=0;     // fewer than one animal = gone
+  pop=s; month++; hist.push({t:month,p:pop.slice()});
+  if(auto.checked && month%6===0) record();
+}
+const R=v=>Math.round(v);
+function note(text){events.push({t:month,text}); pending.push(text);}
+
+/* ---------- meadow drawing ---------- */
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let COL={};
+function readColors(){COL={};['--grass','--hopper','--frog','--heron','--sick','--ink','--muted','--line','--grid','--surface','--soil','--accent',
+  '--band-grass','--band-hopper','--band-frog','--band-heron'].forEach(k=>COL[k]=css(k));}
+const meadow=document.getElementById('meadow');
+const rows=[];
+const order=[3,2,1,0];   // draw top predator at the top
+const linkText=['','grasshoppers eat grass','frogs eat grasshoppers','herons eat frogs'];
+meadow.innerHTML='<div class="pyrcv"><canvas id="pyrcanvas" role="img" aria-label="Food chain pyramid: grass at the wide bottom, then grasshoppers, frogs, and a few herons at the narrow top"></canvas></div><div class="ctls" id="ctls"></div>';
+const pyrCanvas=document.getElementById('pyrcanvas'), ctls=document.getElementById('ctls');
+order.forEach((i,n)=>{
+  const s=SP[i], b=document.createElement('div'); b.className='ctl'; b.style.setProperty('--c',`var(${s.color})`);
+  b.innerHTML=`
+    <div class="top"><span class="name">${s.name}</span><span class="count" id="c${i}">0</span></div>
+    <div class="top"><span class="role">${s.role}</span><span class="trend" id="tr${i}"></span></div>
+    <div class="row">
+      <button class="pm" id="minus${i}" aria-label="Remove ${s.name.toLowerCase()}">−</button>
+      <button class="pm" id="plus${i}" aria-label="Add ${s.name.toLowerCase()}">+</button>
+      <button id="sick${i}" aria-pressed="false">${s.sickName||'Disease'}</button>
+    </div>`;
+  ctls.appendChild(b);
+  rows[i]={card:b,slots:[]};
+});
+// fixed random spots so individuals stay put as numbers change
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}}
+SP.forEach((s,i)=>{const r=rng(97+i*31);for(let k=0;k<200;k++)rows[i].slots.push({x:r(),y:r(),ph:r()*6.28,f:r()<.5?-1:1,sk:r()});});
+
+function sizeCanvas(c){const d=Math.min(2,window.devicePixelRatio||1),w=c.clientWidth,h=c.clientHeight;
+  if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d);}
+  const g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);return{g,w,h};}
+
+function tuft(g,x,y,sz,col){g.strokeStyle=col;g.lineWidth=1.6;g.lineCap='round';
+  for(let k=-2;k<=2;k++){g.beginPath();g.moveTo(x+k*1.5,y);g.quadraticCurveTo(x+k*2.2,y-sz*.6,x+k*3.4+(k===0?0:k*.6),y-sz*(1-Math.abs(k)*.12));g.stroke();}}
+function hopper(g,x,y,sz,col,f){g.save();g.translate(x,y);g.scale(f*sz/16,sz/16);g.fillStyle=col;g.strokeStyle=col;g.lineWidth=1.4;
+  g.beginPath();g.ellipse(0,0,9,3.4,0,0,7);g.fill();
+  g.beginPath();g.ellipse(9.5,-1,3,3,0,0,7);g.fill();
+  g.beginPath();g.moveTo(-1,-1);g.lineTo(-7,-7);g.lineTo(-9,3);g.stroke();                 // big hind leg
+  g.beginPath();g.moveTo(4,2);g.lineTo(5,6);g.moveTo(7,2);g.lineTo(9,6);g.stroke();
+  g.beginPath();g.moveTo(11,-3);g.quadraticCurveTo(14,-10,19,-11);g.stroke();
+  g.fillStyle=COL['--ink'];g.beginPath();g.arc(10.5,-2,.9,0,7);g.fill();g.restore();}
+function frog(g,x,y,sz,col,f){g.save();g.translate(x,y);g.scale(f*sz/18,sz/18);g.fillStyle=col;
+  g.beginPath();g.ellipse(0,0,10,6.5,0,0,7);g.fill();
+  g.beginPath();g.ellipse(-8,4,5,2.6,.4,0,7);g.fill();                                   // back leg
+  g.beginPath();g.arc(5,-5.5,3,0,7);g.arc(0,-5.5,3,0,7);g.fill();                        // eye bumps
+  g.fillStyle=COL['--surface'];g.beginPath();g.arc(5,-6,1.6,0,7);g.arc(0,-6,1.6,0,7);g.fill();
+  g.fillStyle=COL['--ink'];g.beginPath();g.arc(5.3,-6,.8,0,7);g.arc(.3,-6,.8,0,7);g.fill();
+  g.globalAlpha=.35;g.beginPath();g.arc(-3,0,1.8,0,7);g.arc(2,2,1.5,0,7);g.arc(-6,-2,1.3,0,7);g.fill();g.globalAlpha=1;g.restore();}
+function heron(g,x,y,sz,col,f,bob){g.save();g.translate(x,y);g.scale(f*sz/30,sz/30);g.strokeStyle=col;g.fillStyle=col;g.lineCap='round';
+  g.lineWidth=1.3;g.beginPath();g.moveTo(-2,4);g.lineTo(-3,16);g.moveTo(2,4);g.lineTo(3,16);g.stroke();     // legs
+  g.beginPath();g.ellipse(0,0,9,5,-.25,0,7);g.fill();                                                     // body
+  g.beginPath();g.moveTo(-8,2);g.lineTo(-14,6);g.lineTo(-7,-1);g.fill();                                  // tail
+  g.lineWidth=2.6;g.beginPath();g.moveTo(6,-3);g.bezierCurveTo(12,-8+bob,4,-12+bob,9,-17+bob);g.stroke(); // S neck
+  g.beginPath();g.arc(10,-17.5+bob,2.6,0,7);g.fill();
+  g.strokeStyle=COL['--hopper'];g.lineWidth=1.5;g.beginPath();g.moveTo(12,-17.5+bob);g.lineTo(19,-16+bob);g.stroke(); // beak
+  g.restore();}
+
+function drawMeadow(now){
+  const motion=!reduce.matches;
+  const {g,w,h}=sizeCanvas(pyrCanvas); g.clearRect(0,0,w,h);
+  if(!w||!h)return;
+  const cTop=pyrCanvas.getBoundingClientRect().top;
+  const cx=w/2, tipHalf=w*0.06, baseHalf=w/2-2;
+  const half=y=>tipHalf+(baseHalf-tipHalf)*Math.max(0,Math.min(1,y/h));
+  const tiers={};
+  order.forEach(i=>{const rc=rows[i].card.getBoundingClientRect();tiers[i]={y0:Math.max(0,rc.top-cTop),y1:Math.min(h,rc.bottom-cTop)};});
+  // faint full pyramid behind the tiers
+  g.fillStyle=COL['--grid'];g.beginPath();g.moveTo(cx-tipHalf,0);g.lineTo(cx+tipHalf,0);g.lineTo(cx+baseHalf,h);g.lineTo(cx-baseHalf,h);g.closePath();g.fill();
+  const trap=(y0,y1)=>{g.beginPath();g.moveTo(cx-half(y0),y0);g.lineTo(cx+half(y0),y0);g.lineTo(cx+half(y1),y1);g.lineTo(cx-half(y1),y1);g.closePath();};
+  order.forEach((i,n)=>{
+    const s=SP[i], {y0,y1}=tiers[i];
+    trap(y0,y1);g.fillStyle=COL[s.band];g.fill();
+    g.strokeStyle=COL[s.color];g.globalAlpha=.55;g.lineWidth=1.5;g.stroke();g.globalAlpha=1;
+    if(i===0){g.save();trap(y0,y1);g.clip();g.fillStyle=COL['--soil'];g.globalAlpha=.6;g.fillRect(0,y1-7,w,7);g.restore();}
+    g.save();trap(y0,y1);g.clip();
+    const n2=Math.min(200,Math.round(pop[i]/s.per)), col=COL[s.color], sickShare=sick[i]?.45:0;
+    const sc=Math.max(.6,Math.min(1,w/520)), sz=[11,15,17,24][i]*sc, padT=[12,12,10,22][i], padB=[6,8,8,16][i];
+    const ya=y0+padT, yb=y1-padB, a=half(ya), bw=half(yb);
+    for(let k=0;k<n2;k++){
+      const sl=rows[i].slots[k];
+      // spread evenly over the trapezoid's area (wider rows get more individuals)
+      const t=Math.abs(bw-a)<1e-6?sl.y:(Math.sqrt(a*a+(bw*bw-a*a)*sl.y)-a)/(bw-a);
+      const y=ya+t*(yb-ya), hw=Math.max(2,half(y)-sz*0.9);
+      const x=cx+(sl.x*2-1)*hw;
+      const c=sl.sk<sickShare?COL['--sick']:col;
+      if(i===0){tuft(g,x,y+6,sz,c);}
+      else if(i===1){let hop=0;if(motion){const p=(now/1000*1.3+sl.ph)%6.28;hop=p<.6?-Math.sin(p/.6*Math.PI)*6:0;}hopper(g,x,y+hop,sz,c,sl.f);}
+      else if(i===2){frog(g,x,y,sz,c,sl.f);}
+      else {const bob=motion?Math.sin(now/900+sl.ph)*1.2:0;heron(g,x,y,sz,c,sl.f,bob);}
+    }
+    g.restore();
+    if(pop[i]===0&&i>0){g.fillStyle=COL['--muted'];g.font='600 12px '+css('--f-body');g.textAlign='center';g.textBaseline='middle';g.fillText(`No ${s.name.toLowerCase()} left`,cx,(y0+y1)/2);}
+    // energy arrow in the gap above this tier
+    if(n<3){const below=order[n+1], gy=(tiers[i].y1+tiers[below].y0)/2;
+      g.fillStyle=COL['--ink'];g.font='500 11px '+css('--f-body');g.textAlign='center';g.textBaseline='middle';
+      const txt=`▲ ${linkText[i]}`;g.fillText(txt,cx,gy);}
+  });
+  // key in the empty top-left corner
+  g.font='600 11px '+css('--f-body');g.textAlign='left';g.textBaseline='top';g.fillStyle=COL['--muted'];
+  const lines=['Each symbol =',...order.map(i=>SP[i].unit)];
+  const kx=6, maxRoom=cx-half(4+lines.length*14)-12;
+  g.font='600 11px '+css('--f-body');const kw=Math.max(...lines.map(l=>g.measureText(l).width));
+  if(maxRoom>kw){lines.forEach((l,k)=>{g.font=(k?'500 ':'600 ')+'11px '+css('--f-body');g.fillStyle=k?COL[SP[order[k-1]].color]:COL['--muted'];g.fillText(l,kx,4+k*14);});}
+}
+
+/* ---------- line graph: one strip per species, shared month axis ---------- */
+const chart=document.getElementById('chart');
+function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));for(const m of[1,1.5,2,2.5,3,4,5,6,8,10])if(m*p>=v)return m*p;return 10*p;}
+function drawChart(){
+  const {g,w,h}=sizeCanvas(chart); g.clearRect(0,0,w,h);
+  const L=44,Rr=12,Tt=8,B=20;
+  const tMax=Math.max(48,Math.ceil(month/12)*12), x=t=>L+(w-L-Rr)*t/tMax;
+  const pct=(o,i)=>o.p[i]/SP[i].norm*100;
+  let peak=0;hist.forEach(o=>SP.forEach((s,i)=>peak=Math.max(peak,pct(o,i))));
+  const top=Math.max(200,niceMax(peak*1.05)), y=v=>h-B-(h-B-Tt)*v/top;
+  const stepY=top<=200?50:top<=400?100:top<=1000?200:500;
+  g.font='11px '+css('--f-mono');g.textAlign='right';g.textBaseline='middle';g.lineWidth=1;
+  for(let v=0;v<=top;v+=stepY){g.strokeStyle=COL['--grid'];g.beginPath();g.moveTo(L,y(v)+.5);g.lineTo(w-Rr,y(v)+.5);g.stroke();g.fillStyle=COL['--muted'];g.fillText(v+'%',L-5,y(v));}
+  // balanced level
+  g.strokeStyle=COL['--ink'];g.globalAlpha=.55;g.setLineDash([6,4]);g.beginPath();g.moveTo(L,y(100));g.lineTo(w-Rr,y(100));g.stroke();g.setLineDash([]);g.globalAlpha=1;
+  g.fillStyle=COL['--muted'];g.textAlign='right';g.textBaseline='bottom';g.font='500 11px '+css('--f-body');g.fillText('balanced = 100%',w-Rr-2,y(100)-2);
+  // events
+  g.font='500 10.5px '+css('--f-body');
+  events.forEach(e=>{g.strokeStyle=COL['--muted'];g.globalAlpha=.5;g.setLineDash([2,3]);g.beginPath();g.moveTo(x(e.t),Tt);g.lineTo(x(e.t),h-B);g.stroke();g.setLineDash([]);g.globalAlpha=1;});
+  // lines: draw grass first so the top predator ends up on top
+  SP.forEach((s,i)=>{
+    g.strokeStyle=COL[s.color];g.lineWidth=2.5;g.lineJoin='round';g.lineCap='round';g.beginPath();
+    hist.forEach((o,k)=>{const X=x(o.t),Y=y(pct(o,i));k?g.lineTo(X,Y):g.moveTo(X,Y);});g.stroke();
+    const last=hist[hist.length-1];g.fillStyle=COL[s.color];g.beginPath();g.arc(x(last.t),y(pct(last,i)),3.5,0,7);g.fill();
+  });
+  g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');g.textAlign='center';g.textBaseline='alphabetic';
+  const stepT=tMax>240?48:tMax>120?24:12;
+  for(let t=0;t<=tMax;t+=stepT)g.fillText(t,x(t),h-5);
+  g.textAlign='left';g.fillText('month',2,h-5);
+}
+document.getElementById('legend').innerHTML=order.map(i=>`<span style="--c:var(${SP[i].color})"><i></i>${SP[i].name}</span>`).join('');
+
+/* ---------- bar graph: % of balanced level ---------- */
+function drawBars(){
+  const c=document.getElementById('bars'); if(!c.clientWidth)return;
+  const {g,w,h}=sizeCanvas(c); g.clearRect(0,0,w,h);
+  const L=40,B=34,Tt=10, top=Math.max(200,niceMax(Math.max(...pop.map((v,i)=>v/SP[i].norm*100))));
+  const y=v=>h-B-(h-B-Tt)*v/top, bw=(w-L-10)/4;
+  g.font='11px '+css('--f-mono');g.textAlign='right';g.textBaseline='middle';
+  for(let v=0;v<=top;v+=top>300?100:50){g.strokeStyle=COL['--grid'];g.beginPath();g.moveTo(L,y(v));g.lineTo(w-10,y(v));g.stroke();g.fillStyle=COL['--muted'];g.fillText(v+'%',L-5,y(v));}
+  g.strokeStyle=COL['--ink'];g.setLineDash([5,4]);g.beginPath();g.moveTo(L,y(100));g.lineTo(w-10,y(100));g.stroke();g.setLineDash([]);
+  SP.forEach((s,i)=>{const pc=pop[i]/s.norm*100,x0=L+i*bw+bw*.18,bW=bw*.64;
+    g.fillStyle=COL[s.color];g.fillRect(x0,y(pc),bW,y(0)-y(pc));
+    g.fillStyle=COL['--ink'];g.textAlign='center';g.textBaseline='bottom';g.font='500 12px '+css('--f-mono');
+    g.fillText(R(pop[i]).toLocaleString(),x0+bW/2,y(pc)-3);
+    g.textBaseline='top';g.font='500 12px '+css('--f-body');g.fillText(s.name,x0+bW/2,h-B+5);
+    g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');g.fillText(R(pc)+'%'+(bw>110?' of balance':''),x0+bW/2,h-B+19);
+  });
+}
+
+/* ---------- energy pyramid ---------- */
+const KJ=[250,125,83.3333,62.5];   // energy per individual in this model, tuned so balance gives 10% steps
+function drawPyr(){
+  const c=document.getElementById('pyr'); if(!c.clientWidth)return;
+  const {g,w,h}=sizeCanvas(c); g.clearRect(0,0,w,h);
+  const E=pop.map((v,i)=>v*KJ[i]); const maxE=Math.max(...E,1);
+  const rowH=(h-8)/4, maxW=w*.52, cx=8+maxW/2;
+  order.forEach((i,n)=>{
+    const s=SP[i], y0=4+n*rowH, ww=E[i]>0?Math.max(4,maxW*Math.sqrt(E[i]/maxE)):0;   // sqrt keeps the top levels visible
+    g.fillStyle=COL[s.color];g.globalAlpha=.9;g.fillRect(cx-ww/2,y0+3,ww,rowH-6);g.globalAlpha=1;
+    g.fillStyle=COL['--ink'];g.textAlign='left';g.textBaseline='middle';g.font='600 12px '+css('--f-body');
+    const tx=cx+maxW/2+12;g.fillText(s.name,tx,y0+rowH/2-7);const nw=g.measureText(s.name+'  ').width;
+    g.font='12px '+css('--f-mono');g.fillText(R(E[i]).toLocaleString()+' kJ',tx+nw,y0+rowH/2-7);
+    if(i>0){const pct=E[i-1]>0?E[i]/E[i-1]*100:0;g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');
+      g.fillText(`${pct<1&&pct>0?pct.toFixed(1):R(pct)}% of the level below`,tx,y0+rowH/2+9);}
+  });
+}
+
+/* ---------- data table ---------- */
+const tbody=document.getElementById('tbody'), auto=document.getElementById('auto');
+let rowsData=[];
+function renderTable(){
+  tbody.innerHTML=rowsData.length?rowsData.map(r=>`<tr><td>${r.t}</td>${r.p.map(v=>`<td>${v.toLocaleString()}</td>`).join('')}<td>${r.note}</td></tr>`).join('')
+    :'<tr class="empty"><td colspan="6">No rows yet. Press <b>Record this month</b> to save the populations.</td></tr>';
+  const tw=tbody.closest('.tablewrap');tw.scrollTop=tw.scrollHeight;
+}
+function record(){rowsData.push({t:month,p:pop.map(R),note:pending.join('; ')});pending=[];renderTable();}
+document.getElementById('record').onclick=record;
+document.getElementById('clear').onclick=()=>{rowsData=[];renderTable();};
+document.getElementById('copy').onclick=async()=>{
+  const txt=['Month\tGrass\tGrasshoppers\tFrogs\tHerons\tWhat happened',...rowsData.map(r=>[r.t,...r.p,r.note].join('\t'))].join('\n');
+  const t=document.getElementById('toast');
+  try{await navigator.clipboard.writeText(txt);t.textContent='Copied. Paste into a spreadsheet.';}
+  catch(e){t.textContent='Copy blocked. Select the table and copy it instead.';}
+  setTimeout(()=>t.textContent='',3000);
+};
+
+/* ---------- controls ---------- */
+const playBtn=document.getElementById('play');
+let playing=false, acc=0, lastT=0;
+function setPlaying(v){playing=v;playBtn.textContent=v?'❚❚ Pause':'▶ Play';playBtn.setAttribute('aria-pressed',v);}
+playBtn.onclick=()=>setPlaying(!playing);
+document.getElementById('step').onclick=()=>{advance();refresh();};
+document.getElementById('reset').onclick=()=>{reset();setPlaying(false);syncButtons();refresh();};
+SP.forEach((s,i)=>{
+  document.getElementById('plus'+i).onclick=()=>{pop[i]+=s.step;note(`+${s.step} ${s.name.toLowerCase()}`);hist[hist.length-1].p=pop.slice();refresh();};
+  document.getElementById('minus'+i).onclick=()=>{const d=Math.min(pop[i],s.step);if(i===0)pop[i]=Math.max(20,pop[i]-s.step);else pop[i]-=d;note(`−${s.step} ${s.name.toLowerCase()}`);hist[hist.length-1].p=pop.slice();refresh();};
+  document.getElementById('sick'+i).onclick=()=>{sick[i]=!sick[i];note(`${s.sickName||'Disease'} ${sick[i]?'starts in':'ends in'} ${s.name.toLowerCase()}`);syncButtons();refresh();};
+});
+function syncButtons(){SP.forEach((s,i)=>document.getElementById('sick'+i).setAttribute('aria-pressed',sick[i]));}
+const SC={
+  noHerons:()=>{pop[3]=0;note('Herons leave');},
+  spray:()=>{pop[1]*=0.2;note('Pesticide kills 80% of grasshoppers');},
+  frogDisease:()=>{sick[2]=true;note('Disease starts in frogs');},
+  drought:()=>{drought=true;note('Drought starts');},
+  rain:()=>{drought=false;note('Rain returns');},
+  fire:()=>{pop[0]=Math.max(20,pop[0]*0.15);note('Fire burns 85% of grass');},
+  extraHerons:()=>{pop[3]+=16;note('+16 herons move in');},
+};
+document.getElementById('apply').onclick=()=>{const v=document.getElementById('scenario').value;if(!v)return;SC[v]();hist[hist.length-1].p=pop.slice();syncButtons();refresh();};
+
+// tabs
+const tabs=[...document.querySelectorAll('[role="tab"]')];
+function selectTab(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on;});drawSide();}
+tabs.forEach((t,k)=>{t.onclick=()=>selectTab(t);t.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=tabs[(k+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];n.focus();selectTab(n);}};});
+
+/* ---------- loop ---------- */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+let prev=T.slice();
+function refresh(){
+  document.getElementById('month').textContent=month;
+  const before=hist.length>1?hist[hist.length-2].p:pop;
+  SP.forEach((s,i)=>{document.getElementById('c'+i).textContent=R(pop[i]).toLocaleString();
+    const d=R(pop[i])-R(before[i]);document.getElementById('tr'+i).textContent=d>0?`▲ ${d.toLocaleString()}`:d<0?`▼ ${(-d).toLocaleString()}`:'steady';
+    document.getElementById('minus'+i).disabled=i===0?pop[0]<=20:pop[i]<=0;});
+  drawChart();drawSide();
+}
+function drawSide(){drawBars();drawPyr();}
+function frame(now){
+  if(playing){const sp=+document.getElementById('speed').value;acc+=(now-lastT)/1000*sp;if(acc>=1){acc=Math.min(acc,3);while(acc>=1){advance();acc--;}refresh();}}
+  else acc=0;
+  lastT=now; drawMeadow(now); requestAnimationFrame(frame);
+}
+const mq=matchMedia('(prefers-color-scheme: dark)');
+const recolor=()=>{readColors();refresh();};
+mq.addEventListener?.('change',recolor);
+new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+addEventListener('resize',()=>refresh());
+
+reset(); readColors(); renderTable(); refresh();
+document.fonts?.ready.then(refresh);
+requestAnimationFrame(t=>{lastT=t;frame(t);});
+})();
+</script>
+
+</body>
+</html>
