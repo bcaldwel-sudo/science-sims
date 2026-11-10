@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hooke's Law / Simple Harmonic Motion Virtual Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Makeup lab bench: mass tray | retort stand + metre stick | magnifier + stopwatch. One screen on laptops; stacks on phones. */
+:root {
+  --bg: #f3f5f8; --panel: #ffffff; --ink: #15202b; --muted: #566372; --line: #d8dee6; --grid: #e8ecf1;
+  --accent: #3a5a7c; --warn: #b4441a; --ok: #2c7a57; --steel: #7d8794; --steel-dk: #4f5864; --table: #c8ced6;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1318; --panel: #151c23; --ink: #e6ebf0; --muted: #9ba7b4; --line: #2a343f; --grid: #1f2830;
+    --accent: #8db2d8; --warn: #f08a5c; --ok: #5fc195; --steel: #8f99a6; --steel-dk: #b9c2cc; --table: #2b343e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1318; --panel: #151c23; --ink: #e6ebf0; --muted: #9ba7b4; --line: #2a343f; --grid: #1f2830;
+  --accent: #8db2d8; --warn: #f08a5c; --ok: #5fc195; --steel: #8f99a6; --steel-dk: #b9c2cc; --table: #2b343e; color-scheme: dark;
+}
+html { color-scheme: light dark; height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px;
+  height: 100%; box-sizing: border-box; overflow: hidden;
+}
+.wrap { max-width: 1280px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 1.8rem; letter-spacing: 0.5px; line-height: 1; }
+.sub { color: var(--muted); margin: 3px 0 0; font-size: 0.95rem; }
+.hdr-r { display: flex; gap: 8px; align-items: center; }
+select { font: 600 0.95rem var(--body); padding: 6px 8px; min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.stage { flex: 1; min-height: 0; display: grid; grid-template-columns: 132px minmax(260px, 1fr) minmax(280px, 340px); gap: 10px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.label { font-family: var(--display); font-weight: 600; font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.tray { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; justify-content: space-evenly; }
+.mass-btn { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px dashed transparent; border-radius: 8px; background: none; color: var(--ink); cursor: grab; touch-action: none; user-select: none; font: 600 0.95rem var(--mono); min-height: 44px; text-align: left; }
+.mass-btn:hover { border-color: var(--line); }
+.mass-btn svg { flex: none; }
+.mass-btn.used { opacity: 0.35; border-color: var(--line); cursor: pointer; }
+.mass-btn span { white-space: nowrap; }
+.mass-btn.used span::after { content: " ✕"; font-size: 0.75rem; }
+.tray-note { color: var(--muted); font-size: 0.8rem; line-height: 1.35; margin: 0; }
+.cv { position: relative; flex: 1; min-height: 120px; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 8px; }
+#rig { touch-action: none; }
+.load { font-family: var(--mono); font-size: 0.95rem; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.load b { font-weight: 600; }
+.side { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.side .panel:first-child { flex: 1; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+button.b { font: 600 0.92rem var(--body); padding: 6px 12px; min-height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+button.b.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+button.b:disabled { opacity: 0.45; cursor: default; }
+button:focus-visible, select:focus-visible, canvas:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
+.watch { font-family: var(--mono); font-weight: 500; font-size: 2.6rem; font-variant-numeric: tabular-nums; text-align: center; line-height: 1.1; padding: 4px 0; border: 1px solid var(--line); border-radius: 8px; }
+.watch small { font-size: 1rem; color: var(--muted); }
+.watch.run { color: var(--ok); }
+.btns.w button { flex: 1; }
+.log { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
+.msg { min-height: 1.3em; font-size: 0.9rem; color: var(--warn); font-weight: 600; margin: 0; }
+.kbd { font-family: var(--mono); font-size: 0.8rem; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+.hint { color: var(--muted); font-size: 0.8rem; margin: 0; line-height: 1.35; }
+.ghost { position: fixed; pointer-events: none; z-index: 20; transform: translate(-50%, -30%); filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+dialog { max-width: 620px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); padding: 18px 20px; }
+dialog::backdrop { background: rgba(10, 15, 20, 0.55); }
+dialog h2 { font-family: var(--display); margin: 0 0 6px; font-size: 1.5rem; }
+dialog ol { padding-left: 1.3em; margin: 6px 0; line-height: 1.45; }
+dialog li { margin-bottom: 4px; }
+dialog p { margin: 6px 0; line-height: 1.45; }
+@media (max-width: 860px) {
+  body { height: auto; overflow: auto; }
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .tray { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; }
+  #rigbox { flex: none; height: 520px; }
+  #magbox { flex: none; height: 220px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Hooke's Law / Simple Harmonic Motion Virtual Lab</h1>
+      <p class="sub">Missed the Hooke's Law &amp; SHM lab? Collect the same data here: L₀, Table A (stretch) and Table B (period).</p>
+    </div>
+    <div class="hdr-r">
+      <label for="springSel" class="label" style="align-items:center">Spring</label>
+      <select id="springSel" aria-label="Choose a spring">
+        <option value="0">Spring 1 (long)</option>
+        <option value="1">Spring 2 (short)</option>
+        <option value="2">Spring 3 (soft)</option>
+      </select>
+      <button class="b" id="helpBtn">How to use</button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="panel">
+      <div class="label"><span>Masses</span></div>
+      <div class="tray" id="tray"></div>
+      <p class="tray-note">Drag (or click) a mass onto the spring. Click a faded one to take it off.</p>
+    </div>
+
+    <div class="panel">
+      <div class="label"><span>Retort stand &amp; metre stick</span><span>drag the mass to pull</span></div>
+      <div class="load"><span>On spring: <b id="loadTxt">nothing</b></span><span id="loadKg"></span></div>
+      <div class="cv" id="rigbox"><canvas id="rig" tabindex="0" aria-label="Retort stand with a hanging spring and a metre stick behind it. Drag the masses to pull them down, then release. Arrow keys pull; Enter releases."></canvas></div>
+      <div class="btns">
+        <button class="b" id="steady">Steady the mass</button>
+        <button class="b" id="tapeBtn">Put tape at flag</button>
+        <button class="b" id="pull3">Pull down 3 cm &amp; let go</button>
+        <button class="b" id="clearAll">Remove all masses</button>
+      </div>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="label"><span>Magnified metre stick</span><span>read the flag tip</span></div>
+        <div class="cv" id="magbox"><canvas id="mag" role="img" aria-label="Close-up of the metre stick around the pointer flag, with millimetre marks"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="label"><span>Stopwatch</span><span><span class="kbd">Space</span> start/stop · <span class="kbd">R</span> reset</span></div>
+        <div class="watch" id="watch">0.00<small> s</small></div>
+        <div class="btns w">
+          <button class="b primary" id="swGo">Start</button>
+          <button class="b" id="swReset">Reset</button>
+        </div>
+        <div class="log" id="log">Recent times: none yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<dialog id="help">
+  <h2>How to use this virtual lab</h2>
+  <p>This simulation replaces the equipment from the in-class lab. Use your lab handout to record everything, just like in class.</p>
+  <ol>
+    <li><b>Choose a spring</b> (top right) and write its number on your handout. Use the same spring for the whole lab.</li>
+    <li><b>L₀:</b> with no mass on the spring, read where the tip of the red tape flag points on the <b>magnified metre stick</b>. Read to the nearest 0.1 cm.</li>
+    <li><b>Part A:</b> drag masses from the tray onto the spring's hook to build each load in Table A (e.g. 200 + 50). Press <b>Steady the mass</b>, wait until it is still, then record L.</li>
+    <li><b>Part B:</b> hang a Table B load and steady it. Press <b>Put tape at flag</b> to mark the rest position. Drag the masses down about 3 cm and let go (or use the 3 cm button).</li>
+    <li>Start the stopwatch (<span class="kbd">Space</span>) as the flag passes the tape <b>moving down</b>. Count each later downward pass and stop the watch at 20. Do 3 trials for each load.</li>
+  </ol>
+  <p>Lab rules still apply: at most <b>3 masses</b> on the spring and never more than <b>1000 g</b>.</p>
+  <div class="btns"><button class="b primary" id="helpClose">Start the lab</button></div>
+</dialog>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const g = 9.81;
+  // Hidden spring properties. k (N/m), F0 = pre-tension (N), ms = spring mass (kg), Ln = unstretched length (m), top = ruler reading of hanger (cm), b = air/internal damping (kg/s)
+  const SPRINGS = [
+    { k: 31.2, F0: 0.55, ms: 0.028, Ln: 0.165, top: 3.0, b: 0.010, coils: 30, wid: 1.5 },
+    { k: 28.7, F0: 0.85, ms: 0.018, Ln: 0.110, top: 3.0, b: 0.009, coils: 22, wid: 1.6 },
+    { k: 24.6, F0: 0.40, ms: 0.034, Ln: 0.190, top: 3.0, b: 0.011, coils: 36, wid: 1.4 }
+  ];
+  // Labelled masses vs their true masses (students use labels, as in class). Dimensions in cm.
+  const MASSES = [
+    { label: 50,   real: 0.0504, h: 3.0, d: 2.2 },
+    { label: 100,  real: 0.0992, h: 3.8, d: 2.6 },
+    { label: 200,  real: 0.2011, h: 5.0, d: 3.2 },
+    { label: 500,  real: 0.4976, h: 7.0, d: 4.4 },
+    { label: 1000, real: 1.0035, h: 8.6, d: 5.6 }
+  ];
+  const HOOK = 1.6;   // cm of hook above each mass body
+  const KC = 2500;    // N/m: closed coils resist compression
+  const DT = 0.0002;  // s physics step
+  const HX = 1.7;     // drawing only: widen spring and masses so they are easy to see and grab
+
+  let S = SPRINGS[0];
+  let stack = [];          // indexes into MASSES, top to bottom
+  let X = 0, Y = 0, vx = 0, vy = 0;  // hook position relative to hanger (m, +down) and velocity
+  let simT = 0, handUntil = -1, held = false;
+  let tape = null;         // ruler reading (cm) of tape strip
+  let magC = 20;           // magnifier centre (cm): fixed at the rest position of the current load, so the ruler never moves
+
+  // ---------- colours ----------
+  let C = {};
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    ['panel','ink','muted','line','grid','accent','warn','ok','steel','steel-dk','table'].forEach(n => C[n] = s.getPropertyValue('--' + n).trim());
+  }
+  readColors();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors); } catch (e) {}
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // ---------- physics ----------
+  const loadReal = () => stack.reduce((s, i) => s + MASSES[i].real, 0);
+  const loadLabel = () => stack.reduce((s, i) => s + MASSES[i].label, 0);
+  const Mi = () => loadReal() + S.ms / 3;
+  const W = () => (loadReal() + S.ms / 2) * g;
+  function tension(r) { return r >= S.Ln ? S.F0 + S.k * (r - S.Ln) : Math.max(0, S.F0 + KC * (r - S.Ln)); }
+  function eqY() {
+    const w = W();
+    return w >= S.F0 ? S.Ln + (w - S.F0) / S.k : S.Ln + (w - S.F0) / KC;
+  }
+  const rnd = (a) => (Math.random() * 2 - 1) * a;
+
+  function step(n) {
+    const m = Mi(), w = W();
+    for (let i = 0; i < n; i++) {
+      const r = Math.hypot(X, Y);
+      const T = tension(r);
+      let bx = S.b, by = S.b;
+      if (simT < handUntil) { const bh = 2.2 * Math.sqrt(S.k * m); bx += bh; by += bh; }
+      // tiny air drag on lateral motion plus a slight quadratic term
+      const ax = (-T * X / r - bx * vx - 0.02 * Math.abs(vx) * vx) / m;
+      const ay = (w - T * Y / r - by * vy - 0.02 * Math.abs(vy) * vy) / m;
+      vx += ax * DT; vy += ay * DT;
+      X += vx * DT; Y += vy * DT;
+      simT += DT;
+    }
+  }
+
+  function recentre() { magC = Math.round(S.top + eqY() * 100); }
+  function settleNew() {
+    // Student lowers the new load by hand: it ends near the new rest point with a small leftover wobble.
+    Y = eqY() + rnd(0.004); X = rnd(0.0015); vx = 0; vy = 0;
+    recentre();
+  }
+
+  // ---------- tray ----------
+  const tray = $('tray');
+  function massSVG(mm, scale) {
+    const w = mm.d * scale + 4, hh = (mm.h + HOOK) * scale + 4;
+    return `<svg width="${Math.max(w, 26)}" height="${hh}" viewBox="0 0 ${Math.max(w, 26)} ${hh}" aria-hidden="true">
+      <defs><linearGradient id="br${mm.label}" x1="0" x2="1"><stop offset="0" stop-color="#8a6a26"/><stop offset=".35" stop-color="#e3c26f"/><stop offset="1" stop-color="#9c7a30"/></linearGradient></defs>
+      <path d="M${Math.max(w,26)/2} ${hh - mm.h*scale - 2} v${-HOOK*scale*0.45} a${HOOK*scale*0.28} ${HOOK*scale*0.28} 0 1 1 ${HOOK*scale*0.5} ${-HOOK*scale*0.1}" fill="none" stroke="#6c737c" stroke-width="2"/>
+      <rect x="${(Math.max(w,26) - mm.d*scale)/2}" y="${hh - mm.h*scale - 2}" width="${mm.d*scale}" height="${mm.h*scale}" rx="3" fill="url(#br${mm.label})" stroke="#6b5220"/>
+    </svg>`;
+  }
+  MASSES.forEach((mm, i) => {
+    const bt = document.createElement('button');
+    bt.className = 'mass-btn'; bt.dataset.i = i;
+    bt.innerHTML = massSVG(mm, 5.2) + `<span>${mm.label} g</span>`;
+    bt.setAttribute('aria-label', `${mm.label} gram mass. Click to hang it on the spring or take it off.`);
+    tray.appendChild(bt);
+  });
+  const trayBtns = [...tray.children];
+
+  function say(t, good) { const el = $('msg'); el.textContent = t || ''; el.style.color = good ? 'var(--ok)' : 'var(--warn)'; }
+
+  function refreshLoad() {
+    trayBtns.forEach((b, i) => b.classList.toggle('used', stack.includes(i)));
+    $('loadTxt').textContent = stack.length ? stack.map(i => MASSES[i].label).join(' + ') + ' g' : 'nothing';
+    $('loadKg').textContent = stack.length ? 'm = ' + (loadLabel() / 1000).toFixed(3) + ' kg' : '';
+  }
+
+  function hang(i) {
+    if (stack.includes(i)) return;
+    if (stack.length >= 3) { say('Only 3 masses can hang on the spring at once.'); return; }
+    if (loadLabel() + MASSES[i].label > 1000) { say('Safety rule: never hang more than 1000 g on the spring.'); return; }
+    stack.push(i); settleNew(); refreshLoad(); say('');
+  }
+  function unhang(i) {
+    const p = stack.indexOf(i); if (p < 0) return;
+    stack.splice(p, 1); settleNew(); refreshLoad(); say('');
+  }
+
+  // drag from tray
+  let tdrag = null;
+  trayBtns.forEach(bt => {
+    bt.addEventListener('pointerdown', e => {
+      const i = +bt.dataset.i;
+      tdrag = { i, x0: e.clientX, y0: e.clientY, moved: false, ghost: null, used: stack.includes(i) };
+      bt.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    bt.addEventListener('pointermove', e => {
+      if (!tdrag || tdrag.used) return;
+      if (!tdrag.moved && Math.hypot(e.clientX - tdrag.x0, e.clientY - tdrag.y0) > 5) {
+        tdrag.moved = true;
+        const gh = document.createElement('div'); gh.className = 'ghost';
+        gh.innerHTML = massSVG(MASSES[tdrag.i], (geo.ppcm || 6) * 1.3);
+        document.body.appendChild(gh); tdrag.ghost = gh;
+      }
+      if (tdrag.ghost) { tdrag.ghost.style.left = e.clientX + 'px'; tdrag.ghost.style.top = e.clientY + 'px'; }
+    });
+    const end = e => {
+      if (!tdrag) return;
+      const { i, moved, ghost, used } = tdrag; tdrag = null;
+      if (ghost) ghost.remove();
+      if (!moved) { used ? unhang(i) : hang(i); return; }
+      const r = rig.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) hang(i);
+    };
+    bt.addEventListener('pointerup', end);
+    bt.addEventListener('pointercancel', () => { if (tdrag && tdrag.ghost) tdrag.ghost.remove(); tdrag = null; });
+    bt.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); const i = +bt.dataset.i; stack.includes(i) ? unhang(i) : hang(i); } });
+  });
+
+  // ---------- canvases ----------
+  const rig = $('rig'), rc = rig.getContext('2d');
+  const mag = $('mag'), mc = mag.getContext('2d');
+  function fit(cv, ctx) {
+    const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    const w = Math.round(r.width * d), h = Math.round(r.height * d);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+    return { w: r.width, h: r.height };
+  }
+  let geo = {};
+  const reading = () => S.top + Y * 100;    // cm on the metre stick at the flag
+
+  function brass(ctx, x0, x1) {
+    const gr = ctx.createLinearGradient(x0, 0, x1, 0);
+    gr.addColorStop(0, '#8a6a26'); gr.addColorStop(0.35, '#e3c26f'); gr.addColorStop(1, '#9c7a30');
+    return gr;
+  }
+  function rr(c, x0, y0, w, h, r) {
+    c.beginPath(); c.moveTo(x0 + r, y0); c.arcTo(x0 + w, y0, x0 + w, y0 + h, r);
+    c.arcTo(x0 + w, y0 + h, x0, y0 + h, r); c.arcTo(x0, y0 + h, x0, y0, r); c.arcTo(x0, y0, x0 + w, y0, r); c.closePath();
+  }
+
+  // Hooked masses (or the bare spring hook) drawn downward from (0,0) = spring's bottom hook. Shared by both views.
+  function drawStack(c, ppcm, wscale) {
+    let y = 0, maxD = 0;
+    if (stack.length === 0) {
+      const r = Math.max(4, ppcm * 0.6);
+      c.strokeStyle = '#6c737c'; c.lineWidth = Math.max(2, ppcm * 0.18);
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(0, r); c.arc(-r, r, r, 0, Math.PI * 0.9); c.stroke();
+      return { len: 2 * r, maxD: 2 * r };
+    }
+    stack.forEach(i => {
+      const mm = MASSES[i], bw = mm.d * ppcm * wscale, bh = mm.h * ppcm, hh = HOOK * ppcm;
+      maxD = Math.max(maxD, bw);
+      c.strokeStyle = '#6c737c'; c.lineWidth = Math.max(1.5, ppcm * 0.18);
+      c.beginPath(); c.moveTo(0, y + hh); c.lineTo(0, y + hh * 0.35); c.arc(-hh * 0.22, y + hh * 0.35, hh * 0.22, 0, Math.PI, true); c.stroke();
+      c.fillStyle = brass(c, -bw / 2, bw / 2); rr(c, -bw / 2, y + hh, bw, bh, Math.min(3 * ppcm / 4, 10)); c.fill();
+      c.strokeStyle = '#6b5220'; c.lineWidth = Math.max(1, ppcm / 20); c.stroke();
+      if (bh > 14) {
+        c.fillStyle = '#3b2c0c'; c.font = `600 ${Math.min(11 * Math.max(1, ppcm / 8), bw / 3)}px "IBM Plex Mono", monospace`;
+        c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(mm.label), 0, y + hh + bh / 2);
+      }
+      y += hh + bh;
+    });
+    return { len: y, maxD };
+  }
+
+  function drawRig() {
+    const { w, h } = fit(rig, rc);
+    rc.clearRect(0, 0, w, h);
+    const tableY = h - 22;
+    const ppcm = (tableY - 14) / 102;
+    const yOf = cm => tableY - (100 - cm) * ppcm;
+    const sx = Math.round(w * 0.5 + 40);          // spring hang point x
+    const rulerR = sx - 1.6 * ppcm - 14;          // right edge of metre stick
+    const rulerW = Math.max(26, 3.2 * ppcm);
+    const rodX = rulerR - rulerW - 34;
+    geo = { ppcm, yOf, sx, tableY };
+
+    // table
+    rc.fillStyle = C.table; rc.fillRect(0, tableY, w, h - tableY);
+    // stand base and rod
+    rc.fillStyle = C['steel-dk'];
+    rr(rc, rodX - 30, tableY - 9, sx - rodX + 70, 9, 3); rc.fill();
+    rc.fillStyle = C.steel; rc.fillRect(rodX - 4, yOf(-1.5), 8, tableY - 9 - yOf(-1.5));
+
+    // metre stick (stands on table, 0 at top)
+    const rTop = yOf(0), rx0 = rulerR - rulerW;
+    rc.fillStyle = '#e8cd8a'; rc.fillRect(rx0, rTop, rulerW, tableY - rTop);
+    rc.strokeStyle = '#a8894a'; rc.lineWidth = 1; rc.strokeRect(rx0 + .5, rTop + .5, rulerW - 1, tableY - rTop - 1);
+    rc.strokeStyle = '#2a2116'; rc.fillStyle = '#2a2116';
+    rc.font = `600 ${Math.max(8, Math.min(11, ppcm * 1.4))}px "IBM Plex Mono", monospace`;
+    rc.textAlign = 'left'; rc.textBaseline = 'middle';
+    for (let cm = 0; cm <= 100; cm++) {
+      const y = Math.round(yOf(cm)) + 0.5;
+      const len = cm % 10 === 0 ? rulerW * 0.55 : cm % 5 === 0 ? rulerW * 0.38 : rulerW * 0.2;
+      rc.beginPath(); rc.moveTo(rulerR, y); rc.lineTo(rulerR - len, y); rc.stroke();
+      if (cm % 10 === 0 && cm > 0 && cm < 100) rc.fillText(String(cm), rx0 + 2, y);
+    }
+    // clamps holding the stick to the rod
+    rc.fillStyle = C['steel-dk'];
+    [yOf(12), yOf(70)].forEach(y => { rc.fillRect(rodX - 6, y - 4, rx0 - rodX + 8, 8); });
+
+    // tape strip on the metre stick
+    if (tape !== null) {
+      const ty = yOf(tape);
+      rc.fillStyle = 'rgba(60,130,220,0.75)'; rc.fillRect(rx0 - 3, ty - 1.5, rulerW + 6, 3);
+    }
+
+    // clamp arm to spring hanger
+    const hy = yOf(S.top);
+    rc.fillStyle = C['steel-dk']; rr(rc, rodX - 8, hy - 15, 18, 16, 3); rc.fill();
+    rc.fillStyle = C.steel; rc.fillRect(rodX, hy - 10, sx - rodX + 8, 6);
+    rc.strokeStyle = C['steel-dk']; rc.lineWidth = 2;
+    rc.beginPath(); rc.moveTo(sx, hy - 4); rc.lineTo(sx, hy); rc.stroke();
+
+    // hook position
+    const hx = sx + X * 100 * ppcm, hk = hy + Y * 100 * ppcm;
+    geo.hook = { x: hx, y: hk };
+
+    // spring coils along the hanger→hook line
+    const dx = hx - sx, dy = hk - hy, L = Math.hypot(dx, dy) || 1;
+    const ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+    const lead = Math.min(10, L * 0.12), body = L - 2 * lead;
+    const amp = S.wid * ppcm * HX / 2 + 1;
+    rc.strokeStyle = C.accent; rc.lineWidth = Math.max(1.2, ppcm * 0.22); rc.lineJoin = 'round';
+    rc.beginPath(); rc.moveTo(sx, hy); rc.lineTo(sx + ux * lead, hy + uy * lead);
+    const n = S.coils * 2;
+    for (let i = 1; i < n; i++) {
+      const s = lead + body * i / n, a = (i % 2 ? amp : -amp);
+      rc.lineTo(sx + ux * s + nx * a, hy + uy * s + ny * a);
+    }
+    rc.lineTo(hx - ux * lead, hk - uy * lead); rc.lineTo(hx, hk); rc.stroke();
+
+    // red tape flag on the hook, pointing at the metre stick
+    rc.fillStyle = '#d83a2a';
+    rc.beginPath(); rc.moveTo(hx, hk - 3); rc.lineTo(rulerR + 3, hk - 3); rc.lineTo(rulerR, hk); rc.lineTo(rulerR + 3, hk + 3); rc.lineTo(hx, hk + 3); rc.closePath(); rc.fill();
+
+    // mass stack, hanging along the spring direction
+    geo.leadCm = lead / ppcm; geo.bodyCm = body / ppcm;
+    rc.save(); rc.translate(hx, hk); rc.rotate(-Math.atan2(dx, dy));
+    const st = drawStack(rc, ppcm, HX);
+    rc.restore();
+    const y = st.len;
+    geo.stackLen = y; geo.stackW = Math.max(st.maxD, 24);
+
+    // pull indicator while dragging
+    if (pull) {
+      rc.fillStyle = C.muted; rc.font = '600 12px Barlow, sans-serif'; rc.textAlign = 'left'; rc.textBaseline = 'middle';
+      rc.fillText('release to let go', hx + geo.stackW / 2 + 8, hk + y / 2);
+    }
+  }
+
+  function drawMag() {
+    const { w, h } = fit(mag, mc);
+    mc.clearRect(0, 0, w, h);
+    const span = 8;                         // cm visible (a 3 cm pull stays in view)
+    const pp = h / span;
+    const r = reading();
+    const yOf = cm => h / 2 + (cm - magC) * pp;
+    const rulerR = w * 0.5, rx0 = 8;
+    mc.fillStyle = '#e8cd8a'; mc.fillRect(rx0, 0, rulerR - rx0, h);
+    mc.strokeStyle = '#2a2116'; mc.fillStyle = '#2a2116'; mc.lineWidth = 1;
+    mc.font = '600 15px "IBM Plex Mono", monospace'; mc.textAlign = 'left'; mc.textBaseline = 'middle';
+    const lo = Math.floor((magC - span / 2) * 10) - 2, hi = Math.ceil((magC + span / 2) * 10) + 2;
+    for (let mm = Math.max(0, lo); mm <= Math.min(1000, hi); mm++) {
+      const y = Math.round(yOf(mm / 10)) + 0.5;
+      const len = mm % 10 === 0 ? (rulerR - rx0) * 0.45 : mm % 5 === 0 ? (rulerR - rx0) * 0.3 : (rulerR - rx0) * 0.17;
+      mc.lineWidth = mm % 10 === 0 ? 1.6 : 1;
+      mc.beginPath(); mc.moveTo(rulerR, y); mc.lineTo(rulerR - len, y); mc.stroke();
+      if (mm % 10 === 0) mc.fillText(String(mm / 10), rx0 + 6, y);
+    }
+    // tape
+    if (tape !== null) {
+      const ty = yOf(tape);
+      mc.fillStyle = 'rgba(60,130,220,0.55)'; mc.fillRect(rx0, ty - 4, rulerR - rx0 + 6, 8);
+      mc.fillStyle = C.muted; mc.font = '600 11px Barlow, sans-serif'; mc.textAlign = 'left';
+      mc.fillText('tape', rulerR + 10, ty - 12);
+    }
+    // spring coils, hooked masses and flag: same drawing as the stand view, at this zoom
+    const avail = w - rulerR - 28;
+    const maxDcm = stack.length ? Math.max(...stack.map(i => MASSES[i].d)) : S.wid;
+    const ws = Math.min(HX, avail / (Math.max(maxDcm, S.wid) * pp));
+    const hx = rulerR + 18 + avail / 2 + X * 100 * pp;
+    const fy = yOf(r);
+    const lead = geo.leadCm || 1, body = geo.bodyCm || 10, n = S.coils * 2;
+    const amp = S.wid * pp * ws / 2;
+    const yS = sc => yOf(S.top + sc);
+    mc.strokeStyle = C.accent; mc.lineWidth = 3; mc.lineJoin = 'round';
+    mc.beginPath(); mc.moveTo(hx, yS(0));
+    for (let i = 1; i < n; i++) mc.lineTo(hx + (i % 2 ? amp : -amp), yS(lead + body * i / n));
+    mc.lineTo(hx, fy - lead * pp); mc.lineTo(hx, fy); mc.stroke();
+    mc.fillStyle = '#d83a2a';
+    mc.beginPath(); mc.moveTo(hx, fy - 6); mc.lineTo(rulerR + 10, fy - 6); mc.lineTo(rulerR, fy); mc.lineTo(rulerR + 10, fy + 6); mc.lineTo(hx, fy + 6); mc.closePath(); mc.fill();
+    mc.save(); mc.translate(hx, fy); drawStack(mc, pp, ws); mc.restore();
+  }
+
+  // ---------- pulling the mass ----------
+  let pull = null;
+  function toLocal(e) { const r = rig.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+  rig.addEventListener('pointerdown', e => {
+    const p = toLocal(e), hk = geo.hook; if (!hk) return;
+    const halfW = Math.max(28, geo.stackW / 2 + 14);
+    if (Math.abs(p.x - hk.x) > halfW || p.y < hk.y - 30 || p.y > hk.y + geo.stackLen + 20) return;
+    pull = { offY: p.y - hk.y, offX: p.x - hk.x, y0: eqY() };
+    rig.setPointerCapture(e.pointerId); say('');
+    e.preventDefault();
+  });
+  rig.addEventListener('pointermove', e => {
+    const p = toLocal(e), hk = geo.hook;
+    if (!pull) { if (hk) { const halfW = Math.max(28, geo.stackW / 2 + 14); rig.style.cursor = (Math.abs(p.x - hk.x) < halfW && p.y > hk.y - 30 && p.y < hk.y + geo.stackLen + 20) ? 'grab' : 'default'; } return; }
+    rig.style.cursor = 'grabbing';
+    const ppm = geo.ppcm * 100;
+    let ny = (p.y - pull.offY - geo.yOf(S.top)) / ppm;
+    let nx = (p.x - pull.offX - geo.sx) / ppm;
+    ny = Math.max(S.Ln - 0.005, Math.min(pull.y0 + 0.08, ny));
+    nx = Math.max(-0.015, Math.min(0.015, nx));
+    Y = ny; X = nx; vx = 0; vy = 0; held = true;
+  });
+  function letGo() {
+    if (!pull) return;
+    const d = (Y - pull.y0) * 100;
+    pull = null; held = false; rig.style.cursor = 'grab';
+    X += rnd(0.0008); vx = rnd(0.004); vy = 0;
+    if (d > 5.5) say('That was a ' + d.toFixed(0) + ' cm pull. The lab says about 3 cm, so the motion stays vertical.');
+  }
+  rig.addEventListener('pointerup', letGo);
+  rig.addEventListener('pointercancel', letGo);
+  rig.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!pull) pull = { offY: 0, offX: 0, y0: eqY() };
+      Y = Math.max(S.Ln, Math.min(pull.y0 + 0.08, Y + (e.key === 'ArrowDown' ? 0.005 : -0.005)));
+      vx = vy = 0; held = true; e.preventDefault(); e.stopPropagation();
+    } else if (e.key === 'Enter') { letGo(); e.preventDefault(); }
+  });
+
+  // ---------- buttons ----------
+  $('steady').addEventListener('click', () => { handUntil = simT + 1.4; say(''); });
+  $('tapeBtn').addEventListener('click', () => {
+    if (tape !== null && Math.abs(tape - reading()) < 0.05) { tape = null; $('tapeBtn').textContent = 'Put tape at flag'; return; }
+    tape = reading(); $('tapeBtn').textContent = 'Remove tape';
+    if (Math.abs(vy) > 0.01) say('The mass was still moving, so the tape may not be at the rest position.');
+  });
+  $('pull3').addEventListener('click', () => {
+    if (!stack.length) { say('Hang some mass on the spring first.'); return; }
+    Y = eqY() + 0.03 + rnd(0.002); X = rnd(0.001); vx = rnd(0.003); vy = 0; say('');
+  });
+  $('clearAll').addEventListener('click', () => { stack = []; settleNew(); refreshLoad(); say(''); });
+  $('springSel').addEventListener('change', e => {
+    S = SPRINGS[+e.target.value]; stack = []; tape = null; $('tapeBtn').textContent = 'Put tape at flag';
+    Y = eqY(); X = 0; vx = vy = 0; refreshLoad(); recentre();
+    say('Switched springs. Measure a new L₀ before you start.', true);
+  });
+
+  // ---------- stopwatch (runs on the simulation clock, so it matches the motion exactly) ----------
+  let swRun = false, swStart = 0, swAcc = 0, times = [];
+  let lastNow = performance.now(), simAtFrame = 0;
+  const simNow = () => simT + Math.min(0.1, (performance.now() - lastNow) / 1000);
+  function swVal() { return swAcc + (swRun ? simNow() - swStart : 0); }
+  function swToggle() {
+    if (swRun) {
+      swAcc += simNow() - swStart; swRun = false;
+      times.unshift(swAcc.toFixed(2)); times = times.slice(0, 5);
+      $('log').textContent = 'Recent times: ' + times.join(', ') + ' s';
+    } else { swStart = simNow(); swRun = true; }
+    $('swGo').textContent = swRun ? 'Stop' : 'Start';
+    $('watch').classList.toggle('run', swRun);
+  }
+  function swReset() { swRun = false; swAcc = 0; $('swGo').textContent = 'Start'; $('watch').classList.remove('run'); }
+  $('swGo').addEventListener('click', swToggle);
+  $('swReset').addEventListener('click', swReset);
+  document.addEventListener('keydown', e => {
+    if ($('help').open || e.target.tagName === 'SELECT') return;
+    if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) swToggle(); }
+    else if (e.key === 'r' || e.key === 'R') swReset();
+  });
+  // keep Space from also "clicking" a focused button
+  document.addEventListener('keyup', e => { if (e.code === 'Space') e.preventDefault(); });
+
+  // ---------- help ----------
+  const help = $('help');
+  $('helpBtn').addEventListener('click', () => help.showModal());
+  $('helpClose').addEventListener('click', () => help.close());
+
+  // ---------- loop ----------
+  function frame(now) {
+    const dt = Math.min(0.1, (now - lastNow) / 1000);
+    lastNow = now;
+    if (held) simT += dt; else step(Math.max(1, Math.round(dt / DT)));
+    const r = reading();
+    const v = swVal();
+    $('watch').firstChild.nodeValue = v.toFixed(2);
+    drawRig(); drawMag();
+    requestAnimationFrame(frame);
+  }
+
+  if (/[?&]debug/.test(location.search)) window.__sim = { reading, eqY, hang, get simT() { return simT; } };
+  Y = eqY(); recentre(); refreshLoad();
+  try { help.showModal(); } catch (e) {}
+  requestAnimationFrame(t => { lastNow = t; frame(t); });
+})();
+</script>
+</body>
+</html>
