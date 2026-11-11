@@ -78,13 +78,26 @@ button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px s
   .controls { grid-template-columns: minmax(0, 1fr); }
 }
 </style>
-<style>html{color-scheme:light dark}body{margin:0}</style>
+<style>html{color-scheme:light dark}body{margin:0}
+/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
+.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2,var(--panel,#fff));color:var(--muted);cursor:pointer}
+.theme-sw:hover{border-color:var(--muted)}
+.theme-sw:focus-visible{outline:3px solid var(--spring);outline-offset:2px}
+.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
+.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
+.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
+.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface,var(--panel,#fff))}
+@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
+.hdr-row{display:flex;align-items:center;gap:12px}
+</style>
+<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <h1>Spring Damping</h1>
+    <div class="hdr-row"><h1>Spring Damping</h1>
+<button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button></div>
     <p class="sub">Drag the mass up or down, then let go. x is measured from equilibrium (up is positive), so F = −kx. With friction on, dashed curves show the decay envelope A·e<sup>−bt/2m</sup>.</p>
   </header>
 
@@ -411,6 +424,13 @@ button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px s
   updateControls();
   requestAnimationFrame(frame);
 })();
+</script>
+<script>
+(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
+const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
+const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
+btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
+mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
 </script>
 </body>
 </html>
