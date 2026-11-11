@@ -9,18 +9,31 @@
   --navy:#0B1630; --ink:#1B2333; --card:#EEF2F8; --cream:#FFF4E3;
   --amber:#F4A43A; --amberDk:#B86F0E; --teal:#2A9D8F; --coral:#E4572E;
   --blue:#2F6FDE; --purple:#7B5EA7; --grey:#6B7486; --line:#D5DCE8;
+  --bg:#fff; --surface:#fff; --on-navy:#fff; --header:#0B1630;
+  --grid1:#E3E8F1; --grid2:#F2F4F8; --support:#C3CBD8; --platform:#D5DCE8; --rail:#0B1630; --rail2:#6B7486;
 }
+/* dark mode: same colour meanings, brighter so they show on a dark background */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --navy:#A9C1FF; --ink:#E6EBF5; --card:#1B2537; --cream:#3B2D16; --amberDk:#F4B860;
+  --teal:#3CC4B3; --coral:#FF7A55; --blue:#6E9BFF; --purple:#B79DE6; --grey:#9AA5B8; --line:#2E3A52;
+  --bg:#0E1420; --surface:#151D2C; --on-navy:#0B1630;
+  --grid1:#26314A; --grid2:#19223A; --support:#4A5872; --platform:#4A5872; --rail:#C7D3EC; --rail2:#55627A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --navy:#A9C1FF; --ink:#E6EBF5; --card:#1B2537; --cream:#3B2D16; --amberDk:#F4B860;
+  --teal:#3CC4B3; --coral:#FF7A55; --blue:#6E9BFF; --purple:#B79DE6; --grey:#9AA5B8; --line:#2E3A52;
+  --bg:#0E1420; --surface:#151D2C; --on-navy:#0B1630;
+  --grid1:#26314A; --grid2:#19223A; --support:#4A5872; --platform:#4A5872; --rail:#C7D3EC; --rail2:#55627A; color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#fff;color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
 h1,h2,.eq{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
 body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
-header{flex:none;background:var(--navy);color:#fff;padding:7px 16px;display:flex;align-items:center;gap:14px;
+header{flex:none;background:var(--header);color:#fff;padding:7px 16px;display:flex;align-items:center;gap:14px;
   background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
 header .kicker{font-size:12px;letter-spacing:.12em;color:var(--amber);font-weight:700}
 header h1{margin:0;font-size:21px;font-weight:700;white-space:nowrap}
 header .eqs{margin-left:auto;display:flex;gap:18px;font-family:Cambria,Georgia,serif;font-size:16px;color:#E6EBF5;white-space:nowrap}
 .wrap{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 10px}
-.stage{flex:1;min-height:200px;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;background:#fff}
+.stage{flex:1;min-height:200px;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;background:var(--bg)}
 canvas{display:block;position:absolute;left:0;top:0}
 .banner{position:absolute;left:50%;top:8px;transform:translateX(-50%);max-width:min(760px,92%);padding:7px 14px;border-radius:10px;
   font-size:15px;line-height:1.3;text-align:center;display:none;border:2px solid}
@@ -28,15 +41,15 @@ canvas{display:block;position:absolute;left:0;top:0}
 .banner.bad{background:#FCE9E3;border-color:var(--coral);color:#8A2A10}
 .banner.info{background:var(--cream);border-color:var(--amber);color:#6B4206}
 .panel{flex:none;display:grid;grid-template-columns:1.25fr 1fr 0.9fr;gap:8px}
-.card{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;min-width:0}
+.card{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface);min-width:0}
 .sliders{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;row-gap:2px}
 .slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .slider label{font-weight:700;white-space:nowrap}
 .slider output{font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700;color:var(--navy);white-space:nowrap}
 input[type=range]{width:100%;accent-color:var(--navy);height:20px;margin:0}
 .row{display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;margin-top:6px}
-button{font:inherit;font-weight:700;border-radius:9px;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:4px 12px;cursor:pointer}
-button.go{background:var(--navy);color:#fff}
+button{font:inherit;font-weight:700;border-radius:9px;border:2px solid var(--navy);background:var(--surface);color:var(--navy);padding:4px 12px;cursor:pointer}
+button.go{background:var(--navy);color:var(--on-navy)}
 button:disabled{opacity:.45;cursor:default}
 .toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;white-space:nowrap}
 .toggle input{width:16px;height:16px;margin:0;accent-color:var(--navy)}
@@ -64,13 +77,30 @@ sub,sup{font-size:70%}
   header .eqs{display:none}
 }
 @media (max-width:560px){.sliders{grid-template-columns:1fr}}
+
+/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
+.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2,var(--panel,#fff));color:var(--muted);cursor:pointer}
+.theme-sw:hover{border-color:var(--muted)}
+.theme-sw:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
+.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
+.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
+.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface,var(--panel,#fff))}
+@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
+header .theme-sw{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#C9D2E3;margin-left:6px}
+header .theme-sw:hover{border-color:rgba(255,255,255,.6)}
+header .theme-sw .knob{background:var(--amber)}
+header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"] .moon{color:#0B1630}
+@media (max-width:900px), (max-height:520px){header .theme-sw{margin-left:auto}}
 </style>
+<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
 <header>
   <span class="kicker">SPH4C · ENERGY</span>
   <h1>Roller Coaster Energy Lab</h1>
   <div class="eqs"><span>E<sub>g</sub> = mgh</span><span>E<sub>k</sub> = ½mv²</span><span>E<sub>total</sub> = E<sub>g</sub> + E<sub>k</sub> + E<sub>th</sub></span><span>top of loop: v ≥ √(g r)</span></div>
+  <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
 </header>
 <div class="wrap">
   <div class="stage" id="stage">
@@ -315,6 +345,14 @@ function loop(ts){
 }
 
 /* ---------- Drawing ---------- */
+var C = {};
+function readColors(){
+  var cs = getComputedStyle(document.documentElement);
+  ['bg','ink','card','cream','amberDk','teal','coral','purple','grey','navy','grid1','grid2','support','platform','rail','rail2'].forEach(function(n){ C[n] = cs.getPropertyValue('--'+n).trim(); });
+}
+readColors();
+new MutationObserver(function(){ readColors(); if(S) draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ readColors(); if(S) draw(); }); } catch(e) {}
 var VIEW = {};
 function resize(){
   var st = $('stage'), w = st.clientWidth || 1240, h = st.clientHeight || 400, dpr = window.devicePixelRatio || 1;
@@ -334,20 +372,20 @@ function Y(y){ return VIEW.oy - y*VIEW.k; }
 function draw(){
   if(!S) return;
   var w = VIEW.w, h = VIEW.h, k = VIEW.k, T = S.T, p = S.p;
-  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle = C.bg; ctx.fillRect(0,0,w,h);
   // grid + ruler
   for(var gy=5; gy<=65; gy+=5){
     var yy = Y(gy); if(yy < 4) break;
-    ctx.strokeStyle = gy%10===0 ? '#E3E8F1' : '#F2F4F8'; ctx.lineWidth = 1;
+    ctx.strokeStyle = gy%10===0 ? C.grid1 : C.grid2; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(VIEW.ox, yy); ctx.lineTo(w-6, yy); ctx.stroke();
   }
   // ground
-  ctx.fillStyle = '#EEF2F8'; ctx.fillRect(0, Y(0), w, h-Y(0));
-  ctx.strokeStyle = '#1B2333'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0,Y(0)); ctx.lineTo(w,Y(0)); ctx.stroke();
-  ctx.font = '12px Calibri, Arial, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#6B7486';
+  ctx.fillStyle = C.card; ctx.fillRect(0, Y(0), w, h-Y(0));
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0,Y(0)); ctx.lineTo(w,Y(0)); ctx.stroke();
+  ctx.font = '12px Calibri, Arial, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.grey;
   for(gy=0; gy<=60; gy+=10){ if(Y(gy) > 8) ctx.fillText(gy + ' m', VIEW.ox-6, Y(gy) - (gy===0 ? 7 : 0)); }
   // supports
-  ctx.strokeStyle = '#C3CBD8'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = C.support; ctx.lineWidth = 1.5;
   var P = T.pts, lastX = -99;
   for(var i=0;i<P.length;i++){
     var q = P[i];
@@ -361,39 +399,39 @@ function draw(){
     ctx.beginPath(); ctx.moveTo(X(ax), Y(r)); ctx.lineTo(X(X_LOOP + pr[1]*r), Y(0)); ctx.stroke();
   });
   // start platform
-  ctx.fillStyle = '#D5DCE8'; ctx.fillRect(X(0), Y(p.h0), X(X_CREST)-X(0), 5);
-  ctx.strokeStyle = '#C3CBD8'; ctx.beginPath(); ctx.moveTo(X(1),Y(p.h0)); ctx.lineTo(X(1),Y(0)); ctx.stroke();
+  ctx.fillStyle = C.platform; ctx.fillRect(X(0), Y(p.h0), X(X_CREST)-X(0), 5);
+  ctx.strokeStyle = C.support; ctx.beginPath(); ctx.moveTo(X(1),Y(p.h0)); ctx.lineTo(X(1),Y(0)); ctx.stroke();
   // finish
-  ctx.fillStyle = '#FFF4E3'; ctx.fillRect(X(X_END-10), Y(0)-6, X(X_END)-X(X_END-10), 6);
-  ctx.fillStyle = '#B86F0E'; ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.font='bold 12px Calibri, Arial, sans-serif';
+  ctx.fillStyle = C.cream; ctx.fillRect(X(X_END-10), Y(0)-6, X(X_END)-X(X_END-10), 6);
+  ctx.fillStyle = C.amberDk; ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.font='bold 12px Calibri, Arial, sans-serif';
   ctx.fillText('FINISH', X(X_END-5), Y(0)+16);
   // max-height line
   if($('eline').checked){
     var H = (S.E0 - S.Eth)/(M*G);
-    ctx.setLineDash([8,6]); ctx.strokeStyle = '#7B5EA7'; ctx.lineWidth = 2;
+    ctx.setLineDash([8,6]); ctx.strokeStyle = C.purple; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(VIEW.ox, Y(H)); ctx.lineTo(w-6, Y(H)); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = '#7B5EA7'; ctx.textAlign='right'; ctx.font='bold 12px Calibri, Arial, sans-serif';
+    ctx.fillStyle = C.purple; ctx.textAlign='right'; ctx.font='bold 12px Calibri, Arial, sans-serif';
     ctx.fillText('max height possible = ' + fmt(H,1) + ' m', w-10, Y(H)-5);
   }
   // track rails
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  [[7,'#0B1630'],[2.5,'#6B7486']].forEach(function(st){
+  [[7,C.rail],[2.5,C.rail2]].forEach(function(st){
     ctx.strokeStyle = st[1]; ctx.lineWidth = st[0];
     ctx.beginPath();
     for(var i=0;i<P.length;i++){ var q=P[i]; if(i===0) ctx.moveTo(X(q.x),Y(q.y)); else ctx.lineTo(X(q.x),Y(q.y)); }
     ctx.stroke();
   });
   // labels on track features
-  ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#0B1630';
+  ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='center'; ctx.fillStyle=C.navy;
   ctx.fillText('loop ' + p.dl + ' m', X(X_LOOP), Math.max(30, Y(p.dl)-26));
   ctx.fillText('hill ' + p.h2 + ' m', X(X_HILL0+W_HILL/2), Math.max(14, Y(p.h2)-10));
   // loop-top speed needed
-  ctx.font = '12px Calibri, Arial, sans-serif'; ctx.fillStyle = '#E4572E';
+  ctx.font = '12px Calibri, Arial, sans-serif'; ctx.fillStyle = C.coral;
   ctx.fillText('needs ≥ ' + fmt(Math.sqrt(G*r),1) + ' m/s at top', X(X_LOOP), Math.max(46, Y(p.dl)-10));
   // max hill marker
   if(S.maxHill > 0.2 && S.outcome && S.outcome!=='success'){
     var xs = null; for(var j=0;j<P.length;j++){ if(P[j].seg==='hill' && P[j].y >= S.maxHill-0.05){ xs=P[j].x; break; } }
-    if(xs!==null){ ctx.strokeStyle='#E4572E'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(xs)-30,Y(S.maxHill)); ctx.lineTo(X(xs)+30,Y(S.maxHill)); ctx.stroke(); ctx.setLineDash([]); }
+    if(xs!==null){ ctx.strokeStyle=C.coral; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(xs)-30,Y(S.maxHill)); ctx.lineTo(X(xs)+30,Y(S.maxHill)); ctx.stroke(); ctx.setLineDash([]); }
   }
   drawCart();
 }
@@ -409,7 +447,7 @@ function drawCart(){
   var Lc = Math.max(22, 3.6*k), Hc = Math.max(12, 1.9*k), lift = 4;
   var cx = X(x) , cy = Y(y);
   // height line
-  ctx.setLineDash([5,4]); ctx.strokeStyle = '#E4572E'; ctx.lineWidth = 2;
+  ctx.setLineDash([5,4]); ctx.strokeStyle = C.coral; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, Y(0)); ctx.stroke(); ctx.setLineDash([]);
   ctx.save();
   ctx.translate(cx, cy);
@@ -418,7 +456,7 @@ function drawCart(){
   ctx.translate(0, -lift);
   ctx.fillStyle = '#F4A43A'; ctx.strokeStyle = '#0B1630'; ctx.lineWidth = 2;
   roundRect(-Lc/2, -Hc, Lc, Hc, 4); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#0B1630';
+  ctx.fillStyle = C.navy;
   ctx.beginPath(); ctx.arc(-Lc/3, 0, 3.5, 0, 2*Math.PI); ctx.fill();
   ctx.beginPath(); ctx.arc(Lc/3, 0, 3.5, 0, 2*Math.PI); ctx.fill();
   // seat
@@ -430,7 +468,7 @@ function drawCart(){
     var len = Math.min(100, 8 + vs*3.5), ex = tx*dir, ey = -ty*dir;
     var px = cx + nx*(Hc/2+lift), pyy = cy - ny*(Hc/2+lift); // cart centre
     var sx0 = px + ex*(Lc/2+2), sy0 = pyy + ey*(Lc/2+2);
-    ctx.strokeStyle = '#2A9D8F'; ctx.fillStyle = '#2A9D8F'; ctx.lineWidth = 3.5;
+    ctx.strokeStyle = C.teal; ctx.fillStyle = C.teal; ctx.lineWidth = 3.5;
     ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(sx0 + ex*len, sy0 + ey*len); ctx.stroke();
     var hx = sx0 + ex*len, hy = sy0 + ey*len, a = Math.atan2(ey, ex);
     ctx.beginPath(); ctx.moveTo(hx + Math.cos(a)*8, hy + Math.sin(a)*8);
@@ -438,14 +476,14 @@ function drawCart(){
     ctx.lineTo(hx + Math.cos(a-2.4)*9, hy + Math.sin(a-2.4)*9); ctx.closePath(); ctx.fill();
     ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     var lx = hx + ex*24, ly = hy + ey*14;
-    ctx.fillStyle = 'rgb(255,255,255)'; var tw = ctx.measureText('00.0 m/s').width; ctx.fillRect(lx-tw/2-2, ly-8, tw+4, 16);
-    ctx.fillStyle = '#2A9D8F'; ctx.fillText(fmt(vs,1) + ' m/s', lx, ly);
+    ctx.fillStyle = C.bg; var tw = ctx.measureText('00.0 m/s').width; ctx.fillRect(lx-tw/2-2, ly-8, tw+4, 16);
+    ctx.fillStyle = C.teal; ctx.fillText(fmt(vs,1) + ' m/s', lx, ly);
   }
   // height label
-  ctx.fillStyle = '#E4572E'; ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillStyle = C.coral; ctx.font = 'bold 13px Calibri, Arial, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
   if(y > 2) ctx.fillText('h = ' + fmt(y,1) + ' m', cx + 6, (cy + Y(0))/2);
   if(S.outcome === 'fell'){
-    ctx.fillStyle = '#E4572E'; ctx.font = 'bold 16px Calibri, Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle = C.coral; ctx.font = 'bold 16px Calibri, Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText('CRASH!', cx, Y(0) - 30);
   }
 }
@@ -471,6 +509,13 @@ resize();
 reset();
 window.__coaster = {simulate:simulate, step:step, newSim:newSim, at:at};
 })();
+</script>
+<script>
+(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
+const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
+const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
+btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
+mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
 </script>
 </body>
 </html>

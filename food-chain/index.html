@@ -4,31 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
-<title>Meadow Food Chain</title>
+<title>Ecosystem Food Chains</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;900&family=Lexend:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: field notebook. A living meadow cross-section on the left (one band per feeding level, top predator at the top); population records on the right: graph on top, tabs for bars, energy pyramid and data table below. */
+/* Layout: field notebook. A food chain pyramid on the left (one band per feeding level, top predator at the top); population records on the right: graph on top, tabs for bars, energy pyramid and data table below. */
 :root{
   --bg:#eef1e8; --surface:#ffffff; --surface-2:#f5f7f0; --ink:#1a2419; --muted:#56634f; --line:#d4dbc9; --grid:#e6eadf;
-  --grass:#2f8a2a; --hopper:#d08300; --frog:#0f86a8; --heron:#8a45c2; --sick:#c22d2d; --accent:#2b5d3a;
-  --band-heron:#e6eef6; --band-frog:#e0efe9; --band-hopper:#eef2d9; --band-grass:#e9ecd3; --soil:#c9b58e;
+  --l0:#2f8a2a; --l1:#d08300; --l2:#0f86a8; --l3:#8a45c2; --sick:#c22d2d; --accent:#2b5d3a;
+  --b3:#e6eef6; --b2:#e0efe9; --b1:#eef2d9; --b0:#e9ecd3; --soil:#c9b58e;
   --f-display:"Chivo","Arial Black",system-ui,sans-serif;
   --f-body:"Lexend","Segoe UI",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#10150f; --surface:#171e16; --surface-2:#1d261c; --ink:#e3ead9; --muted:#9daa93; --line:#2d3a2a; --grid:#232d21;
-  --grass:#6cc35d; --hopper:#f2ab35; --frog:#3cc0e6; --heron:#c290f2; --sick:#ff6b6b; --accent:#8fd29e;
-  --band-heron:#18212b; --band-frog:#152520; --band-hopper:#1f2414; --band-grass:#1d2213; --soil:#4a3f2b; color-scheme:dark}}
+  --l0:#6cc35d; --l1:#f2ab35; --l2:#3cc0e6; --l3:#c290f2; --sick:#ff6b6b; --accent:#8fd29e;
+  --b3:#18212b; --b2:#152520; --b1:#1f2414; --b0:#1d2213; --soil:#4a3f2b; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#10150f; --surface:#171e16; --surface-2:#1d261c; --ink:#e3ead9; --muted:#9daa93; --line:#2d3a2a; --grid:#232d21;
-  --grass:#6cc35d; --hopper:#f2ab35; --frog:#3cc0e6; --heron:#c290f2; --sick:#ff6b6b; --accent:#8fd29e;
-  --band-heron:#18212b; --band-frog:#152520; --band-hopper:#1f2414; --band-grass:#1d2213; --soil:#4a3f2b; color-scheme:dark}
+  --l0:#6cc35d; --l1:#f2ab35; --l2:#3cc0e6; --l3:#c290f2; --sick:#ff6b6b; --accent:#8fd29e;
+  --b3:#18212b; --b2:#152520; --b1:#1f2414; --b0:#1d2213; --soil:#4a3f2b; color-scheme:dark}
 
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.4;
@@ -48,18 +49,18 @@ button,select{font:500 13.5px var(--f-body);color:var(--ink);background:var(--su
 button:hover,select:hover{border-color:var(--muted)}
 button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600;min-width:74px}
 button:disabled{opacity:.45;cursor:not-allowed}
-:focus-visible{outline:3px solid var(--hopper);outline-offset:2px}
-.scen{display:flex;gap:4px;align-items:center}
-.scen select{max-width:200px}
+:focus-visible{outline:3px solid var(--l1);outline-offset:2px}
+.eco{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);font-weight:500}
+.eco select{max-width:220px;font-weight:600}
 
-/* meadow pyramid: one canvas, tiers line up with the control cards beside it */
+/* food chain pyramid: one canvas, tiers line up with the control cards beside it */
 .meadow{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 188px;gap:10px;padding:8px}
 .pyrcv{position:relative;min-height:0;min-width:0}
 .pyrcv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .ctls{display:flex;flex-direction:column;gap:16px;min-height:0}
 .ctl{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);border-left:5px solid var(--c)}
 .ctl .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.ctl .name{font-weight:600;font-size:14px}
+.ctl .name{font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ctl .role{font-size:10.5px;line-height:1.2;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .ctl .count{font-family:var(--f-mono);font-size:18px;line-height:1.1;font-variant-numeric:tabular-nums}
 .ctl .trend{font-size:11px;line-height:1.2;color:var(--muted);font-family:var(--f-mono);white-space:nowrap}
@@ -67,13 +68,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .ctl .row button{padding:3px 0;flex:1;font-size:13px}
 .ctl .row button.pm{flex:0 0 32px;font-family:var(--f-mono);font-size:16px;padding:2px 0}
 .ctl button[aria-pressed="true"]{background:var(--sick);border-color:var(--sick);color:var(--surface);font-weight:600}
-.status{font-size:11.5px;color:var(--sick);font-weight:600;min-height:0}
 
 /* right column */
 .right{display:grid;grid-template-rows:minmax(0,1.05fr) minmax(0,1fr);gap:10px;min-height:0;min-width:0}
 .ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px 0}
-.ph h2{margin:0;font-family:var(--f-display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.ph small{color:var(--muted);font-size:12px}
+.ph h2{margin:0;white-space:nowrap;font-family:var(--f-display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;font-weight:500;justify-content:flex-end}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:16px;height:4px;border-radius:2px;background:var(--c)}
@@ -101,6 +100,7 @@ td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-spac
   .lab{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
   [role="tab"]{padding:7px 8px}
   .legend{gap:2px 8px;font-size:11.5px}
+  .eco>span{display:none}
 }
 @media (max-height:620px){
   body{padding-block:6px}
@@ -124,43 +124,38 @@ td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-spac
   .ctl .row button:not(.pm){flex-basis:100%}
   header{flex-direction:column}
   .sub{white-space:normal}
-  .scen select{max-width:170px}
+  .eco select{max-width:170px}
 }
+
+/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
+.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--muted);cursor:pointer}
+.theme-sw:hover{border-color:var(--muted)}
+.theme-sw:focus-visible{outline:3px solid var(--l1);outline-offset:2px}
+.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
+.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
+.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
+.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface)}
+@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
 </style>
 
 <div class="wrap">
 <header>
-  <h1>Meadow Food Chain</h1>
-  <p class="sub">Energy moves up the chain from grass to herons. Change one population and watch how every other level responds over the months that follow.</p>
+  <h1 id="title">Food Chain</h1>
+  <p class="sub" id="blurb"></p>
+<button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
 </header>
 
 <div class="lab">
-  <section class="card" aria-label="Meadow">
+  <section class="card" aria-label="Food chain">
     <div class="toolbar">
       <button id="play" class="primary" aria-pressed="false">▶ Play</button>
       <button id="step" title="Advance one month">+1 month</button>
-      <select id="speed" aria-label="Speed">
-        <option value="1">1 month/s</option>
-        <option value="2" selected>2 months/s</option>
-        <option value="4">4 months/s</option>
-        <option value="8">8 months/s</option>
-      </select>
       <span class="month">Month <b id="month">0</b></span>
       <span class="spacer"></span>
-      <div class="scen">
-        <select id="scenario" aria-label="Choose an event">
-          <option value="">What if…</option>
-          <option value="noHerons">Herons leave the meadow</option>
-          <option value="spray">Pesticide kills most grasshoppers</option>
-          <option value="frogDisease">Disease spreads through the frogs</option>
-          <option value="drought">Drought slows grass growth</option>
-          <option value="rain">Rain returns (end drought)</option>
-          <option value="fire">Fire burns most of the grass</option>
-          <option value="extraHerons">More herons move in</option>
-        </select>
-        <button id="apply">Go</button>
-      </div>
-      <button id="reset" title="Back to a balanced meadow at month 0">Reset</button>
+      <label class="eco"><span>Ecosystem</span>
+        <select id="eco" aria-label="Choose an ecosystem"></select>
+      </label>
+      <button id="reset" title="Back to a balanced ecosystem at month 0">Reset</button>
     </div>
     <div class="meadow" id="meadow"></div>
   </section>
@@ -194,7 +189,7 @@ td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-spac
           <button id="clear">Clear</button>
         </div>
         <div class="tablewrap"><table>
-          <thead><tr><th>Month</th><th>Grass</th><th>Grasshoppers</th><th>Frogs</th><th>Herons</th><th>What happened</th></tr></thead>
+          <thead><tr id="thead"></tr></thead>
           <tbody id="tbody"></tbody>
         </table></div>
       </div>
@@ -205,82 +200,154 @@ td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-spac
 
 <script>
 (()=>{
-/* ---------- species ---------- */
-const SP=[
-  {key:'grass', name:'Grass', unit:'50 grass plants', role:'Producer', color:'--grass', band:'--band-grass', norm:4000, per:50, step:1000, sickName:'Blight'},
-  {key:'hopper',name:'Grasshoppers', unit:'10 grasshoppers', role:'Herbivore', color:'--hopper', band:'--band-hopper', norm:800, per:10, step:200},
-  {key:'frog',  name:'Frogs', unit:'2 frogs', role:'Predator', color:'--frog', band:'--band-frog', norm:120, per:2, step:30},
-  {key:'heron', name:'Herons', unit:'1 heron', role:'Top predator', color:'--heron', band:'--band-heron', norm:16, per:1, step:4},
-];
-const N=SP.length;
+/* ---------- ecosystems ----------
+   Each one is a simple food chain, producer first. "norm" is the balanced population.
+   "short" is the plural used in sentences such as "wolves eat hares". */
+const ECOS={
+  boreal:{group:'Canada',label:'Boreal forest',title:'Boreal Forest Food Chain',
+    blurb:'In Canada’s northern forest, snowshoe hares browse on willow shrubs and wolves hunt the hares. Change one population and watch how the others respond.',
+    chain:[
+      {name:'Willow shrubs',short:'shrubs',sprite:'shrub',norm:3000,size:14,count:30,sickName:'Blight'},
+      {name:'Snowshoe hares',short:'hares',sprite:'hare',norm:300,size:21,count:14},
+      {name:'Wolves',short:'wolves',sprite:'wolf',norm:6,size:34,count:4}]},
+  tundra:{group:'Canada',label:'Arctic tundra',title:'Arctic Tundra Food Chain',
+    blurb:'On the Arctic tundra, lemmings feed on sedges and Arctic foxes hunt the lemmings. Change one population and watch how the others respond.',
+    chain:[
+      {name:'Sedges',short:'sedges',sprite:'sedge',norm:5000,size:11,count:34,sickName:'Blight'},
+      {name:'Lemmings',short:'lemmings',sprite:'lemming',norm:1000,size:30,count:16},
+      {name:'Arctic foxes',short:'Arctic foxes',lower:'Arctic foxes',sprite:'fox',norm:8,size:36,count:4}]},
+  lake:{group:'Canada',label:'Northern lake',title:'Lake Food Chain',
+    blurb:'In a northern lake, tiny water fleas eat algae, yellow perch eat the water fleas, and northern pike hunt the perch.',
+    chain:[
+      {name:'Algae',short:'algae',sprite:'algae',norm:6000,size:12,count:34,sickName:'Die-off'},
+      {name:'Water fleas',short:'water fleas',sprite:'flea',norm:1500,size:13,count:18},
+      {name:'Yellow perch',short:'perch',sprite:'perch',norm:200,size:20,count:9},
+      {name:'Northern pike',short:'pike',sprite:'pike',norm:10,size:30,count:4}]},
+  meadow:{group:'Canada',label:'Meadow',title:'Meadow Food Chain',
+    blurb:'Energy moves up the chain from grass to herons. Change one population and watch how every other level responds over the months that follow.',
+    chain:[
+      {name:'Grass',short:'grass',sprite:'grass',norm:4000,size:11,count:34,sickName:'Blight'},
+      {name:'Grasshoppers',short:'grasshoppers',sprite:'hopper',norm:800,size:15,count:18},
+      {name:'Frogs',short:'frogs',sprite:'frog',norm:120,size:17,count:9},
+      {name:'Herons',short:'herons',sprite:'heron',norm:16,size:24,count:4}]},
+  savanna:{group:'Around the world',label:'African savanna',title:'Savanna Food Chain',
+    blurb:'On the African savanna, zebras graze on grass and lions hunt the zebras. Change one population and watch how the others respond.',
+    chain:[
+      {name:'Grass',short:'grass',sprite:'grass',norm:5000,size:11,count:34,sickName:'Blight'},
+      {name:'Zebras',short:'zebras',sprite:'zebra',norm:120,size:26,count:12},
+      {name:'Lions',short:'lions',sprite:'lion',norm:6,size:30,count:4}]},
+};
+const ROLES={3:['Producer','Herbivore','Top predator'],4:['Producer','Herbivore','Predator','Top predator']};
+const LEVELCOL={3:[0,1,3],4:[0,1,2,3]};   // 3-level chains skip the blue so the top stays purple
+
+let ecoKey, SP=[], N=0;
 
 /* ---------- model ----------
-   Grass grows logistically. Each consumer eats the level below with a saturating
+   Producers grow logistically. Each consumer eats the level below with a saturating
    feeding rate that also drops when its own kind crowds the food (interference),
-   which lets the chain bounce back to balance after a disturbance. */
-const T=SP.map(s=>s.norm), C=[1,4,3], W=0.8, S=0.5;
-const M={r:0.4,K:8000,m:[0.3,0.2,0.05],q:0.005,e:[0.9,0.15,0.13/3],a:[],h:[],w:[]};
-for(let i=0;i<3;i++){const den=1+S+W;M.a[i]=den*C[i]/T[i];M.h[i]=S/(M.a[i]*T[i]);M.w[i]=W/T[i+1];}
-const DIS=[0.35,0.6,0.6,0.5];  // extra death rate per month while sick
+   which lets the chain bounce back to balance after a disturbance.
+   The maths runs on a fixed template chain; each ecosystem scales it to its own numbers. */
+const MONTHS_PER_SECOND=1;
+let TT, F, M, DIS;
+function setupModel(){
+  TT=[4000,800,120,16].slice(0,N);
+  const C=[1,4,3], W=0.8, S=0.5;
+  M={r:0.4,K:8000,m:[0.3,0.2,0.05],e:[0.9,0.15,0.13/3],a:[],h:[],w:[]};
+  for(let i=0;i<N-1;i++){const den=1+S+W;M.a[i]=den*C[i]/TT[i];M.h[i]=S/(M.a[i]*TT[i]);M.w[i]=W/TT[i+1];}
+  M.q=(M.e[N-2]*C[N-2]-M.m[N-2])/TT[N-1];      // crowding at the top, set so the chain balances at its normal numbers
+  F=SP.map((s,i)=>s.norm/TT[i]);
+  DIS=SP.map((s,i)=>i===0?0.35:i===N-1?0.5:0.6);  // extra death rate per month while sick
+}
+const disp=i=>pop[i]*F[i];
 
-let pop, month, hist, events, sick, drought, pending;
+let pop, month, time, hist, events, sick, pending, monthAgo, sinceSample;
 function reset(){
-  pop=T.slice(); month=0; hist=[{t:0,p:pop.slice()}]; events=[]; sick=[false,false,false,false]; drought=false; pending=[];
+  pop=TT.slice(); month=0; time=0; sinceSample=0; carry=0; monthAgo=pop.slice(); hist=[{t:0,p:pop.slice()}]; events=[]; sick=SP.map(()=>false); pending=[];
 }
 function deriv(s){
-  const K=drought?M.K*0.45:M.K, r=drought?M.r*0.6:M.r;
-  const c=[0,1,2].map(i=>M.a[i]*s[i]/(1+M.a[i]*M.h[i]*s[i]+M.w[i]*s[i+1]));
+  const c=[];for(let i=0;i<N-1;i++)c[i]=M.a[i]*s[i]/(1+M.a[i]*M.h[i]*s[i]+M.w[i]*s[i+1]);
   const d=sick.map((v,i)=>v?DIS[i]:0);
-  return [r*s[0]*(1-s[0]/K)-c[0]*s[1]-d[0]*s[0],
-    M.e[0]*c[0]*s[1]-M.m[0]*s[1]-c[1]*s[2]-d[1]*s[1],
-    M.e[1]*c[1]*s[2]-M.m[1]*s[2]-c[2]*s[3]-d[2]*s[2],
-    M.e[2]*c[2]*s[3]-M.m[2]*s[3]-M.q*s[3]*s[3]-d[3]*s[3]];
+  const out=[M.r*s[0]*(1-s[0]/M.K)-c[0]*s[1]-d[0]*s[0]];
+  for(let i=1;i<N;i++)out[i]=M.e[i-1]*c[i-1]*s[i]-M.m[i-1]*s[i]-(i<N-1?c[i]*s[i+1]:M.q*s[i]*s[i])-d[i]*s[i];
+  return out;
 }
-function advance(){
-  let s=pop.slice();
-  for(let k=0;k<20;k++){const v=deriv(s);s=s.map((x,i)=>Math.max(0,x+v[i]*0.05));}
-  s[0]=Math.max(s[0],20);                      // seeds in the soil always regrow some grass
-  for(let i=1;i<N;i++) if(s[i]<0.5) s[i]=0;     // fewer than one animal = gone
-  pop=s; month++; hist.push({t:month,p:pop.slice()});
-  if(auto.checked && month%6===0) record();
+// moves the ecosystem forward by a fraction of a month, in small 0.02-month steps,
+// adding a graph point every 0.1 month so the lines draw smoothly
+let carry=0;
+function advanceBy(dm){
+  carry+=dm;
+  while(carry>=0.02){
+    carry-=0.02;
+    const v=deriv(pop); pop=pop.map((x,i)=>Math.max(0,x+v[i]*0.02));
+    pop[0]=Math.max(pop[0],20);                         // seeds and roots always regrow some plants
+    for(let i=1;i<N;i++) if(disp(i)<0.5) pop[i]=0;      // fewer than one animal = gone
+    time+=0.02; sinceSample+=0.02;
+    if(sinceSample>=0.1-1e-9){sinceSample=0;hist.push({t:time,p:pop.slice()});}
+    const m=Math.floor(time+1e-9);
+    if(m>month){month=m;time=m;monthAgo=hist.length>10?hist[hist.length-11].p.slice():monthAgo;
+      if(auto.checked && month%6===0) record();}
+  }
 }
+function advance(){const target=month+1;while(month<target)advanceBy(0.02);}
 const R=v=>Math.round(v);
-function note(text){events.push({t:month,text}); pending.push(text);}
+function note(text){events.push({t:time,text}); pending.push(text);}
 
-/* ---------- meadow drawing ---------- */
+/* ---------- drawing helpers ---------- */
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 let COL={};
-function readColors(){COL={};['--grass','--hopper','--frog','--heron','--sick','--ink','--muted','--line','--grid','--surface','--soil','--accent',
-  '--band-grass','--band-hopper','--band-frog','--band-heron'].forEach(k=>COL[k]=css(k));}
-const meadow=document.getElementById('meadow');
-const rows=[];
-const order=[3,2,1,0];   // draw top predator at the top
-const linkText=['','grasshoppers eat grass','frogs eat grasshoppers','herons eat frogs'];
-meadow.innerHTML='<div class="pyrcv"><canvas id="pyrcanvas" role="img" aria-label="Food chain pyramid: grass at the wide bottom, then grasshoppers, frogs, and a few herons at the narrow top"></canvas></div><div class="ctls" id="ctls"></div>';
-const pyrCanvas=document.getElementById('pyrcanvas'), ctls=document.getElementById('ctls');
-order.forEach((i,n)=>{
-  const s=SP[i], b=document.createElement('div'); b.className='ctl'; b.style.setProperty('--c',`var(${s.color})`);
-  b.innerHTML=`
-    <div class="top"><span class="name">${s.name}</span><span class="count" id="c${i}">0</span></div>
-    <div class="top"><span class="role">${s.role}</span><span class="trend" id="tr${i}"></span></div>
-    <div class="row">
-      <button class="pm" id="minus${i}" aria-label="Remove ${s.name.toLowerCase()}">−</button>
-      <button class="pm" id="plus${i}" aria-label="Add ${s.name.toLowerCase()}">+</button>
-      <button id="sick${i}" aria-pressed="false">${s.sickName||'Disease'}</button>
-    </div>`;
-  ctls.appendChild(b);
-  rows[i]={card:b,slots:[]};
-});
-// fixed random spots so individuals stay put as numbers change
-function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}}
-SP.forEach((s,i)=>{const r=rng(97+i*31);for(let k=0;k<200;k++)rows[i].slots.push({x:r(),y:r(),ph:r()*6.28,f:r()<.5?-1:1,sk:r()});});
-
+function readColors(){COL={};['--l0','--l1','--l2','--l3','--b0','--b1','--b2','--b3','--sick','--ink','--muted','--line','--grid','--surface','--soil','--accent'].forEach(k=>COL[k]=css(k));}
 function sizeCanvas(c){const d=Math.min(2,window.devicePixelRatio||1),w=c.clientWidth,h=c.clientHeight;
   if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d);}
   const g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);return{g,w,h};}
 
+/* ---------- organism drawings (simple original silhouettes) ---------- */
 function tuft(g,x,y,sz,col){g.strokeStyle=col;g.lineWidth=1.6;g.lineCap='round';
   for(let k=-2;k<=2;k++){g.beginPath();g.moveTo(x+k*1.5,y);g.quadraticCurveTo(x+k*2.2,y-sz*.6,x+k*3.4+(k===0?0:k*.6),y-sz*(1-Math.abs(k)*.12));g.stroke();}}
+function sedge(g,x,y,sz,col){tuft(g,x,y+5,sz*.85,col);g.fillStyle=col;g.beginPath();g.ellipse(x,y+5,sz*.5,sz*.17,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x+1.5,y+5-sz*.8,1.3,2.6,.3,0,7);g.fill();}
+function shrub(g,x,y,sz,col){g.save();g.translate(x,y+sz*.55);g.scale(sz/14,sz/14);g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1.3;g.lineCap='round';
+  g.beginPath();g.moveTo(0,0);g.lineTo(-5,-13);g.moveTo(0,0);g.lineTo(1,-15);g.moveTo(0,0);g.lineTo(6,-12);g.stroke();
+  [[-5,-13],[-3,-8],[1,-15],[1,-9],[6,-12],[4,-7],[-6,-9],[7,-8]].forEach(([lx,ly],k)=>{g.beginPath();g.ellipse(lx,ly,2.6,1.3,k%2?.6:-.6,0,7);g.fill();});
+  g.restore();}
+function algae(g,x,y,sz,col){g.save();g.translate(x,y+sz*.6);g.scale(sz/14,sz/14);g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1.6;g.lineCap='round';
+  for(let k=-1;k<=1;k++){g.beginPath();g.moveTo(k*3,0);g.bezierCurveTo(k*3+4,-5,k*3-4,-9,k*3+(k||1)*1.5,-15+Math.abs(k)*3);g.stroke();}
+  [[-2,-6],[3,-9],[0,-12]].forEach(([a,b])=>{g.beginPath();g.arc(a,b,1.4,0,7);g.fill();});g.restore();}
+function flea(g,x,y,sz,col,f){g.save();g.translate(x,y);g.scale(f*sz/14,sz/14);g.fillStyle=col;g.strokeStyle=col;g.lineWidth=1.1;g.lineCap='round';
+  g.beginPath();g.ellipse(0,1,5,6.5,.25,0,7);g.fill();                    // shell
+  g.beginPath();g.ellipse(4,-5,2.8,2.4,0,0,7);g.fill();                    // head
+  g.beginPath();g.moveTo(-2,7);g.lineTo(-5,10);g.stroke();                 // tail spine
+  g.beginPath();g.moveTo(3,-6);g.lineTo(-3,-10);g.lineTo(-7,-8);g.moveTo(-3,-10);g.lineTo(-6,-12);g.stroke(); // antenna
+  g.fillStyle=COL['--ink'];g.beginPath();g.arc(5.3,-5.3,1,0,7);g.fill();g.restore();}
+function fish(g,x,y,sz,col,f,o){g.save();g.translate(x,y);g.scale(f*sz/22,sz/22);g.fillStyle=col;
+  const L=o.L,H=o.H;
+  g.beginPath();g.ellipse(0,0,L,H,0,0,7);g.fill();
+  g.beginPath();g.moveTo(-L+2,0);g.lineTo(-L-6,-H-1);g.lineTo(-L-4,0);g.lineTo(-L-6,H+1);g.closePath();g.fill();   // tail
+  g.beginPath();g.moveTo(o.dx-4,-H+1);g.lineTo(o.dx,-H-o.dh);g.lineTo(o.dx+5,-H+1);g.fill();                      // back fin
+  if(o.snout){g.beginPath();g.ellipse(L-1,.5,o.snout,H*.45,0,0,7);g.fill();}
+  if(o.bars){g.save();g.beginPath();g.ellipse(0,0,L,H,0,0,7);g.clip();g.strokeStyle=COL['--surface'];g.globalAlpha=.45;g.lineWidth=1.6;
+    for(let b=-L*.5;b<=L*.5;b+=L*.33){g.beginPath();g.moveTo(b,-H);g.lineTo(b-1.5,H*.5);g.stroke();}g.restore();}
+  g.fillStyle=COL['--ink'];g.beginPath();g.arc(L*.62,-H*.25,1,0,7);g.fill();g.restore();}
+function quad(g,x,y,sz,col,f,o){g.save();g.translate(x,y);g.scale(f*sz/24,sz/24);g.fillStyle=col;g.strokeStyle=col;g.lineCap='round';g.lineJoin='round';
+  const bx=o.bx,by=o.by;
+  g.lineWidth=1.6;
+  if(o.tail==='puff'){g.beginPath();g.arc(-bx,-by*.3,2.6,0,7);g.fill();}
+  else if(o.tail==='bushy'){g.beginPath();g.ellipse(-bx-o.tl*.4,by*.15,o.tl*.6,o.tw,.45,0,7);g.fill();}
+  else if(o.tail==='tuft'){g.beginPath();g.moveTo(-bx+1,-by*.4);g.quadraticCurveTo(-bx-5,-by*.2,-bx-6,by+2);g.stroke();g.beginPath();g.arc(-bx-6,by+3,1.8,0,7);g.fill();}
+  g.lineWidth=o.lw;g.beginPath();
+  [[-bx*.62,-1],[-bx*.38,1],[bx*.42,-1],[bx*.66,1]].forEach(([lx,d])=>{g.moveTo(lx,0);g.lineTo(lx+d*o.splay,by*.6+o.leg);});g.stroke();
+  g.beginPath();g.ellipse(0,0,bx,by,0,0,7);g.fill();
+  const hx=o.hx,hy=o.hy,hr=o.hr;
+  if(o.nw){g.lineWidth=o.nw;g.beginPath();g.moveTo(bx*.6,-by*.2);g.lineTo(hx,hy);g.stroke();}
+  if(o.mane){g.beginPath();g.arc(hx-1,hy,hr*1.75,0,7);g.fill();}
+  g.beginPath();g.arc(hx,hy,hr,0,7);g.fill();
+  if(o.sn){g.beginPath();g.ellipse(hx+hr*.7+o.sn*.4,hy+hr*.35,o.sn*.6,hr*.55,.15,0,7);g.fill();}
+  if(o.ear==='long'){[-.35,0].forEach(a=>{g.beginPath();g.ellipse(hx-1+a*4,hy-hr-4.5,1.5,5,-.25+a,0,7);g.fill();});}
+  else if(o.ear==='point'){[0,2.2].forEach(d=>{g.beginPath();g.moveTo(hx-hr*.6-d,hy-hr*.5);g.lineTo(hx-hr*.3-d+.5,hy-hr-o.eh);g.lineTo(hx+hr*.2-d,hy-hr*.6);g.fill();});}
+  else if(o.ear==='round'){g.beginPath();g.arc(hx-hr*.35,hy-hr*.85,hr*.42,0,7);g.fill();}
+  if(o.stripes){g.save();g.beginPath();g.ellipse(0,0,bx,by,0,0,7);g.clip();g.strokeStyle=COL['--surface'];g.globalAlpha=.5;g.lineWidth=1.3;
+    for(let s=-bx+2;s<bx;s+=3){g.beginPath();g.moveTo(s,-by);g.lineTo(s-1.5,by);g.stroke();}g.restore();}
+  g.fillStyle=COL['--ink'];g.beginPath();g.arc(hx+hr*.3,hy-hr*.2,Math.max(.8,hr*.22),0,7);g.fill();
+  g.restore();}
 function hopper(g,x,y,sz,col,f){g.save();g.translate(x,y);g.scale(f*sz/16,sz/16);g.fillStyle=col;g.strokeStyle=col;g.lineWidth=1.4;
   g.beginPath();g.ellipse(0,0,9,3.4,0,0,7);g.fill();
   g.beginPath();g.ellipse(9.5,-1,3,3,0,0,7);g.fill();
@@ -295,17 +362,83 @@ function frog(g,x,y,sz,col,f){g.save();g.translate(x,y);g.scale(f*sz/18,sz/18);g
   g.fillStyle=COL['--surface'];g.beginPath();g.arc(5,-6,1.6,0,7);g.arc(0,-6,1.6,0,7);g.fill();
   g.fillStyle=COL['--ink'];g.beginPath();g.arc(5.3,-6,.8,0,7);g.arc(.3,-6,.8,0,7);g.fill();
   g.globalAlpha=.35;g.beginPath();g.arc(-3,0,1.8,0,7);g.arc(2,2,1.5,0,7);g.arc(-6,-2,1.3,0,7);g.fill();g.globalAlpha=1;g.restore();}
-function heron(g,x,y,sz,col,f,bob){g.save();g.translate(x,y);g.scale(f*sz/30,sz/30);g.strokeStyle=col;g.fillStyle=col;g.lineCap='round';
+function heron(g,x,y,sz,col,f){g.save();g.translate(x,y);g.scale(f*sz/30,sz/30);g.strokeStyle=col;g.fillStyle=col;g.lineCap='round';
   g.lineWidth=1.3;g.beginPath();g.moveTo(-2,4);g.lineTo(-3,16);g.moveTo(2,4);g.lineTo(3,16);g.stroke();     // legs
   g.beginPath();g.ellipse(0,0,9,5,-.25,0,7);g.fill();                                                     // body
   g.beginPath();g.moveTo(-8,2);g.lineTo(-14,6);g.lineTo(-7,-1);g.fill();                                  // tail
-  g.lineWidth=2.6;g.beginPath();g.moveTo(6,-3);g.bezierCurveTo(12,-8+bob,4,-12+bob,9,-17+bob);g.stroke(); // S neck
-  g.beginPath();g.arc(10,-17.5+bob,2.6,0,7);g.fill();
-  g.strokeStyle=COL['--hopper'];g.lineWidth=1.5;g.beginPath();g.moveTo(12,-17.5+bob);g.lineTo(19,-16+bob);g.stroke(); // beak
+  g.lineWidth=2.6;g.beginPath();g.moveTo(6,-3);g.bezierCurveTo(12,-8,4,-12,9,-17);g.stroke();             // S neck
+  g.beginPath();g.arc(10,-17.5,2.6,0,7);g.fill();
+  g.strokeStyle=COL['--l1'];g.lineWidth=1.5;g.beginPath();g.moveTo(12,-17.5);g.lineTo(19,-16);g.stroke();  // beak
   g.restore();}
+// pt/pb: how far each drawing reaches above/below its centre, as a multiple of its size
+const SPRITES={
+  grass:{draw:(g,x,y,sz,c)=>tuft(g,x,y+6,sz,c),pt:1.1,pb:.55},
+  sedge:{draw:(g,x,y,sz,c)=>sedge(g,x,y,sz,c),pt:1.1,pb:.6},
+  shrub:{draw:(g,x,y,sz,c)=>shrub(g,x,y,sz,c),pt:.8,pb:.6},
+  algae:{draw:(g,x,y,sz,c)=>algae(g,x,y,sz,c),pt:.6,pb:.65},
+  flea:{draw:flea,pt:.9,pb:.75},
+  perch:{draw:(g,x,y,sz,c,f)=>fish(g,x,y,sz,c,f,{L:9,H:4.5,dx:0,dh:4,bars:true}),pt:.45,pb:.3},
+  pike:{draw:(g,x,y,sz,c,f)=>fish(g,x,y,sz,c,f,{L:13,H:3,dx:-8,dh:3,snout:3}),pt:.35,pb:.25},
+  hopper:{draw:hopper,pt:.8,pb:.5},
+  frog:{draw:frog,pt:.6,pb:.5},
+  heron:{draw:heron,pt:.92,pb:.67},
+  hare:{draw:(g,x,y,sz,c,f)=>quad(g,x,y,sz,c,f,{bx:7,by:5,leg:2.5,lw:2.2,splay:1,hx:7,hy:-5,hr:3.4,sn:1.5,ear:'long',tail:'puff'}),pt:.8,pb:.3},
+  lemming:{draw:(g,x,y,sz,c,f)=>quad(g,x,y,sz,c,f,{bx:6.5,by:4.5,leg:1.5,lw:2,splay:.5,hx:6.5,hy:-1.5,hr:3.4,sn:1,ear:'round'}),pt:.3,pb:.25},
+  wolf:{draw:(g,x,y,sz,c,f)=>quad(g,x,y,sz,c,f,{bx:9,by:4,leg:7,lw:2.4,splay:.8,hx:12,hy:-6,hr:3.2,sn:3,nw:3.5,ear:'point',eh:3.5,tail:'bushy',tl:9,tw:2.2}),pt:.6,pb:.45},
+  fox:{draw:(g,x,y,sz,c,f)=>quad(g,x,y,sz,c,f,{bx:7.5,by:3.5,leg:5,lw:2,splay:.6,hx:10,hy:-5,hr:2.8,sn:3,nw:3,ear:'point',eh:3.5,tail:'bushy',tl:11,tw:3}),pt:.55,pb:.35},
+  zebra:{draw:(g,x,y,sz,c,f)=>quad(g,x,y,sz,c,f,{bx:9,by:4.5,leg:9,lw:2.2,splay:.4,hx:13,hy:-9,hr:2.8,sn:3.5,nw:3.2,ear:'point',eh:2.5,tail:'tuft',stripes:true}),pt:.65,pb:.55},
+  lion:{draw:(g,x,y,sz,c,f)=>quad(g,x,y,sz,c,f,{bx:9.5,by:4.5,leg:7,lw:2.8,splay:.6,hx:11,hy:-5,hr:3.3,sn:2,nw:4,ear:'round',tail:'tuft',mane:true}),pt:.5,pb:.45},
+};
 
-function drawMeadow(now){
-  const motion=!reduce.matches;
+/* ---------- build the page for one ecosystem ---------- */
+const meadow=document.getElementById('meadow');
+meadow.innerHTML='<div class="pyrcv"><canvas id="pyrcanvas" role="img"></canvas></div><div class="ctls" id="ctls"></div>';
+const pyrCanvas=document.getElementById('pyrcanvas'), ctls=document.getElementById('ctls');
+const auto=document.getElementById('auto'), tbody=document.getElementById('tbody');
+let rows=[], order=[], linkText=[];
+const tables={};   // each ecosystem keeps its own data table
+let rowsData=[];
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}}
+
+function setEco(key){
+  ecoKey=ECOS[key]?key:'boreal';
+  const E=ECOS[ecoKey];
+  N=E.chain.length;
+  SP=E.chain.map((s,i)=>({...s,role:ROLES[N][i],color:'--l'+LEVELCOL[N][i],band:'--b'+LEVELCOL[N][i],step:Math.max(1,R(s.norm*0.05))}));
+  order=SP.map((_,i)=>N-1-i);   // draw top predator at the top
+  linkText=SP.map((s,i)=>i?`${s.short} eat ${SP[i-1].short}`:'');
+  document.getElementById('title').textContent=E.title;
+  document.getElementById('blurb').textContent=E.blurb;
+  document.getElementById('eco').value=ecoKey;
+  pyrCanvas.setAttribute('aria-label',`Food chain pyramid: ${SP[0].short} at the wide bottom, then ${SP.slice(1).map(s=>s.short).join(', then ')} at the narrow top`);
+  ctls.innerHTML='';rows=[];
+  order.forEach(i=>{
+    const s=SP[i], b=document.createElement('div'); b.className='ctl'; b.style.setProperty('--c',`var(${s.color})`);
+    b.innerHTML=`
+      <div class="top"><span class="name" title="${s.name}">${s.name}</span><span class="count" id="c${i}">0</span></div>
+      <div class="top"><span class="role">${s.role}</span><span class="trend" id="tr${i}"></span></div>
+      <div class="row">
+        <button class="pm" id="minus${i}" aria-label="Remove ${s.name.toLowerCase()}">−</button>
+        <button class="pm" id="plus${i}" aria-label="Add ${s.name.toLowerCase()}">+</button>
+        <button id="sick${i}" aria-pressed="false">${s.sickName||'Disease'}</button>
+      </div>`;
+    ctls.appendChild(b);
+    const r=rng(97+i*31), slots=[];for(let k=0;k<60;k++)slots.push({x:r(),y:r(),f:r()<.5?-1:1});   // fixed spots so drawings stay put
+    rows[i]={card:b,slots};
+    document.getElementById('plus'+i).onclick=()=>{pop[i]+=s.step/F[i];note(`+${s.step} ${s.short}`);hist.push({t:time,p:pop.slice()});refresh();};
+    document.getElementById('minus'+i).onclick=()=>{
+      if(i===0)pop[0]=Math.max(20,pop[0]-s.step/F[0]);else{pop[i]=Math.max(0,pop[i]-s.step/F[i]);if(disp(i)<0.5)pop[i]=0;}
+      note(`−${s.step} ${s.short}`);hist.push({t:time,p:pop.slice()});refresh();};
+    document.getElementById('sick'+i).onclick=()=>{sick[i]=!sick[i];note(`${s.sickName||'Disease'} ${sick[i]?'starts in':'ends in'} ${s.short}`);syncButtons();refresh();};
+  });
+  document.getElementById('legend').innerHTML=order.map(i=>`<span style="--c:var(${SP[i].color})"><i></i>${SP[i].name}</span>`).join('');
+  document.getElementById('thead').innerHTML='<th>Month</th>'+SP.map(s=>`<th>${s.name}</th>`).join('')+'<th>What happened</th>';
+  rowsData=tables[ecoKey]||(tables[ecoKey]=[]);
+  setupModel(); reset(); setPlaying(false); renderTable(); refresh();
+}
+
+/* ---------- food chain pyramid ---------- */
+function drawMeadow(){
   const {g,w,h}=sizeCanvas(pyrCanvas); g.clearRect(0,0,w,h);
   if(!w||!h)return;
   const cTop=pyrCanvas.getBoundingClientRect().top;
@@ -313,65 +446,61 @@ function drawMeadow(now){
   const half=y=>tipHalf+(baseHalf-tipHalf)*Math.max(0,Math.min(1,y/h));
   const tiers={};
   order.forEach(i=>{const rc=rows[i].card.getBoundingClientRect();tiers[i]={y0:Math.max(0,rc.top-cTop),y1:Math.min(h,rc.bottom-cTop)};});
-  // faint full pyramid behind the tiers
   g.fillStyle=COL['--grid'];g.beginPath();g.moveTo(cx-tipHalf,0);g.lineTo(cx+tipHalf,0);g.lineTo(cx+baseHalf,h);g.lineTo(cx-baseHalf,h);g.closePath();g.fill();
   const trap=(y0,y1)=>{g.beginPath();g.moveTo(cx-half(y0),y0);g.lineTo(cx+half(y0),y0);g.lineTo(cx+half(y1),y1);g.lineTo(cx-half(y1),y1);g.closePath();};
   order.forEach((i,n)=>{
-    const s=SP[i], {y0,y1}=tiers[i];
+    const s=SP[i], {y0,y1}=tiers[i], sp=SPRITES[s.sprite];
     trap(y0,y1);g.fillStyle=COL[s.band];g.fill();
     g.strokeStyle=COL[s.color];g.globalAlpha=.55;g.lineWidth=1.5;g.stroke();g.globalAlpha=1;
     if(i===0){g.save();trap(y0,y1);g.clip();g.fillStyle=COL['--soil'];g.globalAlpha=.6;g.fillRect(0,y1-7,w,7);g.restore();}
     g.save();trap(y0,y1);g.clip();
-    const n2=Math.min(200,Math.round(pop[i]/s.per)), col=COL[s.color], sickShare=sick[i]?.45:0;
-    const sc=Math.max(.6,Math.min(1,w/520)), sz=[11,15,17,24][i]*sc, padT=[12,12,10,22][i], padB=[6,8,8,16][i];
-    const ya=y0+padT, yb=y1-padB, a=half(ya), bw=half(yb);
-    for(let k=0;k<n2;k++){
+    const col=COL[s.color];   // fixed picture: the numbers change, the drawings don't
+    const sc=Math.max(.6,Math.min(1,w/520)), sz=s.size*sc, padT=sz*sp.pt+4, padB=sz*sp.pb+4;
+    const ya=y0+padT, yb=Math.max(ya,y1-padB), a=half(ya), bw=half(yb);
+    for(let k=0;k<s.count;k++){
       const sl=rows[i].slots[k];
       // spread evenly over the trapezoid's area (wider rows get more individuals)
       const t=Math.abs(bw-a)<1e-6?sl.y:(Math.sqrt(a*a+(bw*bw-a*a)*sl.y)-a)/(bw-a);
       const y=ya+t*(yb-ya), hw=Math.max(2,half(y)-sz*0.9);
       const x=cx+(sl.x*2-1)*hw;
-      const c=sl.sk<sickShare?COL['--sick']:col;
-      if(i===0){tuft(g,x,y+6,sz,c);}
-      else if(i===1){let hop=0;if(motion){const p=(now/1000*1.3+sl.ph)%6.28;hop=p<.6?-Math.sin(p/.6*Math.PI)*6:0;}hopper(g,x,y+hop,sz,c,sl.f);}
-      else if(i===2){frog(g,x,y,sz,c,sl.f);}
-      else {const bob=motion?Math.sin(now/900+sl.ph)*1.2:0;heron(g,x,y,sz,c,sl.f,bob);}
+      g.globalAlpha=.75; sp.draw(g,x,y,sz,col,sl.f); g.globalAlpha=1;
     }
     g.restore();
-    if(pop[i]===0&&i>0){g.fillStyle=COL['--muted'];g.font='600 12px '+css('--f-body');g.textAlign='center';g.textBaseline='middle';g.fillText(`No ${s.name.toLowerCase()} left`,cx,(y0+y1)/2);}
+    // live number on top of the picture
+    const my=(y0+y1)/2+(n===0?6:0), num=R(disp(i)).toLocaleString();
+    const fs=Math.max(16,Math.min(30,(y1-y0)*0.3));
+    g.font=`700 ${fs}px `+css('--f-mono');g.textAlign='center';g.textBaseline='middle';
+    const gone=pop[i]===0&&i>0, sub=gone?'none left':sick[i]?(s.sickName||'Disease'):(s.lower||s.name.toLowerCase());
+    g.font='600 11px '+css('--f-body');const subW=g.measureText(sub).width;
+    g.font=`700 ${fs}px `+css('--f-mono');
+    const nw=Math.max(g.measureText(num).width,subW,60)+22, nh=fs+22;
+    g.fillStyle=COL['--surface'];g.globalAlpha=.9;g.beginPath();g.roundRect?g.roundRect(cx-nw/2,my-nh/2-2,nw,nh+4,8):g.rect(cx-nw/2,my-nh/2-2,nw,nh+4);g.fill();g.globalAlpha=1;
+    g.strokeStyle=sick[i]?COL['--sick']:COL[s.color];g.lineWidth=sick[i]?2.5:1.5;g.stroke();
+    g.fillStyle=COL['--ink'];g.fillText(num,cx,my-7);
+    g.font='600 11px '+css('--f-body');g.fillStyle=sick[i]||gone?COL['--sick']:COL['--muted'];g.fillText(sub,cx,my+fs/2+1);
     // energy arrow in the gap above this tier
-    if(n<3){const below=order[n+1], gy=(tiers[i].y1+tiers[below].y0)/2;
+    if(n<N-1){const below=order[n+1], gy=(tiers[i].y1+tiers[below].y0)/2;
       g.fillStyle=COL['--ink'];g.font='500 11px '+css('--f-body');g.textAlign='center';g.textBaseline='middle';
-      const txt=`▲ ${linkText[i]}`;g.fillText(txt,cx,gy);}
+      g.fillText(`▲ ${linkText[i]}`,cx,gy);}
   });
-  // key in the empty top-left corner
-  g.font='600 11px '+css('--f-body');g.textAlign='left';g.textBaseline='top';g.fillStyle=COL['--muted'];
-  const lines=['Each symbol =',...order.map(i=>SP[i].unit)];
-  const kx=6, maxRoom=cx-half(4+lines.length*14)-12;
-  g.font='600 11px '+css('--f-body');const kw=Math.max(...lines.map(l=>g.measureText(l).width));
-  if(maxRoom>kw){lines.forEach((l,k)=>{g.font=(k?'500 ':'600 ')+'11px '+css('--f-body');g.fillStyle=k?COL[SP[order[k-1]].color]:COL['--muted'];g.fillText(l,kx,4+k*14);});}
 }
 
-/* ---------- line graph: one strip per species, shared month axis ---------- */
+/* ---------- line graph: every population as % of its balanced level ---------- */
 const chart=document.getElementById('chart');
 function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));for(const m of[1,1.5,2,2.5,3,4,5,6,8,10])if(m*p>=v)return m*p;return 10*p;}
 function drawChart(){
   const {g,w,h}=sizeCanvas(chart); g.clearRect(0,0,w,h);
   const L=44,Rr=12,Tt=8,B=20;
-  const tMax=Math.max(48,Math.ceil(month/12)*12), x=t=>L+(w-L-Rr)*t/tMax;
-  const pct=(o,i)=>o.p[i]/SP[i].norm*100;
+  const tMax=Math.max(48,Math.ceil(time/12)*12), x=t=>L+(w-L-Rr)*t/tMax;
+  const pct=(o,i)=>o.p[i]/TT[i]*100;
   let peak=0;hist.forEach(o=>SP.forEach((s,i)=>peak=Math.max(peak,pct(o,i))));
   const top=Math.max(200,niceMax(peak*1.05)), y=v=>h-B-(h-B-Tt)*v/top;
   const stepY=top<=200?50:top<=400?100:top<=1000?200:500;
   g.font='11px '+css('--f-mono');g.textAlign='right';g.textBaseline='middle';g.lineWidth=1;
   for(let v=0;v<=top;v+=stepY){g.strokeStyle=COL['--grid'];g.beginPath();g.moveTo(L,y(v)+.5);g.lineTo(w-Rr,y(v)+.5);g.stroke();g.fillStyle=COL['--muted'];g.fillText(v+'%',L-5,y(v));}
-  // balanced level
   g.strokeStyle=COL['--ink'];g.globalAlpha=.55;g.setLineDash([6,4]);g.beginPath();g.moveTo(L,y(100));g.lineTo(w-Rr,y(100));g.stroke();g.setLineDash([]);g.globalAlpha=1;
   g.fillStyle=COL['--muted'];g.textAlign='right';g.textBaseline='bottom';g.font='500 11px '+css('--f-body');g.fillText('balanced = 100%',w-Rr-2,y(100)-2);
-  // events
-  g.font='500 10.5px '+css('--f-body');
   events.forEach(e=>{g.strokeStyle=COL['--muted'];g.globalAlpha=.5;g.setLineDash([2,3]);g.beginPath();g.moveTo(x(e.t),Tt);g.lineTo(x(e.t),h-B);g.stroke();g.setLineDash([]);g.globalAlpha=1;});
-  // lines: draw grass first so the top predator ends up on top
   SP.forEach((s,i)=>{
     g.strokeStyle=COL[s.color];g.lineWidth=2.5;g.lineJoin='round';g.lineCap='round';g.beginPath();
     hist.forEach((o,k)=>{const X=x(o.t),Y=y(pct(o,i));k?g.lineTo(X,Y):g.moveTo(X,Y);});g.stroke();
@@ -382,33 +511,31 @@ function drawChart(){
   for(let t=0;t<=tMax;t+=stepT)g.fillText(t,x(t),h-5);
   g.textAlign='left';g.fillText('month',2,h-5);
 }
-document.getElementById('legend').innerHTML=order.map(i=>`<span style="--c:var(${SP[i].color})"><i></i>${SP[i].name}</span>`).join('');
 
 /* ---------- bar graph: % of balanced level ---------- */
 function drawBars(){
   const c=document.getElementById('bars'); if(!c.clientWidth)return;
   const {g,w,h}=sizeCanvas(c); g.clearRect(0,0,w,h);
-  const L=40,B=34,Tt=10, top=Math.max(200,niceMax(Math.max(...pop.map((v,i)=>v/SP[i].norm*100))));
-  const y=v=>h-B-(h-B-Tt)*v/top, bw=(w-L-10)/4;
+  const L=40,B=34,Tt=10, top=Math.max(200,niceMax(Math.max(...pop.map((v,i)=>v/TT[i]*100))));
+  const y=v=>h-B-(h-B-Tt)*v/top, bw=(w-L-10)/N;
   g.font='11px '+css('--f-mono');g.textAlign='right';g.textBaseline='middle';
   for(let v=0;v<=top;v+=top>300?100:50){g.strokeStyle=COL['--grid'];g.beginPath();g.moveTo(L,y(v));g.lineTo(w-10,y(v));g.stroke();g.fillStyle=COL['--muted'];g.fillText(v+'%',L-5,y(v));}
   g.strokeStyle=COL['--ink'];g.setLineDash([5,4]);g.beginPath();g.moveTo(L,y(100));g.lineTo(w-10,y(100));g.stroke();g.setLineDash([]);
-  SP.forEach((s,i)=>{const pc=pop[i]/s.norm*100,x0=L+i*bw+bw*.18,bW=bw*.64;
+  SP.forEach((s,i)=>{const pc=pop[i]/TT[i]*100,x0=L+i*bw+bw*.18,bW=bw*.64;
     g.fillStyle=COL[s.color];g.fillRect(x0,y(pc),bW,y(0)-y(pc));
     g.fillStyle=COL['--ink'];g.textAlign='center';g.textBaseline='bottom';g.font='500 12px '+css('--f-mono');
-    g.fillText(R(pop[i]).toLocaleString(),x0+bW/2,y(pc)-3);
+    g.fillText(R(disp(i)).toLocaleString(),x0+bW/2,y(pc)-3);
     g.textBaseline='top';g.font='500 12px '+css('--f-body');g.fillText(s.name,x0+bW/2,h-B+5);
     g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');g.fillText(R(pc)+'%'+(bw>110?' of balance':''),x0+bW/2,h-B+19);
   });
 }
 
-/* ---------- energy pyramid ---------- */
-const KJ=[250,125,83.3333,62.5];   // energy per individual in this model, tuned so balance gives 10% steps
+/* ---------- energy pyramid: at balance each level holds 10% of the level below ---------- */
 function drawPyr(){
   const c=document.getElementById('pyr'); if(!c.clientWidth)return;
   const {g,w,h}=sizeCanvas(c); g.clearRect(0,0,w,h);
-  const E=pop.map((v,i)=>v*KJ[i]); const maxE=Math.max(...E,1);
-  const rowH=(h-8)/4, maxW=w*.52, cx=8+maxW/2;
+  const E=pop.map((v,i)=>1e6*Math.pow(0.1,i)*v/TT[i]); const maxE=Math.max(...E,1);
+  const rowH=(h-8)/N, maxW=w*.52, cx=8+maxW/2;
   order.forEach((i,n)=>{
     const s=SP[i], y0=4+n*rowH, ww=E[i]>0?Math.max(4,maxW*Math.sqrt(E[i]/maxE)):0;   // sqrt keeps the top levels visible
     g.fillStyle=COL[s.color];g.globalAlpha=.9;g.fillRect(cx-ww/2,y0+3,ww,rowH-6);g.globalAlpha=1;
@@ -421,18 +548,16 @@ function drawPyr(){
 }
 
 /* ---------- data table ---------- */
-const tbody=document.getElementById('tbody'), auto=document.getElementById('auto');
-let rowsData=[];
 function renderTable(){
   tbody.innerHTML=rowsData.length?rowsData.map(r=>`<tr><td>${r.t}</td>${r.p.map(v=>`<td>${v.toLocaleString()}</td>`).join('')}<td>${r.note}</td></tr>`).join('')
-    :'<tr class="empty"><td colspan="6">No rows yet. Press <b>Record this month</b> to save the populations.</td></tr>';
+    :`<tr class="empty"><td colspan="${N+2}">No rows yet. Press <b>Record this month</b> to save the populations.</td></tr>`;
   const tw=tbody.closest('.tablewrap');tw.scrollTop=tw.scrollHeight;
 }
-function record(){rowsData.push({t:month,p:pop.map(R),note:pending.join('; ')});pending=[];renderTable();}
+function record(){rowsData.push({t:month,p:SP.map((s,i)=>R(disp(i))),note:pending.join('; ')});pending=[];renderTable();}
 document.getElementById('record').onclick=record;
-document.getElementById('clear').onclick=()=>{rowsData=[];renderTable();};
+document.getElementById('clear').onclick=()=>{rowsData.length=0;renderTable();};
 document.getElementById('copy').onclick=async()=>{
-  const txt=['Month\tGrass\tGrasshoppers\tFrogs\tHerons\tWhat happened',...rowsData.map(r=>[r.t,...r.p,r.note].join('\t'))].join('\n');
+  const txt=[['Month',...SP.map(s=>s.name),'What happened'].join('\t'),...rowsData.map(r=>[r.t,...r.p,r.note].join('\t'))].join('\n');
   const t=document.getElementById('toast');
   try{await navigator.clipboard.writeText(txt);t.textContent='Copied. Paste into a spreadsheet.';}
   catch(e){t.textContent='Copy blocked. Select the table and copy it instead.';}
@@ -441,27 +566,16 @@ document.getElementById('copy').onclick=async()=>{
 
 /* ---------- controls ---------- */
 const playBtn=document.getElementById('play');
-let playing=false, acc=0, lastT=0;
+let playing=false, lastT=0;
 function setPlaying(v){playing=v;playBtn.textContent=v?'❚❚ Pause':'▶ Play';playBtn.setAttribute('aria-pressed',v);}
 playBtn.onclick=()=>setPlaying(!playing);
 document.getElementById('step').onclick=()=>{advance();refresh();};
 document.getElementById('reset').onclick=()=>{reset();setPlaying(false);syncButtons();refresh();};
-SP.forEach((s,i)=>{
-  document.getElementById('plus'+i).onclick=()=>{pop[i]+=s.step;note(`+${s.step} ${s.name.toLowerCase()}`);hist[hist.length-1].p=pop.slice();refresh();};
-  document.getElementById('minus'+i).onclick=()=>{const d=Math.min(pop[i],s.step);if(i===0)pop[i]=Math.max(20,pop[i]-s.step);else pop[i]-=d;note(`−${s.step} ${s.name.toLowerCase()}`);hist[hist.length-1].p=pop.slice();refresh();};
-  document.getElementById('sick'+i).onclick=()=>{sick[i]=!sick[i];note(`${s.sickName||'Disease'} ${sick[i]?'starts in':'ends in'} ${s.name.toLowerCase()}`);syncButtons();refresh();};
-});
 function syncButtons(){SP.forEach((s,i)=>document.getElementById('sick'+i).setAttribute('aria-pressed',sick[i]));}
-const SC={
-  noHerons:()=>{pop[3]=0;note('Herons leave');},
-  spray:()=>{pop[1]*=0.2;note('Pesticide kills 80% of grasshoppers');},
-  frogDisease:()=>{sick[2]=true;note('Disease starts in frogs');},
-  drought:()=>{drought=true;note('Drought starts');},
-  rain:()=>{drought=false;note('Rain returns');},
-  fire:()=>{pop[0]=Math.max(20,pop[0]*0.15);note('Fire burns 85% of grass');},
-  extraHerons:()=>{pop[3]+=16;note('+16 herons move in');},
-};
-document.getElementById('apply').onclick=()=>{const v=document.getElementById('scenario').value;if(!v)return;SC[v]();hist[hist.length-1].p=pop.slice();syncButtons();refresh();};
+const ecoSel=document.getElementById('eco');
+const groups={};Object.entries(ECOS).forEach(([k,e])=>(groups[e.group]||(groups[e.group]=[])).push(`<option value="${k}">${e.label}</option>`));
+ecoSel.innerHTML=Object.entries(groups).map(([gname,opts])=>`<optgroup label="${gname}">${opts.join('')}</optgroup>`).join('');
+ecoSel.onchange=()=>setEco(ecoSel.value);
 
 // tabs
 const tabs=[...document.querySelectorAll('[role="tab"]')];
@@ -469,21 +583,17 @@ function selectTab(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selec
 tabs.forEach((t,k)=>{t.onclick=()=>selectTab(t);t.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=tabs[(k+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];n.focus();selectTab(n);}};});
 
 /* ---------- loop ---------- */
-const reduce=matchMedia('(prefers-reduced-motion: reduce)');
-let prev=T.slice();
 function refresh(){
   document.getElementById('month').textContent=month;
-  const before=hist.length>1?hist[hist.length-2].p:pop;
-  SP.forEach((s,i)=>{document.getElementById('c'+i).textContent=R(pop[i]).toLocaleString();
-    const d=R(pop[i])-R(before[i]);document.getElementById('tr'+i).textContent=d>0?`▲ ${d.toLocaleString()}`:d<0?`▼ ${(-d).toLocaleString()}`:'steady';
+  SP.forEach((s,i)=>{document.getElementById('c'+i).textContent=R(disp(i)).toLocaleString();
+    const d=R(disp(i))-R(monthAgo[i]*F[i]);document.getElementById('tr'+i).textContent=d>0?`▲ ${d.toLocaleString()}`:d<0?`▼ ${(-d).toLocaleString()}`:'steady';
     document.getElementById('minus'+i).disabled=i===0?pop[0]<=20:pop[i]<=0;});
-  drawChart();drawSide();
+  drawChart();drawSide();drawMeadow();
 }
 function drawSide(){drawBars();drawPyr();}
 function frame(now){
-  if(playing){const sp=+document.getElementById('speed').value;acc+=(now-lastT)/1000*sp;if(acc>=1){acc=Math.min(acc,3);while(acc>=1){advance();acc--;}refresh();}}
-  else acc=0;
-  lastT=now; drawMeadow(now); requestAnimationFrame(frame);
+  if(playing){const dm=Math.min(0.25,(now-lastT)/1000*MONTHS_PER_SECOND);advanceBy(dm);refresh();}
+  lastT=now; requestAnimationFrame(frame);
 }
 const mq=matchMedia('(prefers-color-scheme: dark)');
 const recolor=()=>{readColors();refresh();};
@@ -491,11 +601,20 @@ mq.addEventListener?.('change',recolor);
 new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 addEventListener('resize',()=>refresh());
 
-reset(); readColors(); renderTable(); refresh();
+readColors();
+let start='boreal';try{const q=new URLSearchParams(location.search).get('eco');if(q&&ECOS[q])start=q;}catch(e){}
+setEco(start);
 document.fonts?.ready.then(refresh);
 requestAnimationFrame(t=>{lastT=t;frame(t);});
 })();
 </script>
 
+<script>
+(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
+const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
+const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
+btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
+mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
+</script>
 </body>
 </html>
