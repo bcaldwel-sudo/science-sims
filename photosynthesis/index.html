@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pondweed Photosynthesis Lab</title>
+<style>
+/* Layout: lab bench diagram + controls on the left, graph over data table on the right; one laptop screen, no page scroll. */
+:root{
+  --bg:#EEF3EF; --surface:#FFFFFF; --card:#E6EEE8; --ink:#16251C; --muted:#56685C; --line:#CFDBD2;
+  --header:#12352A; --accent:#1F7A4D; --on-accent:#FFFFFF; --amber:#F2B63D;
+  --water:#D4EAF5; --water2:#B9DCEE; --glass:#7E9AA8; --glassfill:rgba(255,255,255,.35);
+  --gas:#FFFFFF; --leaf:#2F8A3E; --leaf2:#5DB34F; --stem:#3E7A2E;
+  --metal:#7C878F; --metal2:#B5BEC4; --bench:#C9A97E; --bench2:#A88458; --box:#3A4650; --screen:#0F2A1E; --screentext:#7CF0A6;
+  --red:#D33A3A; --tick:#4A5A62; --grid1:#DCE5DF; --grid2:#EEF3EF; --pt:#1F7A4D;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1612; --surface:#14201A; --card:#1B2A22; --ink:#E3EEE6; --muted:#9DB2A4; --line:#2A3C31;
+  --header:#0A241B; --accent:#4CC383; --on-accent:#08170F;
+  --water:#163447; --water2:#1D4560; --glass:#8FB0C0; --glassfill:rgba(255,255,255,.06);
+  --gas:#E8F4FA; --leaf:#45A957; --leaf2:#7BD06A; --stem:#5C9B48;
+  --metal:#8C979F; --metal2:#5A646B; --bench:#5B4630; --bench2:#46351F; --box:#29323A; --screen:#06140D;
+  --tick:#B4C4CC; --grid1:#26362D; --grid2:#18241D; --pt:#4CC383; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1612; --surface:#14201A; --card:#1B2A22; --ink:#E3EEE6; --muted:#9DB2A4; --line:#2A3C31;
+  --header:#0A241B; --accent:#4CC383; --on-accent:#08170F;
+  --water:#163447; --water2:#1D4560; --glass:#8FB0C0; --glassfill:rgba(255,255,255,.06);
+  --gas:#E8F4FA; --leaf:#45A957; --leaf2:#7BD06A; --stem:#5C9B48;
+  --metal:#8C979F; --metal2:#5A646B; --bench:#5B4630; --bench2:#46351F; --box:#29323A; --screen:#06140D;
+  --tick:#B4C4CC; --grid1:#26362D; --grid2:#18241D; --pt:#4CC383; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
+h1,h2,.num{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+header{flex:none;background:var(--header);color:#fff;padding:7px 16px;display:flex;align-items:center;gap:14px}
+header .kicker{font-size:12px;letter-spacing:.12em;color:var(--amber);font-weight:700;white-space:nowrap}
+header h1{margin:0;font-size:21px;font-weight:700;white-space:nowrap}
+header .eq{margin-left:auto;font-family:Cambria,Georgia,serif;font-size:15.5px;color:#DDEBE2;white-space:nowrap}
+header .eq small{font-size:12px;color:#A9C4B4}
+.wrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:8px;padding:8px 12px 10px}
+.col{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+.card{border:1px solid var(--line);border-radius:12px;background:var(--surface);min-width:0}
+.stage{flex:1;min-height:180px;position:relative;overflow:hidden}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.readouts{flex:none;display:grid;grid-template-columns:1.35fr 1fr 1fr auto;gap:6px;align-items:stretch}
+.ro{background:var(--card);border-radius:9px;padding:3px 10px;border-left:5px solid var(--muted);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.ro .k{font-size:12.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+.ro .v{font-family:Cambria,Georgia,serif;font-size:19px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ro.o2{border-color:var(--accent)} .ro.o2 .v{font-size:22px;color:var(--accent)}
+.ro.vol{border-color:var(--glass)} .ro.tm{border-color:var(--amber)}
+.controls{flex:none;padding:7px 12px 8px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:3px}
+.slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.slider label{font-weight:700;white-space:nowrap}
+.slider output{font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);height:20px;margin:0}
+input[type=range]:disabled{opacity:.35}
+#wl{-webkit-appearance:none;appearance:none;height:10px;border-radius:6px;margin:5px 0;background:linear-gradient(90deg,#7a00b0 0%,#3b00ff 13%,#0077ff 30%,#00e5d0 37%,#22dd00 45%,#c8f000 55%,#ffd000 58%,#ff7a00 66%,#ff0000 75%,#a00000 100%)}
+#wl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:22px;border-radius:5px;background:var(--surface);border:2px solid var(--ink);cursor:pointer}
+#wl::-moz-range-thumb{width:12px;height:20px;border-radius:5px;background:var(--surface);border:2px solid var(--ink);cursor:pointer}
+.seg{display:inline-flex;border:2px solid var(--accent);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:2px 10px;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+button{font:inherit;font-weight:700;border-radius:9px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);padding:4px 12px;cursor:pointer;white-space:nowrap}
+button.go{background:var(--accent);color:var(--on-accent)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.graphcard{flex:1;min-height:170px;display:flex;flex-direction:column;padding:6px 10px 6px}
+.gtop{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+.gtop h2{margin:0;font-size:16px}
+.axis{display:flex;gap:4px 12px;flex-wrap:wrap;align-items:center;font-size:14px}
+.axis b{font-size:13px;color:var(--muted)}
+.axis label{display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.axis input{accent-color:var(--accent);margin:0}
+.gbox{flex:1;min-height:0;position:relative}
+.gbox canvas{position:absolute;inset:0;width:100%;height:100%}
+.tip{font-size:12.5px;color:var(--muted)}
+.tablecard{flex:none;height:clamp(150px,30vh,230px);display:flex;flex-direction:column;padding:6px 10px 8px;gap:5px}
+.trow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.trow h2{margin:0 auto 0 0;font-size:16px}
+.trow button{padding:2px 10px;font-size:14px}
+.tscroll{flex:1;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:var(--card);text-align:center;padding:3px 6px;font-size:13px;line-height:1.15;border-bottom:1px solid var(--line)}
+td{text-align:center;padding:2px 6px;border-bottom:1px solid var(--line)}
+td.o2v{font-weight:700;color:var(--accent)}
+td .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
+tr.new td{animation:flash 1.2s ease}
+@keyframes flash{from{background:rgba(242,182,61,.45)}to{background:transparent}}
+td button.del{border:0;padding:0 6px;color:var(--muted);background:none;font-size:15px}
+.empty{color:var(--muted);text-align:center;padding:14px 8px;font-size:14px}
+#msg{font-size:12.5px;color:var(--muted);min-height:1em}
+sub,sup{font-size:70%}
+/* SVG diagram colours */
+.bench{fill:var(--bench)} .bench2{fill:var(--bench2)}
+.glass{fill:var(--glassfill);stroke:var(--glass);stroke-width:2}
+.glassline{fill:none;stroke:var(--glass);stroke-width:2}
+.water{fill:var(--water)} .water2{fill:var(--water2)}
+.metal{fill:var(--metal)} .metal2{fill:var(--metal2)}
+.box{fill:var(--box)} .screen{fill:var(--screen)} .stxt{fill:var(--screentext);font:700 13px Consolas,"Courier New",monospace}
+.lbl{fill:var(--muted);font:700 11.5px Calibri,Carlito,"Segoe UI",Arial,sans-serif}
+.lead{stroke:var(--muted);stroke-width:1;fill:none;opacity:.7}
+.tick{stroke:var(--tick);stroke-width:1}
+.ticktxt{fill:var(--tick);font:700 9px Calibri,Carlito,Arial,sans-serif}
+.gasfill{fill:var(--gas)}
+.bubble{fill:var(--gas);stroke:var(--glass);stroke-width:.6;opacity:.9}
+.redliq{fill:var(--red)}
+/* small screens: allow normal scrolling */
+@media (max-width:900px), (max-height:500px){
+  body{overflow:auto;height:auto}
+  .wrap{grid-template-columns:1fr}
+  .stage{flex:none;height:62vw;min-height:240px}
+  .graphcard{flex:none;height:330px}
+  header .eq{display:none}
+}
+@media (max-width:560px){.controls{grid-template-columns:1fr}.readouts{grid-template-columns:1fr 1fr}}
+
+/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
+.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2,var(--panel,#fff));color:var(--muted);cursor:pointer}
+.theme-sw:hover{border-color:var(--muted)}
+.theme-sw:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
+.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
+.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
+.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface,var(--panel,#fff))}
+@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
+header .theme-sw{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#C9D2E3;margin-left:6px}
+header .theme-sw:hover{border-color:rgba(255,255,255,.6)}
+header .theme-sw .knob{background:var(--amber)}
+header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"] .moon{color:#0B1630}
+@media (max-width:900px), (max-height:500px){header .theme-sw{margin-left:auto}}
+</style>
+<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header>
+  <span class="kicker">GRADE 9 · PLANTS</span>
+  <h1>Pondweed Photosynthesis Lab</h1>
+  <div class="eq">carbon dioxide + water <small>(light energy)</small> → glucose + oxygen</div>
+  <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+</header>
+<div class="wrap">
+  <div class="col">
+    <div class="card stage" id="stage">
+      <svg id="lab" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pondweed under a glass funnel in a beaker of water. A lamp shines on it from the left. Oxygen bubbles rise into an upside-down measuring tube.">
+        <defs>
+          <linearGradient id="beamG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#fff" stop-opacity="1" id="beamS0"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0" id="beamS1"/>
+          </linearGradient>
+          <radialGradient id="glowG"><stop offset="0" stop-color="#fff" stop-opacity=".9" id="glowS0"/><stop offset="1" stop-color="#fff" stop-opacity="0" id="glowS1"/></radialGradient>
+          <clipPath id="beakerClip"><path d="M266 122 L266 344 Q266 352 274 352 L500 352 Q508 352 508 344 L508 122 Z"/></clipPath>
+          <clipPath id="tubeClip"><path d="M371 238 L371 34 Q371 22 385 22 Q399 22 399 34 L399 238 Z"/></clipPath>
+        </defs>
+        <!-- bench -->
+        <rect class="bench" x="0" y="382" width="640" height="18"/>
+        <rect class="bench2" x="0" y="382" width="640" height="3"/>
+        <!-- clamp stand (behind beaker) -->
+        <rect class="metal" x="540" y="374" width="90" height="8" rx="2"/>
+        <rect class="metal2" x="586" y="14" width="7" height="362" rx="2"/>
+        <rect class="metal" x="399" y="56" width="190" height="6" rx="2"/>
+        <rect class="metal" x="579" y="50" width="20" height="18" rx="3"/>
+        <!-- water bath heater/cooler -->
+        <rect class="box" x="248" y="352" width="278" height="30" rx="4"/>
+        <rect class="screen" x="420" y="358" width="72" height="18" rx="3"/>
+        <text class="stxt" x="456" y="372" text-anchor="middle" id="heatTxt">20 °C</text>
+        <circle class="metal2" cx="270" cy="367" r="6"/>
+        <!-- beaker water -->
+        <g clip-path="url(#beakerClip)">
+          <rect class="water" x="260" y="158" width="260" height="200"/>
+          <rect class="water2" x="260" y="158" width="260" height="4"/>
+          <!-- gravel -->
+          <g id="gravel"></g>
+        </g>
+        <!-- light beam (drawn over water, under glass outline) -->
+        <polygon id="beam" points="150,142 150,200 440,330 440,128" fill="url(#beamG)" opacity=".3"/>
+        <!-- plant -->
+        <g id="plant"></g>
+        <!-- funnel (glass, upside down) -->
+        <path class="glass" d="M318 326 L378 250 L378 230 L392 230 L392 250 L452 326 L446 326 L388 252 L388 236 L382 236 L382 252 L324 326 Z"/>
+        <path class="glassline" d="M318 326 L378 250 L378 228 M452 326 L392 250 L392 228" />
+        <rect class="metal2" x="314" y="326" width="10" height="24" rx="2"/>
+        <rect class="metal2" x="446" y="326" width="10" height="24" rx="2"/>
+        <!-- bubbles -->
+        <g id="bubbles"></g>
+        <!-- gas collection tube (upside down, full of water at the start) -->
+        <g clip-path="url(#tubeClip)">
+          <rect class="water" x="368" y="20" width="34" height="222"/>
+          <rect class="gasfill" id="gas" x="368" y="20" width="34" height="10"/>
+          <rect class="water2" id="meniscus" x="368" y="28" width="34" height="2.5"/>
+        </g>
+        <path class="glassline" d="M371 238 L371 34 Q371 22 385 22 Q399 22 399 34 L399 238"/>
+        <g id="tubeTicks"></g>
+        <!-- beaker outline -->
+        <path class="glassline" style="stroke-width:3" d="M262 116 Q262 122 266 124 L266 344 Q266 352 274 352 L500 352 Q508 352 508 344 L508 124 Q512 122 512 116"/>
+        <g class="tick"><line x1="272" y1="200" x2="282" y2="200"/><line x1="272" y1="240" x2="282" y2="240"/><line x1="272" y1="280" x2="282" y2="280"/><line x1="272" y1="320" x2="282" y2="320"/></g>
+        <!-- thermometer -->
+        <rect x="474" y="86" width="12" height="252" rx="6" fill="var(--surface)" stroke="var(--glass)" stroke-width="1.5"/>
+        <circle cx="480" cy="336" r="9" class="redliq"/>
+        <rect class="redliq" id="thermo" x="477.5" y="200" width="5" height="136" rx="2"/>
+        <g id="thermoTicks"></g>
+        <!-- CO2 meter on the bench, probe in the water -->
+        <path d="M232 318 C 238 250, 290 270, 296 200" fill="none" stroke="var(--box)" stroke-width="3"/>
+        <rect class="metal" x="292" y="150" width="8" height="70" rx="3"/>
+        <rect class="box" x="176" y="316" width="84" height="64" rx="6"/>
+        <rect class="screen" x="184" y="324" width="68" height="22" rx="3"/>
+        <text class="stxt" x="218" y="340" text-anchor="middle" id="co2Txt">400 ppm</text>
+        <text x="218" y="366" text-anchor="middle" style="fill:#C9D6DE;font:700 11px Calibri,Carlito,Arial,sans-serif">CO₂ meter</text>
+        <!-- lamp -->
+        <ellipse class="metal" cx="70" cy="379" rx="40" ry="6"/>
+        <rect class="metal2" x="66" y="168" width="8" height="210" rx="3"/>
+        <rect class="metal2" x="66" y="166" width="46" height="8" rx="3"/>
+        <circle id="glow" cx="140" cy="171" r="40" fill="url(#glowG)" opacity=".5"/>
+        <path class="metal" d="M104 156 L150 136 L150 206 L104 186 Z"/>
+        <circle id="bulb" cx="142" cy="171" r="13" fill="#FFF6C8" stroke="var(--metal)" stroke-width="1.5"/>
+        <rect id="filter" x="151" y="132" width="9" height="78" rx="3" stroke="var(--metal)" stroke-width="1.5" fill="transparent" opacity="0"/>
+        <!-- labels -->
+        <g id="labels">
+          <text class="lbl" x="96" y="124">Lamp</text>
+          <text class="lbl" x="164" y="126" id="filterLbl" opacity="0">Colour filter</text>
+          <text class="lbl" x="296" y="36" text-anchor="end">Measuring tube</text>
+          <text class="lbl" x="296" y="49" text-anchor="end">(collects oxygen)</text>
+          <path class="lead" d="M300 40 L366 54"/>
+          <text class="lbl" x="530" y="214">Funnel</text>
+          <path class="lead" d="M528 210 L432 290"/>
+          <text class="lbl" x="530" y="300">Pondweed</text>
+          <path class="lead" d="M528 296 L420 316"/>
+          <text class="lbl" x="530" y="140">Thermometer</text>
+          <path class="lead" d="M528 136 L488 150"/>
+          <text class="lbl" x="530" y="358">Water bath</text>
+        </g>
+        <text class="lbl" id="fullTxt" x="420" y="110" opacity="0" style="fill:var(--red)">Tube full! Press “Empty tube”.</text>
+      </svg>
+    </div>
+    <div class="readouts">
+      <div class="ro o2"><span class="k">Oxygen production rate</span><span class="v" id="rateV">0.0 mL/h</span></div>
+      <div class="ro vol"><span class="k">Oxygen in tube</span><span class="v" id="volV">0.0 mL</span></div>
+      <div class="ro tm"><span class="k">Time</span><span class="v" id="timeV">0 min</span></div>
+      <button id="emptyBtn" title="Refill the tube with water and restart the clock">Empty tube</button>
+    </div>
+    <section class="card controls" aria-label="Experiment controls">
+      <div class="slider"><div class="top"><label for="light">Light intensity</label><output id="lightO" for="light"></output></div>
+        <input type="range" id="light" min="0" max="100" step="1" value="50"></div>
+      <div class="slider"><div class="top"><label for="co2">CO₂ level</label><output id="co2O" for="co2"></output></div>
+        <input type="range" id="co2" min="0" max="1000" step="10" value="400"></div>
+      <div class="slider"><div class="top"><label for="temp">Temperature</label><output id="tempO" for="temp"></output></div>
+        <input type="range" id="temp" min="0" max="45" step="1" value="20"></div>
+      <div class="slider"><div class="top"><span class="seg" role="group" aria-label="Light colour"><button type="button" id="whiteBtn" aria-pressed="true">White light</button><button type="button" id="colBtn" aria-pressed="false">Coloured light</button></span><output id="wlO" for="wl"></output></div>
+        <input type="range" id="wl" min="380" max="750" step="5" value="450" aria-label="Light wavelength (nanometres)" disabled></div>
+    </section>
+  </div>
+  <div class="col">
+    <section class="card graphcard" aria-label="Graph">
+      <div class="gtop">
+        <h2>Oxygen production graph</h2>
+        <div class="axis" role="radiogroup" aria-label="x-axis"><b>x-axis:</b>
+          <label><input type="radio" name="xax" value="light" checked> Light intensity</label>
+          <label><input type="radio" name="xax" value="co2"> CO₂</label>
+          <label><input type="radio" name="xax" value="temp"> Temperature</label>
+          <label><input type="radio" name="xax" value="wl"> Wavelength</label>
+        </div>
+      </div>
+      <div class="gbox"><canvas id="graph"></canvas></div>
+      <div class="tip" id="gtip">Change one thing at a time, and press “Record data” after each change.</div>
+    </section>
+    <section class="card tablecard" aria-label="Data table">
+      <div class="trow">
+        <h2>Data table</h2>
+        <button class="go" id="recBtn">Record data</button>
+        <button id="csvBtn">Download CSV</button>
+        <button id="copyBtn">Copy table</button>
+        <button id="clearBtn">Clear all</button>
+      </div>
+      <div class="tscroll"><table>
+        <thead><tr><th>Trial</th><th>Light<br>(%)</th><th>Light colour</th><th>CO₂<br>(ppm)</th><th>Temp.<br>(°C)</th><th>O₂ rate<br>(mL/h)</th><th aria-label="Delete"></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table></div>
+      <div id="msg" aria-live="polite"></div>
+    </section>
+  </div>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;};
+
+/* ---------- the science model ----------
+   rate = Pmax x light factor x CO2 factor x temperature factor x colour factor
+   - light: rises quickly then levels off (light saturation)
+   - CO2: rises then levels off
+   - temperature: best near 27 C, falls off fast above about 35 C (enzymes damaged)
+   - colour: highest in blue (~440 nm) and red (~675 nm), low in green */
+const PMAX=40;
+const fLight=L=>(1-Math.exp(-L/28))/(1-Math.exp(-100/28));
+const fCO2=C=>(C/(C+200))*1.2;
+const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
+const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
+const fColour=w=>Math.min(1,0.95*g(w,440,38)+0.9*g(w,675,30)+0.14*g(w,560,90));
+function trueRate(s){
+  const c=s.white?1:fColour(s.wl);
+  return PMAX*fLight(s.light)*fCO2(s.co2)*fTemp(s.temp)*c;
+}
+/* tiny measurement variation (about ±1.5%), new each time a setting changes */
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+let noise=1;
+const S={light:50,co2:400,temp:20,white:true,wl:450};
+let target=0, shown=0, vol=0, simMin=0;
+
+/* ---------- colour of light ---------- */
+function wlRGB(w){
+  let r=0,gg=0,b=0;
+  if(w<440){r=(440-w)/60;b=1}else if(w<490){gg=(w-440)/50;b=1}else if(w<510){gg=1;b=(510-w)/20}
+  else if(w<580){r=(w-510)/70;gg=1}else if(w<645){r=1;gg=(645-w)/65}else{r=1}
+  let f=w<420?0.35+0.65*(w-380)/40:w>700?0.35+0.65*(750-w)/50:1;
+  const c=v=>Math.round(255*Math.pow(Math.max(0,Math.min(1,v*f)),0.8));
+  return `rgb(${c(r)},${c(gg)},${c(b)})`;
+}
+function wlName(w){return w<430?'violet':w<490?'blue':w<570?'green':w<590?'yellow':w<620?'orange':'red';}
+const colourText=s=>s.white?'White':`${s.wl} nm (${wlName(s.wl)})`;
+
+/* ---------- build the static drawing ---------- */
+(function gravel(){const gEl=$('gravel');let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<70;i++){mk('ellipse',{cx:270+rnd()*236,cy:347-rnd()*7,rx:2.5+rnd()*3,ry:1.8+rnd()*1.6,fill:i%3?'#9C8F7D':'#B8AC98'},gEl);}})();
+(function plant(){
+  const p=$('plant');let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const stems=[[-24,302,-.5],[-12,288,-.2],[0,280,.05],[12,286,.25],[24,300,.5],[-5,294,-.1]];
+  for(const [dx,topY,lean] of stems){
+    const x0=385+dx*0.5,y0=346, x1=385+dx, y1=topY, cx=385+dx*0.2+lean*20, cy=(y0+y1)/2;
+    mk('path',{d:`M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}`,stroke:'var(--stem)','stroke-width':2.2,fill:'none'},p);
+    const n=Math.floor((y0-y1)/8);
+    for(let i=1;i<=n;i++){
+      const t=i/n, x=(1-t)*(1-t)*x0+2*(1-t)*t*cx+t*t*x1, y=(1-t)*(1-t)*y0+2*(1-t)*t*cy+t*t*y1;
+      const size=1-0.35*t;
+      for(let k=0;k<3;k++){
+        const ang=(k===0?-55:k===1?55:(i%2?-15:15))+(rnd()*16-8)-90;
+        const L=9*size, a=ang*Math.PI/180;
+        const ex=x+Math.cos(a)*L/2, ey=y+Math.sin(a)*L/2;
+        mk('ellipse',{cx:ex,cy:ey,rx:L/2,ry:2.1*size,transform:`rotate(${ang} ${ex} ${ey})`,fill:k===2?'var(--leaf2)':'var(--leaf)'},p);
+      }
+    }
+    mk('circle',{cx:x1,cy:y1,r:3,fill:'var(--leaf2)'},p);
+  }
+})();
+/* measuring tube scale: 0 mL at the top, 20 mL lower down */
+const TUBE_TOP=30, TUBE_PER_ML=10, TUBE_MAX=20;
+(function tubeTicks(){const t=$('tubeTicks');
+  for(let m=0;m<=TUBE_MAX;m++){const y=TUBE_TOP+m*TUBE_PER_ML;const big=m%5===0;
+    mk('line',{x1:399,y1:y,x2:big?390:394,y2:y,class:'tick'},t);
+    if(big){const tx=mk('text',{x:403,y:y+3,class:'ticktxt'},t);tx.textContent=m;}}
+  const u=mk('text',{x:403,y:TUBE_TOP+TUBE_MAX*TUBE_PER_ML+14,class:'ticktxt'},t);u.textContent='mL';})();
+/* thermometer: 0 C at y=320, 50 C at y=100 */
+const thY=T=>320-T*4.4;
+(function thermoTicks(){const t=$('thermoTicks');
+  for(let T=0;T<=50;T+=5){const y=thY(T);mk('line',{x1:474,y1:y,x2:T%10?470:467,y2:y,class:'tick'},t);
+    if(T%10===0){const tx=mk('text',{x:465,y:y+3,class:'ticktxt','text-anchor':'end'},t);tx.textContent=T;}}})();
+
+/* ---------- controls ---------- */
+const light=$('light'),co2=$('co2'),temp=$('temp'),wl=$('wl');
+function readControls(){S.light=+light.value;S.co2=+co2.value;S.temp=+temp.value;S.wl=+wl.value;}
+function updateScene(){
+  $('lightO').textContent=S.light+' %';
+  $('co2O').textContent=S.co2+' ppm';
+  $('tempO').textContent=S.temp+' °C';
+  $('wlO').textContent=S.white?'':`${S.wl} nm · ${wlName(S.wl)}`;
+  wl.disabled=S.white;
+  $('whiteBtn').setAttribute('aria-pressed',S.white);
+  $('colBtn').setAttribute('aria-pressed',!S.white);
+  const col=S.white?'#FFF3B0':wlRGB(S.wl);
+  const on=S.light/100;
+  $('beamS0').setAttribute('stop-color',col);$('beamS1').setAttribute('stop-color',col);
+  $('glowS0').setAttribute('stop-color',col);$('glowS1').setAttribute('stop-color',col);
+  $('beam').setAttribute('opacity',(on===0?0:0.1+0.5*on).toFixed(2));
+  $('glow').setAttribute('opacity',(on===0?0:0.25+0.7*on).toFixed(2));
+  $('bulb').setAttribute('fill',on===0?'#9AA3A9':(S.white?'#FFF6C8':col));
+  $('filter').setAttribute('opacity',S.white?0:0.9);$('filter').setAttribute('fill',S.white?'transparent':col);
+  $('filterLbl').setAttribute('opacity',S.white?0:1);
+  $('heatTxt').textContent=S.temp+' °C';
+  $('co2Txt').textContent=S.co2+' ppm';
+  const y=thY(S.temp);$('thermo').setAttribute('y',y);$('thermo').setAttribute('height',336-y);
+}
+function changed(){readControls();noise=1+0.015*Math.max(-2,Math.min(2,gauss()));target=trueRate(S)*noise;updateScene();}
+[light,co2,temp,wl].forEach(el=>el.addEventListener('input',changed));
+$('whiteBtn').onclick=()=>{S.white=true;changed();};
+$('colBtn').onclick=()=>{S.white=false;changed();};
+$('emptyBtn').onclick=()=>{vol=0;simMin=0;bubbles.forEach(b=>b.el.remove());bubbles.length=0;};
+
+/* ---------- animation: bubbles + filling tube ---------- */
+const SIM_MIN_PER_SEC=2; /* 1 second on screen = 2 minutes in the lab */
+const bubbles=[];const bubG=$('bubbles');let spawnAcc=0;
+const leafSpots=[];$('plant').querySelectorAll('ellipse').forEach((e,i)=>{if(i%4===0)leafSpots.push([+e.getAttribute('cx'),+e.getAttribute('cy')]);});
+const halfW=y=>y>=326?66:y>=250?7+(y-250)/(326-250)*59:7;
+let last=performance.now();
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now){
+  const dt=Math.min(0.1,(now-last)/1000);last=now;
+  shown+= (target-shown)*Math.min(1,dt*3);
+  if(Math.abs(target-shown)<0.02)shown=target;
+  const full=vol>=TUBE_MAX;
+  if(!full){vol=Math.min(TUBE_MAX,vol+shown*dt*SIM_MIN_PER_SEC/60);simMin+=dt*SIM_MIN_PER_SEC;}
+  const gy=TUBE_TOP+vol*TUBE_PER_ML;
+  $('gas').setAttribute('height',Math.max(0,gy-20));$('meniscus').setAttribute('y',gy-1);
+  $('fullTxt').setAttribute('opacity',full?1:0);
+  $('rateV').textContent=shown.toFixed(1)+' mL/h';
+  $('volV').textContent=vol.toFixed(1)+' mL';
+  $('timeV').textContent=Math.floor(simMin)+' min';
+  /* bubbles: more bubbles when the rate is higher */
+  if(!reduce){
+    spawnAcc+=dt*shown*0.35;
+    while(spawnAcc>=1&&bubbles.length<120){spawnAcc-=1;const s=leafSpots[Math.floor(Math.random()*leafSpots.length)];
+      const r=1.4+Math.random()*1.6;bubbles.push({x:s[0],y:s[1],r,v:28+Math.random()*18,el:mk('circle',{cx:s[0],cy:s[1],r,class:'bubble'},bubG)});}
+    if(spawnAcc>1)spawnAcc=1;
+    for(let i=bubbles.length-1;i>=0;i--){const b=bubbles[i];b.y-=b.v*dt;b.x+=(Math.random()-.5)*dt*8;
+      const hw=halfW(b.y)-b.r-1;if(b.x<385-hw)b.x=385-hw;if(b.x>385+hw)b.x=385+hw;
+      if(b.y<gy+2||b.y<36){b.el.remove();bubbles.splice(i,1);continue;}
+      b.el.setAttribute('cx',b.x.toFixed(1));b.el.setAttribute('cy',b.y.toFixed(1));}
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- data table ---------- */
+const rows=[];let trialNo=0;
+const tbody=$('tbody');
+function renderTable(flashLast){
+  tbody.innerHTML='';
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No data yet. Set up your experiment, then press “Record data”.</td></tr>';return;}
+  rows.forEach((r,i)=>{const tr=document.createElement('tr');if(flashLast&&i===rows.length-1)tr.className='new';
+    const sw=`<span class="sw" style="background:${r.white?'#FFF3B0':wlRGB(r.wl)}"></span>`;
+    tr.innerHTML=`<td>${r.n}</td><td>${r.light}</td><td>${sw}${colourText(r)}</td><td>${r.co2}</td><td>${r.temp}</td><td class="o2v">${r.o2.toFixed(1)}</td><td><button class="del" title="Delete trial ${r.n}" aria-label="Delete trial ${r.n}">×</button></td>`;
+    tr.querySelector('button').onclick=()=>{rows.splice(i,1);renderTable();drawGraph();};
+    tbody.appendChild(tr);});
+  if(flashLast){const sc=tbody.closest('.tscroll');sc.scrollTop=sc.scrollHeight;}
+}
+function say(t){$('msg').textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>$('msg').textContent='',4000);}
+$('recBtn').onclick=()=>{rows.push({n:++trialNo,light:S.light,white:S.white,wl:S.wl,co2:S.co2,temp:S.temp,o2:Math.round(target*10)/10});renderTable(true);drawGraph();};
+$('clearBtn').onclick=()=>{
+  if(!rows.length)return;
+  if($('clearBtn').dataset.sure){rows.length=0;trialNo=0;renderTable();drawGraph();delete $('clearBtn').dataset.sure;$('clearBtn').textContent='Clear all';say('Table cleared.');}
+  else{$('clearBtn').dataset.sure='1';$('clearBtn').textContent='Sure? Click again';setTimeout(()=>{delete $('clearBtn').dataset.sure;$('clearBtn').textContent='Clear all';},3000);}
+};
+function csvText(sep){
+  const head=['Trial','Light intensity (%)','Light colour','Wavelength (nm)','CO2 level (ppm)','Temperature (C)','O2 production rate (mL/h)'];
+  const q=v=>sep===','&&/[",]/.test(v)?'"'+String(v).replace(/"/g,'""')+'"':v;
+  return [head.join(sep)].concat(rows.map(r=>[r.n,r.light,r.white?'White':wlName(r.wl),r.white?'':r.wl,r.co2,r.temp,r.o2.toFixed(1)].map(q).join(sep))).join('\r\n');
+}
+$('csvBtn').onclick=()=>{
+  if(!rows.length){say('Record some data first.');return;}
+  try{const blob=new Blob([csvText(',')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='photosynthesis-data.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);say('Saved photosynthesis-data.csv. If nothing downloaded, use “Copy table” and paste into a spreadsheet.');}
+  catch(e){say('Download is blocked here. Use “Copy table” and paste into a spreadsheet.');}
+};
+$('copyBtn').onclick=()=>{
+  if(!rows.length){say('Record some data first.');return;}
+  const txt=csvText('\t');
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();say(ok?'Copied. Paste into Google Sheets, Excel or a Word table.':'Could not copy. Try “Download CSV”.');};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>say('Copied. Paste into Google Sheets, Excel or a Word table.'),fallback);else fallback();
+};
+
+/* ---------- graph ---------- */
+const AX={
+  light:{key:'light',label:'Light intensity (%)',min:0,max:100,step:20},
+  co2:{key:'co2',label:'CO₂ level (ppm)',min:0,max:1000,step:200},
+  temp:{key:'temp',label:'Temperature (°C)',min:0,max:45,step:5},
+  wl:{key:'wl',label:'Wavelength of light (nm)',min:380,max:750,step:50,first:400}
+};
+let xax='light';
+document.querySelectorAll('input[name=xax]').forEach(r=>r.addEventListener('change',()=>{xax=r.value;drawGraph();}));
+const cv=$('graph');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function drawGraph(){
+  const box=cv.parentElement.getBoundingClientRect();const dpr=window.devicePixelRatio||1;
+  const W=Math.max(50,box.width),H=Math.max(50,box.height);
+  cv.width=W*dpr;cv.height=H*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+  const ink=css('--ink'),muted=css('--muted'),grid=css('--grid1'),pt=css('--pt');
+  const A=AX[xax];const L=48,R=14,T=12,B=36;const pw=W-L-R,ph=H-T-B;
+  const YMAX=45;
+  const X=v=>L+(v-A.min)/(A.max-A.min)*pw, Y=v=>T+ph-(v/YMAX)*ph;
+  c.font='12px Calibri, Carlito, "Segoe UI", Arial, sans-serif';c.lineWidth=1;
+  /* grid + y ticks */
+  c.strokeStyle=grid;c.fillStyle=muted;c.textAlign='right';c.textBaseline='middle';
+  for(let v=0;v<=YMAX;v+=5){const y=Y(v);c.beginPath();c.moveTo(L,y);c.lineTo(L+pw,y);c.stroke();if(v%10===0||ph>260)c.fillText(v,L-6,y);}
+  c.textAlign='center';c.textBaseline='top';
+  for(let v=A.first||A.min;v<=A.max;v+=A.step){const x=X(v);c.beginPath();c.moveTo(x,T);c.lineTo(x,T+ph);c.stroke();c.fillText(v,x,T+ph+4);}
+  /* colour band under the wavelength axis */
+  if(xax==='wl'){for(let w=380;w<750;w+=2){c.fillStyle=wlRGB(w);c.fillRect(X(w),T+ph-5,X(w+2)-X(w)+0.5,5);}}
+  /* axes */
+  c.strokeStyle=ink;c.lineWidth=1.6;c.beginPath();c.moveTo(L,T);c.lineTo(L,T+ph);c.lineTo(L+pw,T+ph);c.stroke();
+  c.fillStyle=ink;c.font='bold 13px Calibri, Carlito, "Segoe UI", Arial, sans-serif';
+  c.textAlign='center';c.textBaseline='bottom';c.fillText(A.label,L+pw/2,H-1);
+  c.save();c.translate(13,T+ph/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText('O₂ production rate (mL/h)',0,0);c.restore();
+  /* points */
+  let pts=rows.filter(r=>xax!=='wl'||!r.white).map(r=>({x:r[A.key],y:r.o2,r}));
+  const hidden=xax==='wl'?rows.filter(r=>r.white).length:0;
+  pts.sort((a,b)=>a.x-b.x);
+  if(pts.length>1){c.strokeStyle=pt;c.globalAlpha=.55;c.lineWidth=2;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(X(p.x),Y(p.y)):c.moveTo(X(p.x),Y(p.y)));c.stroke();c.globalAlpha=1;}
+  pts.forEach(p=>{c.beginPath();c.arc(X(p.x),Y(p.y),5.5,0,Math.PI*2);c.fillStyle=xax==='wl'?wlRGB(p.x):pt;c.fill();c.lineWidth=1.5;c.strokeStyle=ink;c.stroke();});
+  if(!pts.length){c.fillStyle=muted;c.font='14px Calibri, Carlito, "Segoe UI", Arial, sans-serif';c.textAlign='center';c.textBaseline='middle';
+    c.fillText(xax==='wl'&&rows.length?'Use “Coloured light” and record trials to graph wavelength.':'Recorded trials will appear here.',L+pw/2,T+ph/2);}
+  $('gtip').textContent=hidden?`White-light trials (${hidden}) are not shown on the wavelength graph.`:'Change one thing at a time, and press “Record data” after each change.';
+}
+new ResizeObserver(drawGraph).observe(cv.parentElement);
+new MutationObserver(()=>drawGraph()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',drawGraph);
+
+changed();shown=target;renderTable();drawGraph();requestAnimationFrame(frame);
+window.__photo={trueRate,S,rows};
+})();
+</script>
+<script>
+(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
+const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
+const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
+btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
+mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
+</script>
+</body>
+</html>
