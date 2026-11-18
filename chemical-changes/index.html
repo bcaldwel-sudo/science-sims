@@ -163,7 +163,7 @@ header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"
     <div class="rd"><div class="k">Balance</div><div class="v num" id="rMass">0.00 <small>g</small></div>
       <div class="row"><span>Start</span><b id="rM0">0.00 g</b></div>
       <div class="row"><span>Change</span><b id="rDM">0.00 g</b></div></div>
-    <div class="rd" id="rdTemp"><div class="k">Temperature</div><div class="v num" id="rTemp"></div><div class="row" id="rT0row"><span>Start</span><b>21.0 °C</b></div></div>
+    <div class="rd" id="rdTemp" title="Click to put the thermometer in or take it out" style="cursor:pointer"><div class="k">Temperature</div><div class="v num" id="rTemp"></div><div id="rTrows"><div class="row"><span>Before reaction</span><b id="rTb">21.0 °C</b></div><div class="row"><span>After reaction</span><b id="rTa">—</b></div><div class="row"><span>Change</span><b id="rTd">—</b></div></div></div>
     <div class="rd" id="rdInd"><div class="k">Phenol red colour</div><div class="v" id="rInd"></div><div class="hint" id="indKey">yellow = acidic, orange-red = about neutral, pink = basic</div></div>
     <div class="rd" id="rdGas"><div class="k">Gas in collection tube</div><div class="v num" id="rGas"></div></div>
     <div class="rd" id="rdTests"><div class="k">Gas tests</div><div id="testList"></div></div>
@@ -260,6 +260,7 @@ const mixP=()=>clamp(t/MIX);
 const rxP=()=>{if(rx.type==='none')return 0;const x=clamp((t-startRx())/rx.T);return 1-(1-x)*(1-x);};
 const rxRate=()=>{if(rx.type==='none')return 0;const x=(t-startRx())/rx.T;if(x<0||x>1)return 0;return 2*(1-x)/rx.T;};
 const endTime=()=>startRx()+rx.T+SETTLE;
+const finished=()=>t>=startRx()+rx.T;
 
 /* readings */
 function massBefore(){
@@ -555,6 +556,8 @@ function thermometer(){
   let g=`<rect x="${tx-4}" y="${top}" width="8" height="${bot-top}" rx="4" fill="#F7F9FB" stroke="#8892A0"/>`;
   g+=`<rect x="${tx-1.5}" y="${bot-6-(bot-top-14)*frac}" width="3" height="${(bot-top-14)*frac+4}" fill="#D33A3A"/><circle cx="${tx}" cy="${bot}" r="6" fill="#D33A3A" stroke="#8892A0"/>`;
   g+=`<rect x="${tx-80}" y="${top-4}" width="70" height="24" rx="5" fill="var(--lcd)"/><text x="${tx-45}" y="${top+13}" text-anchor="middle" font-family="Consolas,monospace" font-size="14" font-weight="700" fill="var(--lcdtext)">${temp.toFixed(1)} °C</text>`;
+  const ta=T0+(rx.type==='none'?0:(rx.dT||0));
+  g+=`<rect x="${tx-112}" y="${top+24}" width="102" height="34" rx="5" fill="var(--labelbg)" stroke="var(--line)"/><text x="${tx-106}" y="${top+38}" font-size="11.5" fill="var(--ink)">Before: ${T0.toFixed(1)} °C</text><text x="${tx-106}" y="${top+52}" font-size="11.5" fill="var(--ink)">After: ${finished()?ta.toFixed(1)+' °C':'—'}</text>`;
   return g;
 }
 function bigFoam(p,lvl){
@@ -631,8 +634,12 @@ function renderReadings(){
   $('rMass').innerHTML=`${m1.toFixed(2)} <small>g</small>`;
   $('rM0').textContent=m0.toFixed(2)+' g';
   $('rDM').textContent=(dm<=-0.005?'−':dm>=0.005?'+':'')+Math.abs(dm).toFixed(2)+' g';
-  $('rdTemp').classList.toggle('dim',!thermo);$('rT0row').hidden=!thermo;
-  $('rTemp').innerHTML=thermo?`${tempNow().toFixed(1)} <small>°C</small>`:'Use the thermometer to measure it.';
+  $('rdTemp').classList.toggle('dim',!thermo);$('rTrows').hidden=!thermo;
+  $('rTemp').innerHTML=thermo?`${tempNow().toFixed(1)} <small>°C</small>`:'Click here or use the thermometer to measure it.';
+  if(thermo){const fin=finished(),ta=T0+(rx.type==='none'?0:(rx.dT||0)),d=ta-T0;
+    $('rTb').textContent=T0.toFixed(1)+' °C';
+    $('rTa').textContent=fin?ta.toFixed(1)+' °C':(t>0?'reacting…':'press Play');
+    $('rTd').textContent=fin?(d>0.05?'+':d<-0.05?'−':'')+Math.abs(d).toFixed(1)+' °C':'—';}
   $('rdInd').hidden=!has('ind');
   $('rdInd').classList.toggle('dim',!ind);$('indKey').hidden=!ind;
   if(ind){const ph=pHnow();$('rInd').innerHTML=`<span class="sw" style="background:${indColour(ph)}"></span><span style="font-size:16px">${indName(ph)}</span>`;}
@@ -677,6 +684,7 @@ $('playBtn').addEventListener('click',()=>{if(done)return;playing=true;syncTools
 $('pauseBtn').addEventListener('click',()=>{playing=false;syncTools();});
 $('resetBtn').addEventListener('click',reset);
 $('tThermo').addEventListener('click',()=>{thermo=!thermo;syncTools();});
+$('rdTemp').addEventListener('click',()=>{if(!has('thermo'))return;thermo=!thermo;syncTools();});
 $('tMag').addEventListener('click',()=>{mag=!mag;syncTools();});
 $('tInd').addEventListener('click',()=>{if(ind)return;ind=true;indAt=performance.now();syncTools();});
 $('tGlow').addEventListener('click',()=>runTest('glow'));
