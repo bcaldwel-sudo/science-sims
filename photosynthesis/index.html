@@ -187,7 +187,7 @@ sub,sup{font-size:70%}
         <input type="range" id="light" min="0" max="100" step="1" value="30"></div>
       <div class="slider"><div class="top"><label for="co2">CO₂ level</label><span class="numin"><input type="number" id="co2N" min="0" max="1000" step="5" value="500" aria-label="Type CO₂ level (ppm)"> ppm</span></div>
         <input type="range" id="co2" min="0" max="1000" step="5" value="500"></div>
-      <div class="slider"><div class="top"><label for="temp">Temperature</label><output id="tempO" for="temp"></output></div>
+      <div class="slider"><div class="top"><label for="temp">Temperature</label><span class="numin"><input type="number" id="tempN" min="0" max="45" step="1" value="30" aria-label="Type temperature (°C)"> °C</span></div>
         <input type="range" id="temp" min="0" max="45" step="1" value="30"></div>
       <div class="slider"><div class="top"><span class="seg" role="group" aria-label="Light colour"><button type="button" id="whiteBtn" aria-pressed="true">White light</button><button type="button" id="colBtn" aria-pressed="false">Coloured light</button></span><output id="wlO" for="wl"></output></div>
         <input type="range" id="wl" min="380" max="750" step="5" value="450" aria-label="Light wavelength (nanometres)" disabled></div>
@@ -294,7 +294,7 @@ function readControls(){S.light=+light.value;S.co2=+co2.value;S.temp=+temp.value
 function updateScene(){
   if(document.activeElement!==$('lightN'))$('lightN').value=S.light;
   if(document.activeElement!==$('co2N'))$('co2N').value=S.co2;
-  $('tempO').textContent=S.temp+' °C';
+  if(document.activeElement!==$('tempN'))$('tempN').value=S.temp;
   $('wlO').textContent=S.white?'':`${S.wl} nm · ${wlName(S.wl)}`;
   wl.disabled=S.white;
   $('whiteBtn').setAttribute('aria-pressed',S.white);
@@ -315,7 +315,7 @@ function updateScene(){
 function changed(){readControls();target=trueRate(S);updateScene();drawGraph();drawO2();}
 [light,co2,temp,wl].forEach(el=>el.addEventListener('input',changed));
 /* typed values: update as they type (if valid), tidy up when they leave the box or press Enter */
-[[light,$('lightN')],[co2,$('co2N')]].forEach(([sl,box])=>{
+[[light,$('lightN')],[co2,$('co2N')],[temp,$('tempN')]].forEach(([sl,box])=>{
   const max=+box.max;
   const apply=fix=>{let v=parseFloat(box.value);
     if(isNaN(v)){if(fix)box.value=sl.value;return;}
