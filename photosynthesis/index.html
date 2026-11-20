@@ -141,7 +141,7 @@ sub,sup{font-size:70%}
         <!-- water bath heater/cooler -->
         <rect class="box" x="248" y="352" width="278" height="30" rx="4"/>
         <rect class="screen" x="420" y="358" width="72" height="18" rx="3"/>
-        <text class="stxt" x="456" y="372" text-anchor="middle" id="heatTxt">20 °C</text>
+        <text class="stxt" x="456" y="372" text-anchor="middle" id="heatTxt">30 °C</text>
         <circle class="metal2" cx="270" cy="367" r="6"/>
         <!-- beaker water -->
         <g clip-path="url(#beakerClip)">
@@ -182,7 +182,7 @@ sub,sup{font-size:70%}
         <rect class="metal" x="292" y="150" width="8" height="70" rx="3"/>
         <rect class="box" x="176" y="316" width="84" height="64" rx="6"/>
         <rect class="screen" x="184" y="324" width="68" height="22" rx="3"/>
-        <text class="stxt" x="218" y="340" text-anchor="middle" id="co2Txt">400 ppm</text>
+        <text class="stxt" x="218" y="340" text-anchor="middle" id="co2Txt">500 ppm</text>
         <text x="218" y="366" text-anchor="middle" style="fill:#C9D6DE;font:700 11px Calibri,Carlito,Arial,sans-serif">CO₂ meter</text>
         <!-- lamp -->
         <ellipse class="metal" cx="70" cy="379" rx="40" ry="6"/>
@@ -217,12 +217,12 @@ sub,sup{font-size:70%}
       <button id="emptyBtn" title="Refill the tube with water and restart the clock">Empty tube</button>
     </div>
     <section class="card controls" aria-label="Experiment controls">
-      <div class="slider"><div class="top"><label for="light">Light intensity</label><span class="numin"><input type="number" id="lightN" min="0" max="100" step="1" value="50" aria-label="Type light intensity (%)"> %</span></div>
-        <input type="range" id="light" min="0" max="100" step="1" value="50"></div>
-      <div class="slider"><div class="top"><label for="co2">CO₂ level</label><span class="numin"><input type="number" id="co2N" min="0" max="1000" step="5" value="400" aria-label="Type CO₂ level (ppm)"> ppm</span></div>
-        <input type="range" id="co2" min="0" max="1000" step="5" value="400"></div>
+      <div class="slider"><div class="top"><label for="light">Light intensity</label><span class="numin"><input type="number" id="lightN" min="0" max="100" step="1" value="30" aria-label="Type light intensity (%)"> %</span></div>
+        <input type="range" id="light" min="0" max="100" step="1" value="30"></div>
+      <div class="slider"><div class="top"><label for="co2">CO₂ level</label><span class="numin"><input type="number" id="co2N" min="0" max="1000" step="5" value="500" aria-label="Type CO₂ level (ppm)"> ppm</span></div>
+        <input type="range" id="co2" min="0" max="1000" step="5" value="500"></div>
       <div class="slider"><div class="top"><label for="temp">Temperature</label><output id="tempO" for="temp"></output></div>
-        <input type="range" id="temp" min="0" max="45" step="1" value="20"></div>
+        <input type="range" id="temp" min="0" max="45" step="1" value="30"></div>
       <div class="slider"><div class="top"><span class="seg" role="group" aria-label="Light colour"><button type="button" id="whiteBtn" aria-pressed="true">White light</button><button type="button" id="colBtn" aria-pressed="false">Coloured light</button></span><output id="wlO" for="wl"></output></div>
         <input type="range" id="wl" min="380" max="750" step="5" value="450" aria-label="Light wavelength (nanometres)" disabled></div>
     </section>
@@ -268,12 +268,14 @@ const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const
    - CO2: rises then levels off
    - temperature: best near 27 C, falls off fast above about 35 C (enzymes damaged)
    - colour: highest in blue (~440 nm) and red (~675 nm), low in green */
-const PMAX=40;
 const fLight=L=>(1-Math.exp(-L/28))/(1-Math.exp(-100/28));
 const fCO2=C=>(C/(C+200))*1.2;
 const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
 const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
 const fColour=w=>Math.min(1,0.95*g(w,440,38)+0.9*g(w,675,30)+0.14*g(w,560,90));
+/* starting set-up: 30 % light, 30 °C, 500 ppm CO2 gives exactly 26.1 mL/h of oxygen */
+const START={light:30,co2:500,temp:30,white:true,wl:450}, START_O2=26.1;
+const PMAX=START_O2/(fLight(START.light)*fCO2(START.co2)*fTemp(START.temp));
 function trueRate(s){
   const c=s.white?1:fColour(s.wl);
   return PMAX*fLight(s.light)*fCO2(s.co2)*fTemp(s.temp)*c;
@@ -281,7 +283,7 @@ function trueRate(s){
 /* tiny measurement variation (about ±1.5%), new each time a setting changes */
 function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 let noise=1;
-const S={light:50,co2:400,temp:20,white:true,wl:450};
+const S={...START};
 let target=0, shown=0, vol=0, simMin=0;
 
 /* ---------- colour of light ---------- */
@@ -445,17 +447,17 @@ $('copyBtn').onclick=()=>{
    value sits at the dashed line (half height), 0 at the bottom and the top of the
    range at full height. A bar above the line means "higher than typical". */
 const TYP=0.5;
-const DEF={light:50,co2:400,temp:20,white:true,wl:450};
-const O2_TYP=trueRate(DEF);           /* about 19.5 mL/h at the starting settings */
-const O2_MAX=PMAX;                    /* best possible rate in this model */
+/* the starting set-up is the "typical" level, so every bar starts on the dashed line */
+const O2_TYP=START_O2;
+const O2_MAX=trueRate({light:100,co2:1000,temp:27,white:true});   /* best possible rate in this model */
 const scaleTo=(v,typ,max)=>{v=Math.max(0,Math.min(max,v));return v<=typ?TYP*v/typ:TYP+(1-TYP)*(v-typ)/(max-typ);};
 const TOP=0.9;                        /* full range fills 90% of the plot, leaving room for numbers */
 $('typLine').style.bottom=(TYP*TOP*100)+'%';
 const setBar=(id,f)=>{$(id).style.height=(f*TOP*100).toFixed(2)+'%';};
 function drawGraph(){
-  setBar('barLight',scaleTo(S.light,50,100));
-  setBar('barTemp',scaleTo(S.temp,20,45));
-  setBar('barCO2',scaleTo(S.co2,400,1000));
+  setBar('barLight',scaleTo(S.light,START.light,100));
+  setBar('barTemp',scaleTo(S.temp,START.temp,45));
+  setBar('barCO2',scaleTo(S.co2,START.co2,1000));
   $('valLight').textContent=S.light+' %';
   $('valTemp').textContent=S.temp+' °C';
   $('valCO2').textContent=S.co2+' ppm';
@@ -468,7 +470,7 @@ function drawO2(){
 }
 $('numBtn').onclick=()=>{const on=$('plot').classList.toggle('nums');$('numBtn').setAttribute('aria-pressed',on);$('numBtn').textContent=on?'Hide numerical values':'Show numerical values';};
 
-changed();shown=target;renderTable();drawO2();requestAnimationFrame(frame);
+changed();target=trueRate(S);shown=target;renderTable();drawO2();requestAnimationFrame(frame);
 window.__photo={trueRate,S,rows};
 })();
 </script>
