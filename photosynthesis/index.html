@@ -204,7 +204,7 @@ sub,sup{font-size:70%}
         <div class="bcol"><div class="bar b-o2" id="barO2"><span class="bval" id="valO2"></span></div></div>
       </div>
       <div class="blabels"><div>Light intensity<small>(%)</small></div><div>Temperature<small>(°C)</small></div><div>CO₂ level<small>(ppm)</small></div><div>O₂ flow<small>(mL/h)</small></div></div>
-      <div class="bfoot"><button id="numBtn" aria-pressed="false">Show numerical values</button></div>
+      <div class="bfoot"><button id="numBtn" aria-pressed="false">Show numerical values</button><button id="resetBtn" title="Back to 30 % light, 30 °C, 500 ppm CO₂, white light">Reset to starting set-up</button></div>
       <div class="tip">Bars above the dashed line are higher than typical. Bars below it are lower.</div>
     </section>
   </div>
@@ -233,9 +233,7 @@ function trueRate(s){
   const c=s.white?1:fColour(s.wl);
   return PMAX*fLight(s.light)*fCO2(s.co2)*fTemp(s.temp)*c;
 }
-/* tiny measurement variation (about ±1.5%), new each time a setting changes */
-function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
-let noise=1;
+/* No random variation: the same settings always give exactly the same O2 value (used for quiz questions). */
 const S={...START};
 let target=0, shown=0, vol=0, simMin=0;
 
@@ -311,7 +309,7 @@ function updateScene(){
   $('co2Txt').textContent=S.co2+' ppm';
   const y=thY(S.temp);$('thermo').setAttribute('y',y);$('thermo').setAttribute('height',336-y);
 }
-function changed(){readControls();noise=1+0.015*Math.max(-2,Math.min(2,gauss()));target=trueRate(S)*noise;updateScene();drawGraph();}
+function changed(){readControls();target=trueRate(S);updateScene();drawGraph();drawO2();}
 [light,co2,temp,wl].forEach(el=>el.addEventListener('input',changed));
 /* typed values: update as they type (if valid), tidy up when they leave the box or press Enter */
 [[light,$('lightN')],[co2,$('co2N')]].forEach(([sl,box])=>{
@@ -343,7 +341,6 @@ function frame(now){
   if(!full){vol=Math.min(TUBE_MAX,vol+shown*dt*SIM_MIN_PER_SEC/60);simMin+=dt*SIM_MIN_PER_SEC;}
   const gy=TUBE_TOP+vol*TUBE_PER_ML;
   $('gas').setAttribute('height',Math.max(0,gy-20));$('meniscus').setAttribute('y',gy-1);
-  drawO2();
   /* bubbles: more bubbles when the rate is higher */
   if(!reduce){
     spawnAcc+=dt*shown*0.35;
@@ -381,13 +378,19 @@ function drawGraph(){
 }
 let lastO2=-1;
 function drawO2(){
-  const r=Math.round(shown*10)/10;if(r===lastO2)return;lastO2=r;
-  $('barO2').style.transition='none';setBar('barO2',scaleTo(shown,O2_TYP,O2_MAX));
+  /* the bar and number show the exact value for the current settings (no drifting or easing of the number) */
+  const r=Math.round(target*10)/10;if(r===lastO2)return;lastO2=r;
+  setBar('barO2',scaleTo(target,O2_TYP,O2_MAX));
   $('valO2').textContent=r.toFixed(1)+' mL/h';
 }
+$('resetBtn').onclick=()=>{
+  light.value=START.light;co2.value=START.co2;temp.value=START.temp;wl.value=START.wl;S.white=START.white;
+  vol=0;simMin=0;bubbles.forEach(b=>b.el.remove());bubbles.length=0;
+  changed();shown=target;
+};
 $('numBtn').onclick=()=>{const on=$('plot').classList.toggle('nums');$('numBtn').setAttribute('aria-pressed',on);$('numBtn').textContent=on?'Hide numerical values':'Show numerical values';};
 
-changed();target=trueRate(S);shown=target;drawO2();requestAnimationFrame(frame);
+changed();shown=target;requestAnimationFrame(frame);
 window.__photo={trueRate,S};
 })();
 </script>
