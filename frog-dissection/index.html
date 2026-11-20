@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frog Dissection Lab</title>
+<style>
+:root{
+  --navy:#0B1630; --ink:#1B2333; --card:#EEF2F8; --cream:#FFF4E3;
+  --amber:#F4A43A; --amberDk:#B86F0E; --teal:#2A9D8F; --coral:#E4572E;
+  --blue:#2F6FDE; --purple:#7B5EA7; --grey:#6B7486; --line:#D5DCE8; --muted:#6B7486;
+  --bg:#fff; --surface:#fff; --on-navy:#fff; --header:#0B1630;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
+h1,h2{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{flex:none;background:var(--header);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
+header .kicker{font-size:12px;letter-spacing:.12em;color:var(--amber);font-weight:700}
+header h1{margin:0;font-size:21px;font-weight:700;white-space:nowrap}
+.ctrls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:#C9D2E3;font-weight:700}
+.ctl select{font:inherit;font-size:13px;font-weight:400;padding:3px 6px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:#18243F;color:#fff}
+.seg{display:inline-flex;border:1px solid rgba(255,255,255,.3);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;font-weight:700;border:0;background:transparent;color:#C9D2E3;padding:4px 9px;cursor:pointer}
+.seg button.on{background:var(--amber);color:#0B1630}
+.seg button:focus-visible,.ctl select:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.22fr) minmax(330px,.78fr);gap:8px;padding:8px 10px 10px}
+.left{display:flex;flex-direction:column;min-height:0;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.tabs{flex:none;display:flex;gap:2px;padding:5px 6px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font:inherit;font-weight:700;font-size:14px;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;padding:5px 12px;background:transparent;color:var(--grey);cursor:pointer;white-space:nowrap}
+.tab .n{display:inline-block;width:18px;height:18px;line-height:18px;border-radius:50%;background:var(--card);color:var(--ink);font-size:11px;text-align:center;margin-right:5px}
+.tab.on{background:var(--cream);color:var(--ink);border-color:var(--line)}
+.tab.on .n{background:var(--amber);color:#0B1630}
+.tab.done .n{background:var(--teal);color:#fff}
+.work{flex:1;min-height:0;display:flex}
+.tools{flex:none;width:74px;display:flex;flex-direction:column;gap:3px;padding:5px;border-right:1px solid var(--line);overflow-y:auto}
+.tool{font:inherit;display:flex;flex-direction:column;align-items:center;gap:0;font-size:11px;font-weight:700;line-height:1.1;padding:3px 2px;border:2px solid transparent;border-radius:9px;background:var(--card);color:var(--ink);cursor:pointer}
+.tool svg{width:34px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tool.on{border-color:var(--amber);background:var(--cream)}
+.tool:focus-visible{outline:3px solid var(--amber)}
+.tools .sep{height:1px;background:var(--line);margin:3px 0}
+.tools .chk{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;cursor:pointer;justify-content:center}
+.tools .flip{font:inherit;font-size:11px;font-weight:700;border:2px solid var(--navy);color:var(--navy);background:var(--surface);border-radius:9px;padding:4px 2px;cursor:pointer}
+.trayWrap{flex:1;min-width:0;position:relative;background:var(--card)}
+#tray{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+#tray.cross{cursor:crosshair}
+.banner{position:absolute;left:50%;top:8px;transform:translateX(-50%);max-width:min(560px,92%);padding:6px 12px;border-radius:10px;font-size:14px;line-height:1.3;text-align:center;display:none;border:2px solid;z-index:3;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.banner.ok{background:#E4F4F1;border-color:var(--teal);color:#14564E}
+.banner.bad{background:#FCE9E3;border-color:var(--coral);color:#8A2A10}
+.banner.info{background:#FFF4E3;border-color:var(--amber);color:#6B4206}
+.right{display:grid;grid-template-rows:minmax(0,1.08fr) minmax(0,1fr);gap:8px;min-height:0;min-width:0}
+.card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:8px 12px;min-height:0;display:flex;flex-direction:column}
+.card h2{margin:0;font-size:17px}
+.procHead{display:flex;align-items:baseline;gap:8px}
+.procHead .cnt{margin-left:auto;font-size:12px;color:var(--grey);font-weight:700;white-space:nowrap}
+#procText{font-size:14.5px;line-height:1.35;margin-top:3px}
+#procText .why{font-size:13px;color:var(--grey);margin-top:3px}
+#procText .tooltag{display:inline-block;font-size:12px;font-weight:700;background:var(--cream);border:1px solid var(--amber);border-radius:6px;padding:0 6px;margin-right:4px;color:var(--ink)}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.btn{font:inherit;font-size:13px;font-weight:700;border-radius:8px;border:2px solid var(--navy);background:var(--surface);color:var(--navy);padding:2px 10px;cursor:pointer}
+.btn.go{background:var(--navy);color:var(--on-navy)}
+.btn:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+.btn.sm{font-size:12px;padding:1px 8px;border-width:1px}
+.info{flex:1;min-height:0;overflow-y:auto;border-top:1px solid var(--line);margin-top:6px;padding-top:5px}
+.info h3{margin:0;font-family:Cambria,Georgia,serif;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:11px;font-weight:700;border-radius:20px;padding:1px 8px;border:1.5px solid;letter-spacing:.03em}
+.info p{margin:4px 0;font-size:14.5px;line-height:1.38}
+.info p.lv{border-left:3px solid var(--amber);padding-left:7px}
+.info p.lv12{border-left-color:var(--purple)}
+.info .muted{color:var(--grey);font-size:14px}
+.cuHead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cuHead .mag{font-size:12px;font-weight:700;color:var(--grey)}
+.cuHead .views{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.cuHead .views .btn.on{background:var(--amber);border-color:var(--amber);color:#0B1630}
+.cuBox{flex:1;min-height:0;position:relative;margin-top:5px;border-radius:10px;overflow:hidden;background:#151210}
+#cu{position:absolute;inset:0;width:100%;height:100%}
+.cuNote{position:absolute;left:8px;bottom:6px;right:8px;color:#E8DFD2;font-size:12.5px;text-shadow:0 1px 2px #000;pointer-events:none}
+.dish{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:5px;min-height:24px}
+.dish .lbl{font-size:12px;font-weight:700;color:var(--grey)}
+.dish .btn.on{background:var(--amber);border-color:var(--amber);color:#0B1630}
+.dish .empty{font-size:12px;color:var(--grey)}
+/* tray graphics */
+#tray text,#cu text{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif}
+.lab text{font-size:var(--lf,13.5px);font-weight:700;fill:#fff;stroke:rgba(10,8,6,.85);stroke-width:var(--ls,3.2px);paint-order:stroke;stroke-linejoin:round}
+.lab line,.lab path{stroke:#fff;stroke-width:1.2;fill:none;opacity:.9}
+.lab circle{fill:#ffd23a;stroke:#000;stroke-width:.8}
+.lab.sel text{fill:#ffd23a}
+.org{filter:url(#fWet) drop-shadow(1px 2px 1.5px rgba(0,0,0,.45))}
+.bone{filter:url(#fBone) drop-shadow(1px 2px 2px rgba(0,0,0,.55))}
+[data-id]{cursor:pointer}
+.hov{filter:drop-shadow(0 0 2px #fff4a8) drop-shadow(0 0 4px #ffd23a) !important}
+.org.hov{filter:url(#fWet) drop-shadow(0 0 2px #fff4a8) drop-shadow(0 0 4px #ffd23a) !important}
+.bone.hov{filter:url(#fBone) drop-shadow(0 0 2px #fff4a8) drop-shadow(0 0 4px #ffd23a) !important}
+.tex.hov{filter:url(#fSkin) drop-shadow(0 0 2px #fff4a8) drop-shadow(0 0 4px #ffd23a) !important}
+.sel{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffb300) !important}
+.org.sel{filter:url(#fWet) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffb300) !important}
+.bone.sel{filter:url(#fBone) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffb300) !important}
+.tex.sel{filter:url(#fSkin) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffb300) !important}
+html.soft .org,html.soft .tex,html.soft .bone{filter:drop-shadow(1px 2px 1.5px rgba(0,0,0,.3)) !important}
+html.soft .hov{filter:drop-shadow(0 0 2px #fff4a8) drop-shadow(0 0 4px #ffd23a) !important}
+html.soft .sel{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffb300) !important}
+html.soft .gore{display:none}
+html.soft .noise{display:none}
+.pulse{fill:none;stroke:#ffd23a;stroke-width:2.5;stroke-dasharray:6 5;animation:spin 1.2s linear infinite}
+.pulseFill{fill:rgba(255,210,58,.18);animation:breathe 1.2s ease-in-out infinite}
+.cutGuide{fill:none;stroke:#ffd23a;stroke-width:2.2;stroke-dasharray:7 6;animation:spin 1s linear infinite}
+.cutGuide.faint{stroke-opacity:.45;animation:none}
+@keyframes spin{to{stroke-dashoffset:-22}}
+@keyframes breathe{50%{fill:rgba(255,210,58,.38)}}
+@media (prefers-reduced-motion: reduce){.pulse,.cutGuide,.pulseFill{animation:none}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* small screens: allow scrolling */
+@media (max-width:900px), (max-height:500px){
+  body{height:auto;overflow:auto}
+  main{grid-template-columns:1fr}
+  .left{height:80vh;min-height:420px}
+  .right{grid-template-rows:auto 60vh}
+  .info{max-height:260px}
+}
+/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
+</style>
+</head>
+<body>
+<header>
+  <span class="kicker">SNC2D · TISSUES, ORGANS &amp; SYSTEMS</span>
+  <h1>Frog Dissection Lab</h1>
+  <div class="ctrls">
+    <label class="ctl" id="sexWrap">Specimen
+      <select id="sex"><option value="m">Male frog</option><option value="f">Female frog</option></select></label>
+    <div class="seg" id="modeSeg" role="group" aria-label="Mode"><button data-v="guided" class="on">Guided</button><button data-v="own">On my own</button></div>
+  </div>
+</header>
+<main>
+  <section class="left">
+    <nav class="tabs" id="tabs" aria-label="Parts of the dissection"></nav>
+    <div class="work">
+      <div class="tools" id="tools" aria-label="Dissecting tools"></div>
+      <div class="trayWrap">
+        <svg id="tray" viewBox="0 0 760 700" preserveAspectRatio="xMidYMid meet" aria-label="Dissecting tray">
+          <defs id="defs"></defs>
+          <g id="scene"></g>
+          <g id="marks"></g>
+          <g id="labels" class="lab"></g>
+          <g id="ghost" pointer-events="none"></g>
+        </svg>
+        <div id="banner" class="banner" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+  <section class="right">
+    <div class="card" id="procCard">
+      <div class="procHead"><h2 id="procTitle">Procedure</h2><span class="cnt" id="procCnt"></span></div>
+      <div id="procText"></div>
+      <div class="btnrow" id="procBtns"></div>
+      <div class="info" id="info" aria-live="polite"></div>
+    </div>
+    <div class="card" id="cuCard">
+      <div class="cuHead"><h2 id="cuTitle">Close-up</h2><span class="mag" id="cuMag"></span><div class="views" id="cuViews"></div></div>
+      <div class="cuBox"><svg id="cu" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" aria-label="Close-up view"></svg><div class="cuNote" id="cuNote"></div></div>
+      <div class="dish" id="dish"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const CX=380;
+let OY=0;
+const P=(dx,y)=>[CX+dx,y+OY];
+const n1=v=>(Math.round(v*10)/10);
+const pt=p=>n1(p[0])+','+n1(p[1]);
+const H=(s,a)=>a.map(([dx,y])=>P(s*dx,y));
+function crC(p){let d='';const n=p.length;for(let i=0;i<n-1;i++){const a=p[Math.max(0,i-1)],b=p[i],c=p[i+1],e=p[Math.min(n-1,i+2)];
+  d+='C'+pt([b[0]+(c[0]-a[0])/6,b[1]+(c[1]-a[1])/6])+' '+pt([c[0]-(e[0]-b[0])/6,c[1]-(e[1]-b[1])/6])+' '+pt(c);}return d;}
+const open=p=>'M'+pt(p[0])+crC(p);
+function closed(p){const n=p.length;let d='M'+pt(p[0]);for(let i=0;i<n;i++){const a=p[(i-1+n)%n],b=p[i],c=p[(i+1)%n],e=p[(i+2)%n];
+  d+='C'+pt([b[0]+(c[0]-a[0])/6,b[1]+(c[1]-a[1])/6])+' '+pt([c[0]-(e[0]-b[0])/6,c[1]-(e[1]-b[1])/6])+' '+pt(c);}return d+'Z';}
+function sym(half){const R=half.map(([dx,y])=>P(dx,y)),L=half.slice(1,-1).reverse().map(([dx,y])=>P(-dx,y));return closed(R.concat(L));}
+function tubePts(c,w){const L=[],R=[];for(let i=0;i<c.length;i++){const a=c[Math.max(0,i-1)],b=c[Math.min(c.length-1,i+1)];
+  let tx=b[0]-a[0],ty=b[1]-a[1];const l=Math.hypot(tx,ty)||1;tx/=l;ty/=l;const h=w[i]/2;L.push([c[i][0]-ty*h,c[i][1]+tx*h]);R.push([c[i][0]+ty*h,c[i][1]-tx*h]);}
+  return L.concat(R.reverse());}
+const tube=(c,w)=>closed(tubePts(c,w));
+const lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function bone(a,b,w){const m=lerp(a,b,.5),q1=lerp(a,b,.14),q2=lerp(a,b,.86);return tube([a,q1,m,q2,b],[w*1.75,w*1.02,w*.92,w*1.02,w*1.75]);}
+const at=(id,o='')=>` data-id="${id}"${o}`;
+
+/* ---------------- palette (realistic / softened) ---------------- */
+const PAL={
+ wax:['#3b342e','#1b1714','#5b544e','#3e3833'],metal:['#eceff2','#9aa1aa','#eceff2','#9aa1aa'],
+ skinD:['#8a9858','#46512c','#adb68d','#828c69'],skinV:['#f3ecd5','#c9ba92','#f5f0e2','#dad1b8'],
+ skinIn:['#e2ab99','#a2625a','#f2d5ca','#d2aa9e'],muscle:['#dba18d','#93584a','#f0d2c4','#d0a796'],
+ cavity:['#5a3c35','#1f1416','#cfbab0','#a28d83'],liver:['#9c5139','#481f16','#d3a891','#a47d68'],
+ heartV:['#ad463b','#561914','#e8b3ac','#c08881'],heartA:['#7d5079','#36203c','#cfbadb','#a691b7'],
+ artery:['#e4493c','#8a1c15','#f3aca5','#cd817a'],vein:['#5f84d6','#233f8a','#b6c6eb','#8498cb'],
+ lung:['#e0b0a6','#965f59','#f5dad7','#d2aeab'],stomach:['#f1e3c8','#ae936d','#f6eddb','#d8c5a8'],
+ gut:['#eedcbd','#a98a62','#f5e9d4','#d4be9e'],fat:['#f8d257','#c58318','#f8e4a2','#ddbd6e'],
+ spleen:['#ad3c4e','#561524','#ddacb6','#b5828e'],kidney:['#9e4336','#4a170f','#dbaea2','#ae8176'],
+ testis:['#f6eaae','#c3a553','#f8f0cb','#d9c690'],ovary:['#4c423c','#14100e','#a59b94','#7d736d'],
+ oviduct:['#f7f3eb','#c3b7a2','#f9f6f0','#dad1c2'],bladder:['#f1ebe0','#b5a993','#f6f2e9','#d7cdbb'],
+ gall:['#8ab454','#3a5c1c','#c6dca6','#95af76'],pancreas:['#f5e8cb','#c4a982','#f8efde','#d9c7a8'],
+ brain:['#ecdcd0','#b08e7e','#f7ece2','#d8c1b0'],bone:['#f9f3e3','#c4b088','#f9f3e3','#d6c8a8'],
+ oral:['#f0c2b1','#b07262','#f6dcd1','#d5ad9e'],tongue:['#f1b8a6','#a96253','#f7d5ca','#d1a194'],
+ iris:['#d0ae62','#4a3512','#dac590','#8f7646'],mening:['#5a4840','#1c1512','#b5a79f','#8d7f77'],
+ adrenal:['#f6b04a','#c0660a','#f8d59e','#dba966'],sternum:['#f6f3e9','#cbc1a8','#f6f3e9','#cbc1a8']
+};
+(()=>{let a=':root{',b='html.soft{';for(const k in PAL){a+=`--${k}1:${PAL[k][0]};--${k}2:${PAL[k][1]};`;b+=`--${k}1:${PAL[k][2]};--${k}2:${PAL[k][3]};`;}
+ const st=document.createElement('style');st.textContent=a+'}'+b+'}';document.head.appendChild(st);})();
+
+/* ---------------- shared SVG defs: gradients, textures, lighting ---------------- */
+(()=>{let d='';
+ for(const k in PAL){d+=`<radialGradient id="r-${k}" cx=".36" cy=".3" r=".8"><stop offset="0" style="stop-color:var(--${k}1)"/><stop offset="1" style="stop-color:var(--${k}2)"/></radialGradient>`;
+   d+=`<linearGradient id="l-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--${k}1)"/><stop offset="1" style="stop-color:var(--${k}2)"/></linearGradient>`;}
+ d+=`<radialGradient id="eyeG" cx=".42" cy=".38" r=".7"><stop offset="0" style="stop-color:var(--iris1)"/><stop offset=".8" style="stop-color:var(--iris2)"/><stop offset="1" stop-color="#111"/></radialGradient>
+ <radialGradient id="egg" cx=".4" cy=".3" r=".75"><stop offset="0" stop-color="#5a524c"/><stop offset=".5" stop-color="#1c1714"/><stop offset=".56" stop-color="#2c2622"/><stop offset=".62" stop-color="#e9dfc3"/><stop offset="1" stop-color="#b9a983"/></radialGradient>
+ <linearGradient id="eggL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a332e"/><stop offset=".5" stop-color="#14100e"/><stop offset=".54" stop-color="#d9cdb0"/><stop offset="1" stop-color="#f3ead2"/></linearGradient>
+ <radialGradient id="shine" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ <linearGradient id="metalRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".45" stop-color="#b7bec7"/><stop offset=".55" stop-color="#d9dde2"/><stop offset="1" stop-color="#8d949d"/></linearGradient>
+ <radialGradient id="waxG" cx=".45" cy=".4" r=".75"><stop offset="0" style="stop-color:var(--wax1)"/><stop offset="1" style="stop-color:var(--wax2)"/></radialGradient>
+ <radialGradient id="cavG" cx=".5" cy=".45" r=".6"><stop offset="0" style="stop-color:var(--cavity1)"/><stop offset="1" style="stop-color:var(--cavity2)"/></radialGradient>
+ <pattern id="fib" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 2.5h5" stroke="#5a2a20" stroke-opacity=".22" stroke-width="1"/></pattern>
+ <pattern id="fibV" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M2 0v4" stroke="#5a2a20" stroke-opacity=".22" stroke-width="1"/></pattern>
+ <pattern id="fibA" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)"><path d="M0 2.5h5" stroke="#5a2a20" stroke-opacity=".22" stroke-width="1"/></pattern>
+ <pattern id="fibB" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 2.5h5" stroke="#5a2a20" stroke-opacity=".22" stroke-width="1"/></pattern>
+ <pattern id="eggs" width="13" height="11" patternUnits="userSpaceOnUse"><rect width="13" height="11" fill="#2a2420"/><circle cx="2.2" cy="2.4" r="2.3" fill="url(#egg)"/><circle cx="6.8" cy="1.6" r="2" fill="url(#egg)"/><circle cx="11" cy="3" r="2.2" fill="url(#egg)"/><circle cx="4.4" cy="6.4" r="2.2" fill="url(#egg)"/><circle cx="9" cy="7.2" r="2.3" fill="url(#egg)"/><circle cx="1.6" cy="9.6" r="1.8" fill="url(#egg)"/><circle cx="12.4" cy="8.8" r="1.5" fill="url(#egg)"/><circle cx="6.2" cy="10.2" r="1.6" fill="url(#egg)"/></pattern>
+ <pattern id="eggsS" width="13" height="11" patternUnits="userSpaceOnUse"><rect width="13" height="11" fill="#d9cfc4"/><circle cx="2.2" cy="2.4" r="2.2" fill="#a59a92"/><circle cx="6.8" cy="1.6" r="1.9" fill="#a59a92"/><circle cx="11" cy="3" r="2.1" fill="#a59a92"/><circle cx="4.4" cy="6.4" r="2.1" fill="#a59a92"/><circle cx="9" cy="7.2" r="2.2" fill="#a59a92"/><circle cx="1.6" cy="9.6" r="1.7" fill="#a59a92"/><circle cx="6.2" cy="10.2" r="1.5" fill="#a59a92"/></pattern>
+ <pattern id="lobule" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="2.6" fill="none" stroke="#000" stroke-opacity=".12"/></pattern><pattern id="alv" width="6" height="5.2" patternUnits="userSpaceOnUse"><path d="M0 2.6l1.5-2.6h3L6 2.6 4.5 5.2h-3z" fill="none" stroke="#7a3a36" stroke-opacity=".38" stroke-width=".8"/></pattern>
+ <pattern id="pig" width="11" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r="1.1" fill="#000" fill-opacity=".45"/><circle cx="7.5" cy="7" r=".8" fill="#000" fill-opacity=".35"/><circle cx="8" cy="1.5" r=".6" fill="#000" fill-opacity=".3"/></pattern><pattern id="pores" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".7" fill="#8a7550" fill-opacity=".35"/><circle cx="5" cy="4.5" r=".5" fill="#8a7550" fill-opacity=".3"/></pattern>
+ <filter id="fWet" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+   <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="3" seed="21" result="lo"/>
+   <feDisplacementMap in="SourceGraphic" in2="lo" scale="4.5" xChannelSelector="R" yChannelSelector="G" result="src"/>
+   <feColorMatrix in="lo" type="matrix" values=".75 0 0 0 .58  .8 0 0 0 .56  .8 0 0 0 .56  0 0 0 0 1" result="mot"/>
+   <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="1" seed="3" result="gr"/>
+   <feColorMatrix in="gr" type="matrix" values=".25 0 0 0 .86  .25 0 0 0 .86  .25 0 0 0 .86  0 0 0 0 1" result="grain"/>
+   <feBlend in="src" in2="mot" mode="multiply" result="c1"/><feBlend in="c1" in2="grain" mode="multiply" result="c2"/>
+   <feComposite in="c2" in2="src" operator="in" result="col"/>
+   <feGaussianBlur in="src" stdDeviation="4.5" result="b"/>
+   <feTurbulence type="fractalNoise" baseFrequency=".35" numOctaves="2" seed="5" result="hi"/>
+   <feComposite in="lo" in2="b" operator="arithmetic" k2=".22" k3="1" result="h1"/>
+   <feComposite in="hi" in2="h1" operator="arithmetic" k2=".07" k3="1" result="h"/>
+   <feDiffuseLighting in="h" surfaceScale="5" diffuseConstant="1.22" lighting-color="#fff" result="d"><feDistantLight azimuth="225" elevation="54"/></feDiffuseLighting>
+   <feSpecularLighting in="h" surfaceScale="5" specularConstant="1.15" specularExponent="38" lighting-color="#fffaf2" result="s"><feDistantLight azimuth="225" elevation="48"/></feSpecularLighting>
+   <feComposite in="col" in2="d" operator="arithmetic" k1="1" result="lit"/>
+   <feComposite in="s" in2="src" operator="in" result="s2"/>
+   <feComposite in="lit" in2="s2" operator="arithmetic" k2="1" k3=".75" result="o"/>
+   <feComposite in="o" in2="src" operator="in"/>
+ </filter>
+ <filter id="fBone" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+   <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="b"/>
+   <feTurbulence type="fractalNoise" baseFrequency=".5" numOctaves="2" seed="3" result="n"/>
+   <feComposite in="n" in2="b" operator="arithmetic" k2=".12" k3="1" result="h"/>
+   <feDiffuseLighting in="h" surfaceScale="4" diffuseConstant="1.15" lighting-color="#fff" result="d"><feDistantLight azimuth="225" elevation="55"/></feDiffuseLighting>
+   <feSpecularLighting in="h" surfaceScale="4" specularConstant=".35" specularExponent="12" lighting-color="#fff" result="s"><feDistantLight azimuth="225" elevation="55"/></feSpecularLighting>
+   <feComposite in="SourceGraphic" in2="d" operator="arithmetic" k1="1" result="lit"/>
+   <feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/>
+   <feComposite in="lit" in2="s2" operator="arithmetic" k2="1" k3=".5" result="o"/>
+   <feComposite in="o" in2="SourceAlpha" operator="in"/>
+ </filter>
+ <filter id="fSkin" x="-2%" y="-2%" width="104%" height="104%" color-interpolation-filters="sRGB">
+   <feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="3" seed="17" result="lo"/>
+   <feDisplacementMap in="SourceGraphic" in2="lo" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="src"/>
+   <feTurbulence type="fractalNoise" baseFrequency=".022" numOctaves="2" seed="4" result="big"/>
+   <feColorMatrix in="big" type="matrix" values=".42 0 0 0 .78  .42 0 0 0 .78  .38 0 0 0 .8  0 0 0 0 1" result="mot"/>
+   <feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="9" result="gr"/>
+   <feColorMatrix in="gr" type="matrix" values=".3 0 0 0 .84  .3 0 0 0 .84  .3 0 0 0 .84  0 0 0 0 1" result="grain"/>
+   <feBlend in="src" in2="mot" mode="multiply" result="c1"/><feBlend in="c1" in2="grain" mode="multiply" result="c2"/>
+   <feComposite in="c2" in2="src" operator="in" result="col"/>
+   <feGaussianBlur in="src" stdDeviation="7" result="b"/>
+   <feTurbulence type="fractalNoise" baseFrequency=".2" numOctaves="2" seed="11" result="gl"/>
+   <feComposite in="gl" in2="b" operator="arithmetic" k2=".1" k3="1" result="h1"/>
+   <feComposite in="gr" in2="h1" operator="arithmetic" k2=".05" k3="1" result="h"/>
+   <feDiffuseLighting in="h" surfaceScale="6" diffuseConstant="1.18" lighting-color="#fff" result="d"><feDistantLight azimuth="230" elevation="56"/></feDiffuseLighting>
+   <feSpecularLighting in="h" surfaceScale="6" specularConstant=".8" specularExponent="30" lighting-color="#fffaf0" result="s"><feDistantLight azimuth="230" elevation="50"/></feSpecularLighting>
+   <feComposite in="col" in2="d" operator="arithmetic" k1="1" result="lit"/>
+   <feComposite in="s" in2="src" operator="in" result="s2"/>
+   <feComposite in="lit" in2="s2" operator="arithmetic" k2="1" k3=".55" result="o"/>
+   <feComposite in="o" in2="src" operator="in"/>
+ </filter>
+ <filter id="fBlot" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="31" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation=".9"/></filter>
+ <filter id="fIris" x="0" y="0" width="100%" height="100%"><feTurbulence type="turbulence" baseFrequency=".35" numOctaves="2" seed="6" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 .12  0 0 0 0 .08  0 0 0 0 .03  -3 0 0 0 1.2" result="v"/><feComposite in="v" in2="SourceAlpha" operator="in" result="v2"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="v2"/></feMerge></filter>
+ <filter id="fWax" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2" result="n"/>
+   <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .14 -.04" result="w"/><feComposite in="w" in2="SourceAlpha" operator="in" result="w2"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="w2"/></feMerge></filter>
+ <filter id="fBlur2" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2"/></filter>
+ <filter id="fBlur4" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter>
+ <filter id="fBlur7" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+ <clipPath id="waxClip"><rect x="22" y="22" width="716" height="656" rx="16"/></clipPath>`;
+ $('defs').innerHTML=d;})();
+
+/* ---------------- level-aware information ---------------- */
+// id: [name, system, min level, all levels, Grade 11+, Grade 12]
+const SYS={Digestive:'#E4572E',Respiratory:'#2F6FDE',Circulatory:'#C0392B',Excretory:'#B8860B',Reproductive:'#7B5EA7',Nervous:'#2A9D8F',Skeletal:'#6B7486',Muscular:'#C0602A',Integumentary:'#4F7A28',Sensory:'#0E7C86',Endocrine:'#C2185B',Immune:'#8E44AD'};
+const INFO={
+ ext_skin:['Skin (dorsal side)','Integumentary',10,'The skin is thin, moist and full of mucus glands. The olive colour and dark blotches camouflage the frog among water plants.','Frogs take in oxygen and give off carbon dioxide through their moist skin (cutaneous respiration), so the skin works with the lungs as a breathing surface.','Water also moves easily through frog skin, so frogs must stay near water to keep their water balance. Mucus slows drying, and frogs absorb water through the skin instead of drinking.'],
+ ext_vskin:['Skin (ventral side)','Integumentary',10,'The belly skin is pale. Animals that are dark on top and light underneath (countershading) are harder for predators to see from above or below.','Like the back, the belly skin is a breathing surface. A thin, moist, well-supplied surface is what every gas exchange organ needs.','Many frogs have a patch of thin, highly folded skin on the lower belly (a "seat patch") that soaks up water from damp ground, helping to keep the body\'s water balance.'],
+ ext_eye:['Eye','Sensory',10,'The large eyes sit high on the head, so the frog can see above the water while the rest of its body stays hidden.','A clear third eyelid, the nictitating membrane, slides up from below to protect the eye underwater and keep it moist on land.','When it swallows, the frog pulls its eyes down into the head. The eyeballs press on the roof of the mouth and help push food toward the esophagus.'],
+ ext_nares:['External nares (nostrils)','Respiratory',10,'The two nostrils let air in. They lead to openings in the roof of the mouth called the internal nares.','Frogs breathe by raising and lowering the floor of the mouth, pushing air through the nostrils into the lungs (positive-pressure breathing). Humans pull air in by lowering the diaphragm instead.',''],
+ ext_tympanum:['Tympanum (eardrum)','Sensory',10,'The tympanum is the round disc behind the eye. It vibrates when sound waves hit it.','In some species, such as bullfrogs, the male\'s tympanum is larger than his eye, while the female\'s is about the same size as the eye.','Vibrations pass through a small bone (the columella) to the inner ear, which also senses balance and body position.'],
+ ext_dlfold:['Dorsolateral fold','Integumentary',10,'A raised ridge of skin that runs down each side of the back.','These folds help scientists identify species: leopard frogs have them, but bullfrogs do not.',''],
+ ext_sacral:['Sacral hump','Skeletal',11,'The bump in the lower back is where the hip bones join the backbone.','It marks where the force of the jumping legs is passed to the spine. You will see the bones that form it in the Skeleton view.',''],
+ ext_forelimb:['Front leg (forelimb)','Skeletal',10,'The short front legs hold up the front of the body and absorb the shock of landing. Each hand has four fingers.','The forelimb has the same bone pattern as a human arm: one upper arm bone, a forearm, wrist, hand and finger bones. Structures like this are called homologous structures.',''],
+ ext_hindlimb:['Hind leg (hindlimb)','Muscular',10,'The long, muscular hind legs power jumping and swimming.','The thigh, lower leg and an extra-long ankle make three sections that fold up like a spring and straighten all at once in a jump.',''],
+ ext_web:['Webbed foot','Integumentary',10,'Five toes joined by webbing push against the water like a paddle.','Webbing increases the surface area of the foot, so each kick moves more water.',''],
+ ext_thumb:['Thumb pad (male)','Reproductive',10,'A swollen, dark thumb pad shows that this frog is a male.','During mating the male clasps the female from behind (amplexus). The rough pads help him hold on while she lays her eggs.','The pads swell in the breeding season because of the hormone testosterone, made by the testes.'],
+ ext_cloaca:['Cloaca opening','Excretory',10,'The cloaca opening is the single exit for the digestive, excretory and reproductive systems.','"Cloaca" comes from the Latin word for sewer. Humans have separate openings for these systems.',''],
+ ext_mouth:['Mouth and jaws','Digestive',10,'The wide mouth opens far enough to swallow prey almost as big as the frog\'s head. Frogs swallow food whole.','',''],
+ m_tongue:['Tongue','Digestive',10,'The sticky tongue is attached at the FRONT of the mouth, so it can flip out quickly to catch insects.','The free back end is forked. When the tongue flips out, this sticky end strikes the prey first and carries it back into the mouth.',''],
+ m_maxteeth:['Maxillary teeth','Digestive',10,'Tiny teeth along the edge of the upper jaw. They hold prey; frogs do not chew.','The lower jaw has no teeth. Run a probe along both jaws and compare.',''],
+ m_vomer:['Vomerine teeth','Digestive',10,'Two small patches of teeth on the roof of the mouth. They grip slippery prey so it cannot escape.','',''],
+ m_inares:['Internal nares','Respiratory',10,'Openings in the roof of the mouth that connect to the nostrils. Air passes through them on its way to the lungs.','Push a probe gently into a nostril from outside and it comes out here.',''],
+ m_eust:['Eustachian tube opening','Sensory',10,'An opening at the back corner of the mouth that leads to the ear.','The Eustachian tubes balance the air pressure on both sides of the eardrum, the same job your own Eustachian tubes do when your ears "pop".',''],
+ m_esoph:['Esophagus opening','Digestive',10,'The large, folded opening at the back of the throat. Swallowed food passes through it to the stomach.','The folds let the esophagus stretch to swallow large prey whole.',''],
+ m_glottis:['Glottis','Respiratory',10,'A slit in the floor of the mouth, in front of the esophagus. It leads through the larynx to the lungs.','Frogs have no epiglottis. Instead the glottis closes tightly when the frog swallows, so food does not enter the lungs.','Muscles of the larynx open the glottis when the mouth floor pumps air into the lungs. In males, vocal cords in the larynx vibrate to make the mating call.'],
+ m_eyebulge:['Eyeball bulges','Sensory',10,'These bulges are the bottoms of the eyeballs. The eye sockets have no bony floor.','When swallowing, the frog pulls its eyes down. They press on food and help push it toward the esophagus.',''],
+ m_vocal:['Vocal sac openings (male)','Reproductive',10,'Small slits that lead to the vocal sacs. The sacs fill with air and make the male\'s call louder.','Calling attracts females of the same species, which keeps species from interbreeding.',''],
+ m_hinge:['Jaw hinge (cut)','Skeletal',10,'The hinge of the jaw was cut on each side so the mouth would open wide enough to see inside.','',''],
+ b_skinin:['Inside of the skin','Integumentary',10,'The underside of the skin is covered with blood vessels.','This dense network picks up oxygen through the skin. A frog resting underwater can get much of its oxygen this way.','The blood vessels in the skin also help with water balance, because frogs absorb water through their skin.'],
+ b_pect:['Pectoral muscles','Muscular',10,'Chest muscles that move the front legs and help the frog land after a jump.','',''],
+ b_rectus:['Rectus abdominis','Muscular',10,'Long muscles that run down the belly. They support the organs and bend the body.','The cross lines are tendinous inscriptions. They divide each muscle into segments, like a human "six-pack".',''],
+ b_oblique:['External oblique muscle','Muscular',10,'Muscles on the sides of the body wall. They help squeeze air out of the lungs.','',''],
+ b_linea:['Linea alba','Muscular',10,'A white line of connective tissue down the middle of the belly where the muscles of each side meet.','',''],
+ b_abvein:['Ventral abdominal vein','Circulatory',10,'A vein running along the middle of the belly wall. Cutting slightly to one side keeps it whole.','It carries blood from the hind legs and belly toward the liver. In this specimen the veins were filled with blue latex and the arteries with red latex so they are easy to follow.','Blood from the hind legs and gut passes through the liver before returning to the heart, so the liver can adjust its glucose level and remove toxins first.'],
+ b_sternum:['Sternum (breastbone)','Skeletal',10,'The sternum and shoulder girdle protect the heart and anchor the chest muscles. They must be cut to open the chest.','',''],
+ b_heart:['Heart','Circulatory',10,'The heart pumps blood through the body. Frogs have a three-chambered heart: two atria and one ventricle.','Oxygen-rich and oxygen-poor blood partly mix in the single ventricle. Ridges in the ventricle and the spiral valve in the conus keep most of it separate.','A three-chambered heart meets the needs of an ectotherm with a low metabolic rate. Birds and mammals are endotherms and need the full separation of a four-chambered heart.'],
+ b_ventricle:['Ventricle','Circulatory',10,'The thick, muscular lower chamber. It pumps blood out to the lungs, skin and body.','There is only one ventricle, so blood from the lungs and blood from the body partly mix. The spongy inner wall helps keep the two streams apart.','Ectotherms need less oxygen than endotherms, so some mixing is not a problem for a frog. Mammals and birds have two ventricles and no mixing.'],
+ b_ratrium:['Right atrium','Circulatory',10,'The right atrium collects oxygen-poor blood returning from the body.','Blood enters it from the sinus venosus, a thin sac on the back of the heart. Blood from the skin, which carries oxygen, also returns here.',''],
+ b_latrium:['Left atrium','Circulatory',10,'The left atrium collects oxygen-rich blood returning from the lungs.','The left atrium is smaller than the right because it receives blood from the lungs only.',''],
+ b_conus:['Conus arteriosus and aortic arches','Circulatory',11,'The conus arteriosus carries blood out of the ventricle and splits into the aortic arches.','A spiral valve inside the conus steers oxygen-poor blood toward the lungs and skin and oxygen-rich blood toward the head and body.',''],
+ b_liver:['Liver','Digestive',10,'The largest organ in the body cavity. It has three lobes and makes bile, which helps digest fats.','Bile is stored in the gallbladder, tucked between the lobes, and released into the small intestine.','The liver is a key organ of homeostasis: it stores glucose as glycogen, breaks down toxins, and turns toxic ammonia into urea.'],
+ b_gall:['Gallbladder','Digestive',10,'A small green sac that stores bile made by the liver.','Bile flows through the bile duct into the duodenum, where it breaks fat into tiny droplets (emulsification) so enzymes can digest it.',''],
+ b_lung:['Lung','Respiratory',10,'The two lungs are thin, stretchy sacs that fill with air. They look spongy because of many small pockets inside.','Frog lungs are simple compared to human lungs, which have millions of tiny alveoli. Frogs make up for this by also breathing through their skin and the lining of the mouth.','When the frog is active or the water is warm and low in oxygen, it relies more on its lungs. Resting in cold water, the skin can supply most of the oxygen it needs.'],
+ b_esoph:['Esophagus','Digestive',10,'A short tube that carries food from the mouth to the stomach.','',''],
+ b_stomach:['Stomach','Digestive',10,'A J-shaped muscular bag where food is stored and protein digestion begins.','Glands in the stomach wall release hydrochloric acid and the enzyme pepsin. The pyloric sphincter at the end controls when food moves into the small intestine.','Stretch receptors in the stomach wall send signals to the brain when it is full, one of the feedback signals that controls feeding.'],
+ b_duod:['Duodenum','Digestive',11,'The first part of the small intestine. Bile and pancreatic juice enter here.','',''],
+ b_ileum:['Small intestine','Digestive',10,'A long, coiled tube where most digestion and the absorption of nutrients happen.','Its inner lining is folded, which increases the surface area for absorption. Nutrients pass into blood vessels in the mesentery.',''],
+ b_mesent:['Mesentery','Digestive',10,'A thin, clear membrane that holds the intestines in place.','It carries the blood vessels, nerves and lymph vessels that serve the intestines.',''],
+ b_pancreas:['Pancreas','Digestive',10,'A thin, pale gland between the stomach and the duodenum. It makes digestive enzymes.','Pancreatic enzymes digest proteins, carbohydrates and fats in the small intestine.','Small clusters of cells in the pancreas (islets) release insulin and glucagon, the hormones that keep blood glucose steady.'],
+ b_spleen:['Spleen','Immune',10,'A small, round, dark red organ in the mesentery. It is part of the circulatory and immune systems.','The spleen removes old red blood cells from the blood and stores white blood cells that fight infection.',''],
+ b_lgint:['Large intestine','Digestive',10,'The wide last part of the intestine. It absorbs water and forms feces.','','Taking back water here helps the frog maintain its water balance.'],
+ b_bladder:['Urinary bladder','Excretory',10,'A thin, two-lobed sac that stores urine.','It opens into the cloaca on the ventral side.','On land, frogs can take water back from the bladder into the blood, a way to save water when they are away from a pond.'],
+ b_fat:['Fat bodies','Digestive',10,'Yellow-orange, finger-like structures that store energy.','Their size changes with the seasons. They are largest in the fall and get used up during hibernation and the breeding season.','Stored fat lets the frog survive winter dormancy. As an ectotherm, its body temperature and metabolism drop with the cold, so it needs very little energy.'],
+ b_kidney:['Kidney','Excretory',10,'Long, dark red organs against the back wall of the body cavity. They filter wastes from the blood and make urine.','Urine leaves each kidney through a thin duct to the cloaca.','Adult frogs excrete mostly urea, while tadpoles excrete ammonia straight into the water. In fresh water, the kidneys make lots of dilute urine to get rid of extra water that seeps in through the skin.'],
+ b_ureter:['Ureter (urogenital duct)','Excretory',11,'A thin tube that carries urine from the kidney to the cloaca.','In male frogs this duct also carries sperm, so it is called the urogenital duct.',''],
+ b_adrenal:['Adrenal gland','Endocrine',12,'A thin yellow-orange stripe on the surface of each kidney.','','It releases adrenaline and corticosteroid hormones, which prepare the body for stress and help control salt and water balance.'],
+ b_testis:['Testis','Reproductive',10,'Pale yellow, bean-shaped organs attached to the kidneys. They produce sperm.','Sperm travels through tiny tubes into the kidney and out the urogenital duct. Fertilization is external: the male releases sperm over the eggs as the female lays them.','The testes also make testosterone, which causes the thumb pads to swell in the breeding season.'],
+ b_ovary:['Ovary','Reproductive',10,'Large, lobed sacs packed with black-and-white eggs. In spring the ovaries can fill most of the body cavity.','Eggs burst out of the ovary into the body cavity and are swept into the oviducts. Fertilization happens outside the body, in the water.','Estrogen from the ovaries signals the liver to make yolk proteins, which travel in the blood to the growing eggs.'],
+ b_oviduct:['Oviduct','Reproductive',11,'A long, white, coiled tube that carries eggs from the body cavity toward the cloaca.','Glands in the oviduct wall coat each egg in jelly, which swells in water and protects the eggs.',''],
+ b_ovisac:['Ovisac','Reproductive',11,'The thin, stretchy end of each oviduct. Eggs are stored here until they are laid.','',''],
+ b_aorta:['Dorsal aorta','Circulatory',10,'The main artery running along the back. It carries blood to the organs and legs.','It forms where the two aortic arches join behind the heart and splits into the iliac arteries of the hind legs.',''],
+ b_postcava:['Postcaval vein','Circulatory',11,'The large vein that returns blood from the kidneys and hind body to the heart.','',''],
+ b_cloaca:['Cloaca','Excretory',10,'The chamber at the end of the digestive tract. The intestine, bladder, kidneys and gonads all empty into it.','',''],
+ b_gut:['Digestive tract','Digestive',10,'The stomach, small intestine, large intestine, pancreas and spleen, removed together with their mesentery.','Follow the path food takes: esophagus, stomach, duodenum, small intestine, large intestine, cloaca.',''],
+ br_skin:['Skin of the head','Integumentary',10,'The thin head skin was cut and peeled back to reach the skull.','',''],
+ br_skull:['Skull (cranium)','Skeletal',10,'Flat bones that form a protective case around the brain.','The bones meet at wavy joints called sutures.',''],
+ br_eye:['Eye','Sensory',10,'The eyes are close to the brain. The optic nerves (underneath) carry signals from the eyes to the optic lobes.','',''],
+ br_olf:['Olfactory lobes','Nervous',10,'The front part of the brain. It processes smells.','Olfactory nerves run forward from these lobes to the nostrils.',''],
+ br_cereb:['Cerebrum (cerebral hemispheres)','Nervous',10,'The cerebrum controls learning and voluntary behaviour.','In frogs the cerebrum is small and handles mostly smell and simple behaviour. In humans it is the largest part of the brain and controls thinking, memory and voluntary movement.',''],
+ br_dien:['Diencephalon and pineal body','Nervous',11,'The region behind the cerebrum. It includes the thalamus, the hypothalamus and the pineal body (the small dot on top).','The pineal body senses light and releases melatonin, which helps set daily and seasonal rhythms.','The hypothalamus is the control centre for homeostasis. It links the nervous system to the endocrine system through the pituitary gland on the underside of the brain.'],
+ br_optic:['Optic lobes','Nervous',10,'Two large, round lobes that process vision.','They are large in frogs because a frog depends on sight to catch moving prey.',''],
+ br_cbm:['Cerebellum','Nervous',10,'A thin band behind the optic lobes. It coordinates movement and balance.','It is small in frogs, whose movements are simpler than those of birds and mammals.',''],
+ br_med:['Medulla oblongata','Nervous',10,'Connects the brain to the spinal cord. It controls automatic functions such as breathing and heart rate.','The dark triangle is the fourth ventricle, a space filled with cerebrospinal fluid.','Sensors in the medulla detect carbon dioxide in the blood and adjust the breathing rate: a negative feedback loop.'],
+ br_cord:['Spinal cord','Nervous',10,'Carries messages between the brain and the body and controls simple reflexes.','Frogs have only about ten pairs of spinal nerves, far fewer than humans, because their spine is so short.',''],
+ br_nerve:['Cranial nerves','Nervous',11,'Nerves that connect the brain directly to the eyes, ears, mouth and other organs of the head.','',''],
+ br_mening:['Meninges','Nervous',11,'Thin membranes that cover and protect the brain. In many frogs they contain dark pigment.','',''],
+ sk_skull:['Skull','Skeletal',10,'The skull is broad and flat, with very large eye sockets.','Frogs have fewer skull bones than most vertebrates. Several are fused, which keeps the skull light.',''],
+ sk_maxilla:['Upper jaw (maxilla)','Skeletal',10,'The maxilla forms the edge of the upper jaw and holds the maxillary teeth.','',''],
+ sk_orbit:['Orbit (eye socket)','Skeletal',10,'The orbits are open underneath. That is why a frog can pull its eyes down into its mouth when it swallows.','',''],
+ sk_vert:['Vertebrae','Skeletal',10,'Frogs have only nine vertebrae in their backbone. Humans have 33.','A short, stiff backbone passes the push of the legs to the body during a jump.',''],
+ sk_sacral:['Sacral vertebra','Skeletal',10,'The ninth vertebra. Its wide side projections attach to the hip bones.','',''],
+ sk_uro:['Urostyle','Skeletal',10,'A long rod made of fused tail vertebrae. Only frogs and toads have one.','It forms during metamorphosis, when the tadpole\'s tail is absorbed, and braces the hips during jumping.',''],
+ sk_ilium:['Ilium (pelvic girdle)','Skeletal',10,'The long ilium bones make up most of the hip (pelvic girdle). They connect the hind legs to the backbone.','',''],
+ sk_pect:['Pectoral girdle (shoulder)','Skeletal',10,'The shoulder girdle supports the front legs. The flat suprascapula is partly cartilage.','It acts as a shock absorber when the frog lands on its front legs.',''],
+ sk_humerus:['Humerus','Skeletal',10,'The upper arm bone.','It matches the human humerus: the same bone in a different animal, a homologous structure.',''],
+ sk_radioulna:['Radio-ulna','Skeletal',10,'In frogs the radius and ulna are fused into a single forearm bone.','Fused bones are stronger, which helps absorb the shock of landing.',''],
+ sk_hand:['Carpals, metacarpals and phalanges','Skeletal',10,'The wrist bones (carpals), palm bones (metacarpals) and finger bones (phalanges) of the four-fingered hand.','',''],
+ sk_femur:['Femur','Skeletal',10,'The thigh bone.','Humans have the same bone. Compare the length of the frog femur with the rest of its leg.',''],
+ sk_tibfib:['Tibiofibula','Skeletal',10,'The tibia and fibula are fused into one bone in frogs.','Look for the groove that shows where the two bones joined.',''],
+ sk_tarsal:['Astragalus and calcaneum (ankle)','Skeletal',10,'Two long ankle bones that add an extra section to the leg.','This extra lever makes the hind leg longer and the jump more powerful. Human ankle bones are short.',''],
+ sk_foot:['Metatarsals and phalanges','Skeletal',10,'Long foot and toe bones that support the webbing used in swimming.','','']
+};
+
+// SNC2D focus: the four main animal tissue types in each structure
+const TISSUE_SYS={Muscular:'Mostly skeletal <b>muscle tissue</b>, wrapped in <b>connective tissue</b>.',Skeletal:'Bone and cartilage are <b>connective tissues</b>.',Nervous:'<b>Nerve tissue</b> (neurons and support cells), protected by <b>connective tissue</b> membranes.',Integumentary:'An outer layer of <b>epithelial tissue</b> over <b>connective tissue</b>, with glands, blood vessels and nerves.'};
+const TISSUE={
+ ext_eye:'<b>Nerve tissue</b> in the retina, with <b>connective tissue</b> and <b>muscle tissue</b> that moves the eye.',ext_tympanum:'A thin sheet of <b>connective tissue</b> covered by <b>epithelial tissue</b>.',ext_nares:'Lined with <b>epithelial tissue</b>.',
+ m_tongue:'<b>Muscle tissue</b> covered by <b>epithelial tissue</b> with mucus-making glands.',m_esoph:'<b>Epithelial tissue</b> lining, with <b>smooth muscle tissue</b> that pushes food along.',m_glottis:'<b>Epithelial tissue</b> over <b>cartilage</b> (connective) and small muscles.',
+ m_maxteeth:'Hard <b>connective tissues</b> (dentine and bone).',m_vomer:'Hard <b>connective tissues</b> (dentine and bone).',m_inares:'Lined with <b>epithelial tissue</b>.',m_eust:'Lined with <b>epithelial tissue</b>.',
+ b_heart:'Mostly <b>cardiac muscle tissue</b>, lined with <b>epithelial tissue</b>, with <b>nerve tissue</b> that sets the beat.',b_ventricle:'Thick <b>cardiac muscle tissue</b>.',b_ratrium:'Thin <b>cardiac muscle tissue</b>.',b_latrium:'Thin <b>cardiac muscle tissue</b>.',b_conus:'<b>Cardiac muscle</b> and elastic <b>connective tissue</b>.',
+ b_abvein:'An <b>epithelial</b> lining, a thin layer of <b>smooth muscle</b>, and <b>connective tissue</b>. Blood itself is a connective tissue.',b_aorta:'An <b>epithelial</b> lining, thick <b>smooth muscle</b>, and elastic <b>connective tissue</b>.',b_postcava:'An <b>epithelial</b> lining with thin <b>smooth muscle</b> and <b>connective tissue</b>.',
+ b_liver:'Mostly <b>epithelial tissue</b> (gland cells), with <b>connective tissue</b> and many blood vessels.',b_gall:'<b>Epithelial</b> lining and a thin wall of <b>smooth muscle</b> that squeezes out bile.',b_pancreas:'Glandular <b>epithelial tissue</b>.',
+ b_lung:'A very thin <b>epithelial tissue</b> lining with tiny blood vessels, plus some <b>smooth muscle</b> and elastic <b>connective tissue</b>.',b_esoph:'<b>Epithelial</b> lining and <b>smooth muscle tissue</b>.',
+ b_stomach:'<b>Epithelial tissue</b> with glands on the inside, layers of <b>smooth muscle tissue</b> that churn food, and <b>connective tissue</b>.',b_duod:'<b>Epithelial</b> lining, <b>smooth muscle</b> and <b>connective tissue</b>.',b_ileum:'A folded <b>epithelial</b> lining that absorbs nutrients, <b>smooth muscle</b> that moves food along, and <b>connective tissue</b>.',b_lgint:'<b>Epithelial</b> lining, <b>smooth muscle</b> and <b>connective tissue</b>.',b_gut:'Every part has an <b>epithelial</b> lining, <b>smooth muscle</b>, <b>connective tissue</b> and <b>nerve tissue</b>.',
+ b_mesent:'Thin <b>connective tissue</b> covered by <b>epithelial tissue</b>.',b_spleen:'<b>Connective tissue</b> packed with blood cells.',b_fat:'Fat (adipose) tissue, a type of <b>connective tissue</b>.',
+ b_kidney:'Tiny tubes made of <b>epithelial tissue</b>, surrounded by blood vessels and <b>connective tissue</b>.',b_ureter:'<b>Epithelial</b> lining and <b>smooth muscle</b>.',b_bladder:'Stretchy <b>epithelial</b> lining and <b>smooth muscle</b>.',b_adrenal:'Glandular <b>epithelial tissue</b>.',
+ b_testis:'<b>Epithelial tissue</b> that makes sperm, with <b>connective tissue</b>.',b_ovary:'Developing egg cells in <b>connective tissue</b>, covered by <b>epithelial tissue</b>.',b_oviduct:'Glandular <b>epithelial</b> lining and <b>smooth muscle</b>.',b_ovisac:'<b>Epithelial</b> lining and <b>smooth muscle</b>.',b_cloaca:'<b>Epithelial</b> lining and <b>smooth muscle</b>.',
+ b_linea:'Tough <b>connective tissue</b>.',b_sternum:'Bone and cartilage, both <b>connective tissues</b>.',b_skinin:'<b>Connective tissue</b> with a dense network of blood vessels.',br_mening:'<b>Connective tissue</b> membranes.'};
+
+/* ---------------- state ---------------- */
+const S={tab:'ext',level:12,sex:'m',mode:'guided',soft:false,labels:false,tool:'lens',sel:null,dorsal:true,
+  d:{ext:new Set(),mouth:new Set(),body:new Set(),brain:new Set(),skel:new Set()},cp:{},mist:0,hints:0,hint:false,
+  cu:{dish:null,view:'out'},lensAt:null,mouthAnim:false};
+const TABS=[['ext','External'],['mouth','Mouth'],['body','Body cavity'],['brain','Brain'],['skel','Skeleton']];
+const TOOLS={lens:'Hand lens',pins:'Pins',forceps:'Forceps',scissors:'Scissors',scalpel:'Scalpel',probe:'Probe',bone:'Bone cutters'};
+const ICON={
+ lens:'<circle cx="15" cy="12" r="8"/><path d="M21 18l12 9"/>',
+ pins:'<circle cx="12" cy="9" r="5" fill="currentColor"/><path d="M15.5 12.5L33 27"/>',
+ forceps:'<path d="M3 9q15 2 33 6M3 15q15 0 33 0M3 9q-2 3 0 6"/>',
+ scissors:'<circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="22" r="4.5"/><path d="M12 10.5L37 19M12 19.5L37 11"/>',
+ scalpel:'<path d="M2 16h18"/><path d="M20 13.5h6c5 0 8 2 11 4H20z" fill="currentColor"/>',
+ probe:'<path d="M3 24L30 9q4-2 6 1"/><circle cx="4" cy="24" r="2" fill="currentColor"/>',
+ bone:'<path d="M3 7q8 5 15 8M3 25q8-5 15-8"/><path d="M18 15l10-6 6 2-9 5zM18 17l10 6 6-2-9-5z" fill="currentColor"/>'
+};
+const DONE_T=(t)=>S.d[t];
+
+/* ---------------- drawing: tray ---------------- */
+function trayArt(){let s=`<rect x="5" y="5" width="750" height="690" rx="28" fill="url(#metalRim)" stroke="#7d848d"/>
+<rect x="14" y="14" width="732" height="672" rx="22" fill="#c9ced5" stroke="#9aa1aa"/>
+<rect x="22" y="22" width="716" height="656" rx="16" fill="url(#waxG)" filter="url(#fWax)"/>
+<rect x="22" y="22" width="716" height="656" rx="16" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="8" filter="url(#fBlur4)" clip-path="url(#waxClip)"/>`;
+ const r=rng(42);let h='';for(let i=0;i<70;i++){const x=40+r()*680,y=40+r()*620;if(Math.abs(x-CX)<120&&y>60&&y<480)continue;h+=`<circle cx="${n1(x)}" cy="${n1(y)}" r="${n1(1+r()*1.3)}"/>`;}
+ s+=`<g class="noise" fill="#000" opacity=".5">${h}</g>`;return s;}
+
+/* ---------------- drawing: whole frog, outside ---------------- */
+const BODYH=[[0,44],[14,47],[31,56],[49,72],[65,94],[77,120],[84,148],[84,172],[88,196],[95,228],[98,264],[96,300],[89,334],[78,362],[63,386],[44,404],[22,417],[0,424]];
+const ARM=[[60,196],[95,208],[128,226],[140,252],[150,282]],ARMW=[38,30,24,18,13];
+const LEG=[[44,392],[95,428],[148,462],[146,508],[120,550],[134,578],[148,596]],LEGW=[66,56,36,31,17,14,12];
+const FING=[[[146,288],[134,312],[126,328]],[[151,291],[146,320],[142,340]],[[157,291],[161,320],[164,340]],[[162,287],[176,308],[186,322]]];
+const TOES=[[[141,594],[133,616],[127,632]],[[145,598],[140,626],[137,646]],[[149,599],[149,630],[152,654]],[[153,598],[162,630],[173,660]],[[157,594],[176,614],[193,632]]];
+const bodyPath=()=>sym(BODYH);
+function digits(s,list,w,fill,cls){let o='';for(const f of list){const p=H(s,f);o+=`<path d="${tube(p,[w,w*.85,w*.7])}" fill="${fill}"/><circle cx="${n1(p[2][0])}" cy="${n1(p[2][1])}" r="${n1(w*.55)}" fill="${fill}"/>`;}return o;}
+function web(s,fill){const T=TOES.map(t=>H(s,t));const m=T.map(t=>lerp(t[1],t[2],.45));const base=H(s,[[150,594]])[0];
+ let d='M'+pt(T[0][0])+'L'+pt(m[0]);for(let i=0;i<4;i++){const c=lerp(lerp(m[i],m[i+1],.5),base,.32);d+='Q'+pt(c)+' '+pt(m[i+1]);}d+='L'+pt(T[4][0])+'Z';
+ return `<path d="${d}" fill="${fill}" opacity=".78" stroke="#000" stroke-opacity=".15"/>`;}
+function limbs(dor,ids=true){const fill=dor?'url(#l-skinD)':'url(#l-skinV)';let o='';
+ for(const s of[-1,1]){
+  const armP=tube(H(s,ARM),ARMW),legP=tube(H(s,LEG),LEGW);
+  // shadow
+  o+=`<g opacity=".5" filter="url(#fBlur4)" transform="translate(5,7)"><path d="${armP}"/><path d="${legP}"/></g>`;
+  o+=`<g class="tex" filter="url(#fSkin)"${ids?at('ext_web'):''}>${web(s,fill)}${digits(s,TOES,9,fill)}</g>`;
+  o+=`<g class="tex" filter="url(#fSkin)"${ids?at('ext_hindlimb'):''}><path d="${legP}" fill="${fill}"/>`;
+  if(dor){const cid=`cl${s<0?'L':'R'}leg`;o+=`<clipPath id="${cid}"><path d="${legP}"/></clipPath><g clip-path="url(#${cid})"><g fill="#2a321c" opacity=".8" filter="url(#fBlot)">`;
+    const L=H(s,LEG);for(const [i,t] of [[0,.55],[1,.5],[2,.8],[3,.35],[3,.85]]){const c=lerp(L[i],L[i+1],t);const ang=Math.atan2(L[i+1][1]-L[i][1],L[i+1][0]-L[i][0])*180/Math.PI;
+      o+=`<ellipse cx="${n1(c[0])}" cy="${n1(c[1])}" rx="7" ry="30" transform="rotate(${n1(ang)} ${n1(c[0])} ${n1(c[1])})"/>`;}o+='</g></g>';}
+  else o+=`<path d="${open(H(s,[[90,430],[130,452],[146,470]]))}" stroke="#a89a72" stroke-width="1.2" fill="none" opacity=".5"/>`;
+  o+='</g>';
+  o+=`<g class="tex" filter="url(#fSkin)"${ids?at('ext_forelimb'):''}><path d="${armP}" fill="${fill}"/>${digits(s,FING,8.5,fill)}`;
+  if(dor){o+=`<ellipse cx="${n1(P(s*118,0)[0])}" cy="${n1(P(0,220)[1])}" rx="6" ry="13" fill="#2e3720" opacity=".75" transform="rotate(${s*-62} ${n1(P(s*118,0)[0])} ${n1(P(0,220)[1])})"/>`;}
+  o+='</g>';
+  if(S.sex==='m'){const c=P(s*137,300);o+=`<ellipse${ids?at('ext_thumb'):''} cx="${n1(c[0])}" cy="${n1(c[1])}" rx="6.5" ry="10" fill="#4a4136" stroke="#2a241c" transform="rotate(${s*28} ${n1(c[0])} ${n1(c[1])})"/>`;}
+ }
+ return o;}
+const SPOTS=[[0,128,8,6,0],[-24,190,10,7,10],[22,197,9,7,-15],[-30,236,11,8,5],[29,243,12,8,-10],[-6,270,9,7,0],[-34,288,12,9,10],[33,294,11,8,-5],[-12,320,10,7,0],[15,332,11,8,15],[-37,342,10,8,0],[35,352,11,8,-10],[0,374,9,7,0],
+ [66,206,8,6,30],[-64,204,8,6,-30],[82,266,10,7,60],[-80,260,9,7,-60],[86,318,9,7,80],[-87,314,10,7,-80],[73,362,8,6,40],[-71,370,9,6,-40],[56,170,6,5,0],[-57,172,6,5,0]];
+function frogOutside(dor,opt={}){OY=opt.oy??-14;let o='';const bp=bodyPath();
+ o+=`<path d="${bp}" fill="#000" opacity=".5" filter="url(#fBlur7)" transform="translate(7,9)"/>`;
+ o+=limbs(dor,opt.ids!==false);
+ const holes=opt.holes||'';
+ o+=`<g class="tex" filter="url(#fSkin)"${opt.ids===false?'':at(dor?'ext_skin':'ext_vskin')}><path d="${bp}${holes}" fill-rule="evenodd" fill="url(#r-${dor?'skinD':'skinV'})"/>`;
+ if(dor){o+=`<g fill="#262d1a" stroke="#c9c48f" stroke-opacity=".5" stroke-width="2.2" filter="url(#fBlot)" opacity=".92">`;for(const[dx,y,rx,ry,r] of SPOTS){const c=P(dx,y);o+=`<ellipse cx="${n1(c[0])}" cy="${n1(c[1])}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${n1(c[0])} ${n1(c[1])})"/>`;}o+='</g>';
+   const sh=P(0,92);o+=`<ellipse cx="${sh[0]}" cy="${sh[1]}" rx="40" ry="22" fill="#d9dcae" opacity=".18"/>`;}
+ else{const r=rng(9);o+='<g class="noise" fill="#7d725a" opacity=".22">';for(let i=0;i<40;i++){const c=P((r()-.5)*120,90+r()*90);o+=`<circle cx="${n1(c[0])}" cy="${n1(c[1])}" r="${n1(1.5+r()*3)}"/>`;}o+='</g>';
+   o+=`<path d="${open([P(-60,160),P(0,176),P(60,160)])}" stroke="#a69a74" stroke-width="1.4" fill="none" opacity=".55"/>`;}
+ o+='</g>';
+ if(dor){
+  o+=`<g${at('ext_dlfold')}>`;for(const s of[-1,1]){const d=open(H(s,[[50,148],[58,200],[62,260],[62,320],[57,384]]));o+=`<path d="${d}" stroke="#000" stroke-opacity=".25" stroke-width="5" fill="none" transform="translate(${s*2},2)"/><path d="${d}" stroke="#cfc890" stroke-opacity=".6" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;}o+='</g>';
+  const sc=P(0,384);o+=`<ellipse${at('ext_sacral')} cx="${sc[0]}" cy="${sc[1]}" rx="34" ry="16" fill="url(#shine)" opacity=".35"/>`;
+  for(const s of[-1,1]){const e=P(s*55,110),t=P(s*74,150),n=P(s*13,66);
+   o+=`<g class="org"${at('ext_eye')}><ellipse cx="${e[0]}" cy="${e[1]}" rx="25" ry="21" fill="url(#r-skinD)" stroke="#2a321b" stroke-width="1.5"/><ellipse cx="${e[0]+s*2}" cy="${e[1]+2}" rx="18" ry="15" fill="url(#eyeG)" filter="url(#fIris)"/><path d="M${e[0]-21} ${e[1]-3}Q${e[0]} ${e[1]-22} ${e[0]+21} ${e[1]-3}Q${e[0]} ${e[1]-10} ${e[0]-21} ${e[1]-3}Z" fill="url(#l-skinD)"/>
+   <ellipse cx="${e[0]}" cy="${e[1]+1}" rx="7" ry="3.6" fill="#0c0a08"/><path d="M${e[0]-14} ${e[1]+5} Q${e[0]} ${e[1]+16} ${e[0]+14} ${e[1]+5} Q${e[0]} ${e[1]+11} ${e[0]-14} ${e[1]+5}Z" fill="#eef" opacity=".35"/>
+   <ellipse cx="${e[0]-5}" cy="${e[1]-1}" rx="3.5" ry="2" fill="#fff" opacity=".65"/></g>`;
+   o+=`<g${at('ext_tympanum')}><circle cx="${t[0]}" cy="${t[1]}" r="12" fill="#6b5a3c" stroke="#3a321f" stroke-width="2"/><circle cx="${t[0]}" cy="${t[1]}" r="7" fill="#8c7a55" opacity=".7"/><circle cx="${t[0]-2}" cy="${t[1]-1}" r="1.6" fill="#d8c79a"/></g>`;
+   o+=`<g${at('ext_nares')}><ellipse cx="${n[0]}" cy="${n[1]}" rx="4" ry="2.4" fill="#1a1510" transform="rotate(${s*30} ${n[0]} ${n[1]})"/><ellipse cx="${n[0]}" cy="${n[1]}" rx="8" ry="6" fill="transparent"/></g>`;}
+  if(opt.ids!==false){REG('ext_skin',P(-30,300));REG('ext_eye',P(55,110));REG('ext_tympanum',P(74,150));REG('ext_nares',P(-13,66));REG('ext_dlfold',P(-60,260));REG('ext_sacral',P(0,384));}
+ }else{
+  const c=P(0,427);o+=`<g${at('ext_cloaca')}><ellipse cx="${c[0]}" cy="${c[1]}" rx="9" ry="6" fill="#b49a7c"/><ellipse cx="${c[0]}" cy="${c[1]}" rx="4.2" ry="2.6" fill="#3a2a22"/><path d="M${c[0]-8} ${c[1]-2}l3 1M${c[0]+8} ${c[1]-2}l-3 1M${c[0]} ${c[1]+6}v-2" stroke="#6b5444" stroke-width="1"/></g>`;
+  if(opt.ids!==false){o+=`<path${at('ext_mouth')} d="${open([P(-72,128),P(-58,84),P(0,62),P(58,84),P(72,128)])}" fill="none" stroke="transparent" stroke-width="16"/>`;
+   REG('ext_vskin',P(-30,300));REG('ext_cloaca',P(0,427));REG('ext_mouth',P(-58,90));}
+ }
+ if(opt.ids!==false){REG('ext_forelimb',P(-130,240));REG('ext_hindlimb',P(130,470));REG('ext_web',P(-155,640));if(S.sex==='m')REG('ext_thumb',P(137,300));}
+ return o;}
+
+/* ---------------- drawing: inside the body ---------------- */
+const SKIN_H=92,MUS_H=84;
+const skinHalf=[[-2,186],[44,186],[82,188],[90,212],[96,250],[99,290],[97,330],[90,362],[80,392],[70,402],[36,402],[-2,402]];
+const musHalf=[[-2,196],[40,196],[74,196],[80,220],[86,252],[88,290],[86,330],[80,360],[68,390],[34,390],[-2,390]];
+function halfEdge(s,half){const p=H(s,half);return 'M'+pt(p[0])+'L'+pt(p[2])+crC(p.slice(2,p.length-2))+'L'+pt(p[p.length-1]);}
+function holes(half,l,r){if(l&&r){const R=H(1,half),L=H(-1,half),n=half.length;return 'M'+pt(R[2])+crC(R.slice(2,n-2))+'L'+pt(L[n-3])+crC(L.slice(2,n-2).reverse())+'Z';}return l?halfPath(-1,half):r?halfPath(1,half):'';}
+function halfPath(s,half){const p=H(s,half);return 'M'+pt(p[0])+'L'+pt(p[2])+crC(p.slice(2,p.length-2))+'L'+pt(p[p.length-1])+'Z';}
+function flapPath(s,half,hinge,k){const p=half.map(([dx,y])=>P(s*(hinge+(hinge-dx)*k),y));return 'M'+pt(p[0])+'L'+pt(p[2])+crC(p.slice(2,p.length-2))+'L'+pt(p[p.length-1])+'Z';}
+function heartArt(){let o='';
+ const peri=P(0,232);o+=`<ellipse cx="${peri[0]}" cy="${peri[1]}" rx="36" ry="42" fill="#fff" opacity=".1" stroke="#fff" stroke-opacity=".25"/>`;
+ o+=`<path class="org"${at('b_ratrium')} d="${closed(H(1,[[-35,214],[-31,201],[-18,195],[-6,197],[0,206],[-2,220],[-14,227],[-29,225]]))}" fill="url(#r-heartA)"/>`;
+ o+=`<path class="org"${at('b_latrium')} d="${closed(H(1,[[1,208],[10,199],[23,199],[31,208],[29,221],[16,227],[4,223]]))}" fill="url(#r-heartA)"/>`;
+ o+=`<path class="org"${at('b_ventricle')} d="${closed(H(1,[[-25,227],[-12,220],[4,220],[20,222],[27,231],[23,247],[13,261],[2,269],[-6,263],[-16,249],[-24,237]]))}" fill="url(#r-heartV)"/>`;
+ o+=`<path class="gore" d="${open(H(1,[[-8,232],[-2,246],[2,262]]))}" stroke="#3a0e0b" stroke-opacity=".5" stroke-width="1.2" fill="none"/>`;
+ o+=`<g class="org"${at('b_conus')}><path d="${tube(H(1,[[-6,226],[1,213],[7,200],[6,190]]),[11,10,9,9])}" fill="url(#l-artery)"/>
+  <path d="${tube(H(1,[[6,190],[-10,184],[-24,181],[-36,180]]),[8,7,7,6])}" fill="url(#l-artery)"/><path d="${tube(H(1,[[6,190],[22,184],[34,181],[42,180]]),[8,7,7,6])}" fill="url(#l-artery)"/></g>`;
+ REG('b_ventricle',P(10,250));REG('b_ratrium',P(-22,208));REG('b_latrium',P(20,210));REG('b_conus',P(28,183));
+ return o;}
+function bodyCavity(D){const has=k=>D.has(k);let o='';const F=S.sex==='f';
+ o+=`<rect x="${CX-110}" y="${P(0,170)[1]}" width="220" height="260" fill="url(#cavG)"/>`;
+ // dorsal body wall and backbone ridge
+ o+=`<rect class="noise" x="${CX-110}" y="${P(0,170)[1]}" width="220" height="260" fill="url(#pig)"/><path d="${tube([P(0,190),P(0,300),P(0,410)],[24,26,22])}" fill="#d6b8a8" opacity=".3" filter="url(#fBlur2)"/>`;for(let y=210;y<400;y+=19)o+=`<path d="M${pt(P(-12,y))}Q${pt(P(0,y-4))} ${pt(P(12,y))}" stroke="#e8d0c0" stroke-opacity=".25" stroke-width="2" fill="none"/>`;
+ // dorsal structures
+ o+=`<path class="org"${at('b_aorta')} d="${tube([P(0,262),P(0,330),P(0,392)],[7,7,6.5])}" fill="url(#l-artery)"/>`;
+ for(const s of[-1,1])o+=`<path class="org"${at('b_aorta')} d="${tube(H(s,[[0,392],[18,402],[34,412],[48,420]]),[6,5,5,4.5])}" fill="url(#l-artery)"/>`;
+ o+=`<path class="org"${at('b_postcava')} d="${tube([P(-7,392),P(-6,340),P(-5,290),P(-3,262)],[6,7.5,8,8])}" fill="url(#l-vein)"/>`;
+ for(const s of[-1,1]){
+  o+=`<path class="org"${at('b_kidney')} d="${closed(H(s,[[14,318],[22,309],[33,316],[37,342],[37,372],[32,393],[23,399],[15,392],[12,366],[12,340]]))}" fill="url(#r-kidney)"/>`;
+  o+=`<path class="gore" d="${closed(H(s,[[14,318],[22,309],[33,316],[37,342],[37,372],[32,393],[23,399],[15,392],[12,366],[12,340]]))}" fill="url(#lobule)" pointer-events="none"/>`;
+  o+=`<path class="org"${at('b_adrenal')} d="${tube(H(s,[[22,322],[25,345],[25,368],[24,388]]),[3.4,3.6,3.4,2.6])}" fill="url(#l-adrenal)"/>`;
+  o+=`<path class="org"${at('b_ureter')} d="${tube(H(s,[[31,394],[24,406],[12,416],[4,420]]),[3,3,2.8,2.6])}" fill="url(#l-oviduct)"/>`;
+  if(!F)o+=`<ellipse class="org"${at('b_testis')} cx="${P(s*22,0)[0]}" cy="${P(0,326)[1]}" rx="8.5" ry="14" fill="url(#r-testis)"/>`;
+  else{const pts=[];for(let i=0;i<=46;i++){const t=i/46;pts.push([s*(70+9*Math.sin(t*30)+4*Math.sin(t*7)),208+t*178]);}
+   o+=`<path class="org"${at('b_oviduct')} d="${open(H(1,pts))}" stroke="url(#l-oviduct)" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+   o+=`<path class="org"${at('b_oviduct')} d="${open(H(s,[[70,386],[52,398],[32,402]]))}" stroke="url(#l-oviduct)" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+   o+=`<ellipse class="org"${at('b_ovisac')} cx="${P(s*22,0)[0]}" cy="${P(0,404)[1]}" rx="11" ry="9" fill="url(#r-bladder)" opacity=".9"/>`;}
+ }
+ if(has('rmGut')){REG('b_kidney',P(-35,360));REG('b_aorta',P(0,300));REG('b_postcava',P(-6,345));REG('b_adrenal',P(25,350));REG('b_ureter',P(-24,406));
+ if(F){REG('b_ovisac',P(22,404));}else REG('b_testis',P(22,326));}
+ if(F&&(has('rmOvL')||has('rmOvR')))REG('b_oviduct',P(has('rmOvL')?-74:74,300));
+ // lungs and esophagus
+ for(const s of[-1,1]){if(s<0&&has('rmLung'))continue;
+  o+=`<path class="org"${at('b_lung',s<0?' data-k="rmLung"':'')} d="${closed(H(s,[[30,206],[46,198],[62,206],[72,228],[76,256],[72,284],[60,300],[46,296],[38,272],[32,240]]))}" fill="url(#r-lung)"/>`;
+  o+=`<path class="gore" d="${closed(H(s,[[34,210],[46,203],[60,210],[69,230],[72,256],[68,282],[58,295],[46,291],[40,270],[35,240]]))}" fill="url(#alv)" pointer-events="none"/><path class="gore" d="${open(H(s,[[36,204],[44,230],[52,262],[56,290]]))}M${pt(P(s*44,230))}${crC([P(s*44,230),P(s*60,244),P(s*68,262)])}" stroke="#b03a2e" stroke-width="1.1" fill="none" opacity=".7" pointer-events="none"/>`;}
+ REG('b_lung',P(has('rmLung')?60:-60,224));
+ if(!has('rmGut')||true){if(!has('rmGut'))o+=`<path class="org"${at('b_esoph')} d="${tube([P(6,186),P(10,215),P(14,244)],[14,13,15])}" fill="url(#l-stomach)"/>`;else o+=`<ellipse cx="${P(6,0)[0]}" cy="${P(0,190)[1]}" rx="6" ry="4" fill="#d9c6a8" stroke="#7a6a50"/>`;}
+ if(has('rmHeart'))REG('b_esoph',P(10,215));
+ // digestive tract
+ if(!has('rmGut')){o+=gutArt(has('cutEso'),has('cutInt'));}
+ // urinary bladder + cloaca
+ o+=`<g${at('b_cloaca')}><ellipse cx="${P(0,0)[0]}" cy="${P(0,420)[1]}" rx="10" ry="7" fill="#c9a38f" stroke="#7a5446"/></g>`;REG('b_cloaca',P(0,421));
+ // fat bodies
+ for(const s of[-1,1]){if(has(s<0?'rmFatL':'rmFatR'))continue;o+=fatArt(s);}
+ if(!has('rmFatR'))REG('b_fat',P(76,362));else if(!has('rmFatL'))REG('b_fat',P(-76,362));
+ // ovaries
+ if(F)for(const s of[-1,1]){if(has(s<0?'rmOvL':'rmOvR'))continue;o+=ovaryArt(s);}
+ if(F&&!(has('rmOvL')&&has('rmOvR')))REG('b_ovary',P(has('rmOvL')?62:-62,340));
+ // bladder over intestine
+ for(const s of[-1,1])o+=`<ellipse class="org"${at('b_bladder')} cx="${P(s*15,0)[0]}" cy="${P(0,404)[1]}" rx="14" ry="11.5" fill="url(#r-bladder)" opacity=".72"/>`;
+ o+=`<path class="gore" d="${open([P(-20,398),P(-12,404),P(-4,412)])}M${pt(P(20,398))}${crC([P(20,398),P(12,404),P(4,412)])}" stroke="#b3483c" stroke-width=".8" fill="none" opacity=".6" pointer-events="none"/>`;
+ REG('b_bladder',P(16,406));
+ // liver
+ if(!has('rmLiver')){const up=has('liverUp');o+=`<g${up?` transform="translate(0,-26)" opacity=".93"`:''}>${liverArt(up?-26:0)}</g>`;}
+ if(!has('rmLiver')||true){}
+ // gallbladder drawn under liver unless liver lifted or gone
+ // heart
+ if(!has('rmHeart'))o+=heartArt();
+ else{o+=`<circle cx="${P(-36,0)[0]}" cy="${P(0,180)[1]}" r="3.5" fill="#7a1a14" stroke="#e3a08f"/><circle cx="${P(42,0)[0]}" cy="${P(0,180)[1]}" r="3.5" fill="#7a1a14" stroke="#e3a08f"/><ellipse cx="${P(-3,0)[0]}" cy="${P(0,255)[1]}" rx="5" ry="3.5" fill="#22356e" stroke="#a6b4dc"/>`;}
+ return o;}
+function liverArt(dy=0){let o='';
+ const L=closed(H(1,[[-8,254],[-26,248],[-48,250],[-66,262],[-79,282],[-77,302],[-63,315],[-44,313],[-30,299],[-18,285],[-8,271]]));
+ const R=closed(H(1,[[10,252],[28,246],[50,248],[70,258],[84,276],[87,298],[77,317],[58,323],[42,317],[30,303],[18,291],[8,273]]));
+ const M=closed(H(1,[[-19,250],[0,243],[19,250],[15,266],[0,273],[-15,266]]));
+ o+=`<g class="org"${at('b_liver')}><path d="${M}" fill="url(#r-liver)"/><path d="${L}" fill="url(#r-liver)"/><path d="${R}" fill="url(#r-liver)"/>
+ <path d="${open(H(1,[[48,318],[56,300],[60,280]]))}" stroke="#2a0f0a" stroke-opacity=".55" stroke-width="2" fill="none"/>
+ <path class="gore" d="${open(H(1,[[-60,270],[-48,284],[-40,300]]))}M${pt(P(40,262))}${crC([P(40,262),P(55,276),P(70,288)])}" stroke="#2c4a9a" stroke-opacity=".5" stroke-width="1.4" fill="none"/></g>`;
+ REG('b_liver',P(-60,292+dy));return o;}
+function gallArt(){const g=P(-2,288);REG('b_gall',g);return `<circle class="org"${at('b_gall')} cx="${g[0]}" cy="${g[1]}" r="8.5" fill="url(#r-gall)"/>`;}
+const STOM=[[14,240],[32,252],[48,270],[56,296],[54,322],[42,342],[26,352],[12,355]],STOMW=[18,26,30,31,29,25,19,14];
+const ILEUM=[[-34,330],[-52,337],[-63,352],[-58,368],[-44,374],[-30,366],[-20,352],[-8,348],[4,356],[8,366],[20,372],[32,366],[40,376],[32,388],[18,390],[6,384],[-2,380]];
+function gutArt(cutE,cutI){let o='';
+ o+=`<path class="org"${at('b_mesent')} d="${closed(H(1,[[-62,334],[-10,340],[30,356],[46,378],[36,396],[0,394],[-40,394],[-68,372]]))}" fill="#f3e6dc" opacity=".42"/>`;
+ o+=`<g class="gore" stroke-width="1" fill="none" opacity=".75" pointer-events="none">`;for(const p of[[-50,346],[-40,370],[-20,356],[10,368],[34,376],[20,388],[-30,382]]){o+=`<path d="${open([P(-6,352),lerp(P(-6,352),P(p[0],p[1]),.5).map((v,i)=>v+(i?3:-2)),P(p[0],p[1])])}" stroke="#c0392b"/>`;}o+='</g>';
+ o+=`<circle class="org"${at('b_spleen')} cx="${P(15,0)[0]}" cy="${P(0,358)[1]}" r="6.5" fill="url(#r-spleen)"/>`;
+ o+=`<path class="org"${at('b_lgint')} d="${tube(H(1,[[-2,380],[0,394],[0,407],[0,418]]),[19,22,20,14])}" fill="url(#r-gut)"/>`;
+ const il=H(1,ILEUM);o+=`<g class="org"${at('b_ileum')}><path d="${open(il)}" stroke="#8d6d4b" stroke-width="12.5" fill="none" stroke-linecap="round"/><path d="${open(il)}" stroke="url(#l-gut)" stroke-width="10.5" fill="none" stroke-linecap="round"/><path d="${open(il.map(p=>[p[0]-1.5,p[1]-1.8]))}" stroke="#fff" stroke-opacity=".3" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`;
+ o+=`<path class="org"${at('b_duod')} d="${tube(H(1,[[10,355],[-6,351],[-22,342],[-34,330]]),[11,11,10.5,10.5])}" fill="url(#l-gut)"/>`;
+ o+=`<path class="org"${at('b_pancreas')} d="${closed(H(1,[[-22,333],[-6,328],[12,331],[28,338],[18,346],[0,343],[-16,343]]))}" fill="url(#r-pancreas)"/>`;
+ o+=gallArt();
+ o+=`<path class="org"${at('b_stomach')} d="${tube(H(1,STOM),STOMW)}" fill="url(#r-stomach)"/>`;
+ o+=`<path d="${open(H(1,[[30,262],[44,286],[46,316],[36,338]]))}" stroke="#9c8562" stroke-opacity=".35" stroke-width="1.2" fill="none" pointer-events="none"/>`;
+ const py=P(11,355);o+=`<ellipse cx="${py[0]}" cy="${py[1]}" rx="3" ry="7.5" fill="#cdb38c" stroke="#8d7454" stroke-width=".8" pointer-events="none"/>`;
+ if(cutE){const e=P(8,230);o+=`<path d="M${e[0]-9} ${e[1]}h18" stroke="#3a1a10" stroke-width="2.4"/>`;}
+ if(cutI){const e=P(0,412);o+=`<path d="M${e[0]-12} ${e[1]}h24" stroke="#3a1a10" stroke-width="2.4"/>`;}
+ REG('b_stomach',P(56,300));REG('b_ileum',P(-62,356));REG('b_duod',P(-26,340));REG('b_pancreas',P(20,336));REG('b_spleen',P(15,358));REG('b_lgint',P(-6,396));REG('b_mesent',P(-48,382));
+ return o;}
+function fatArt(s){let o=`<g class="org"${at('b_fat',` data-k="${s<0?'rmFatL':'rmFatR'}"`)}>`;
+ for(const f of[[[58,332],[76,354],[84,380]],[[56,336],[66,362],[70,388]],[[52,338],[55,364],[53,386]],[[60,330],[78,340],[88,360]]])o+=`<path d="${tube(H(s,f),[10,8.5,6])}" fill="url(#r-fat)"/>`;
+ return o+'</g>';}
+function ovaryArt(s){let o=`<g class="org"${at('b_ovary',` data-k="${s<0?'rmOvL':'rmOvR'}"`)}>`;
+ for(const [c,rx,ry] of [[[44,318],30,22],[[62,344],26,24],[[38,358],30,22],[[58,380],24,18],[[24,382],20,14]]){const p=P(s*c[0],c[1]);o+=`<ellipse cx="${n1(p[0])}" cy="${n1(p[1])}" rx="${rx}" ry="${ry}" fill="url(#${S.soft?'eggsS':'eggs'})" stroke="#6a5a50" stroke-opacity=".6" stroke-width="1.2"/><ellipse cx="${n1(p[0]-rx*.25)}" cy="${n1(p[1]-ry*.35)}" rx="${n1(rx*.5)}" ry="${n1(ry*.3)}" fill="url(#shine)" opacity=".35" pointer-events="none"/>`;}
+ return o+`</g>`;}
+function ovaryArtSoft(){return '';}
+function muscleArt(D){let o='';
+ o+=`<rect x="${CX-105}" y="${P(0,178)[1]}" width="210" height="236" fill="url(#l-muscle)"/>`;
+ for(const s of[-1,1]){
+  o+=`<path class="org"${at('b_oblique')} d="${closed(H(s,[[36,240],[70,224],[90,248],[96,290],[94,340],[82,382],[66,398],[32,396],[38,350],[40,300],[38,260]]))}" fill="url(#l-muscle)"/><path d="${closed(H(s,[[36,240],[70,224],[90,248],[96,290],[94,340],[82,382],[66,398],[32,396],[38,350],[40,300],[38,260]]))}" fill="url(#${s<0?'fibA':'fibB'})" pointer-events="none"/>`;
+  o+=`<path class="org"${at('b_rectus')} d="${closed(H(s,[[2,248],[28,240],[37,262],[39,300],[37,350],[31,394],[2,398]]))}" fill="url(#r-muscle)"/><path d="${closed(H(s,[[2,248],[28,240],[37,262],[39,300],[37,350],[31,394],[2,398]]))}" fill="url(#fibV)" pointer-events="none"/>`;
+  for(const y of[280,316,352])o+=`<path d="${open(H(s,[[3,y],[20,y-3],[37,y+2]]))}" stroke="#f3e2d6" stroke-width="2" fill="none" opacity=".8" pointer-events="none"/>`;
+  o+=`<path class="org"${at('b_pect')} d="${closed(H(s,[[2,186],[30,184],[62,188],[86,198],[88,210],[60,220],[30,238],[6,250],[2,228]]))}" fill="url(#r-muscle)"/><path d="${closed(H(s,[[2,186],[30,184],[62,188],[86,198],[88,210],[60,220],[30,238],[6,250],[2,228]]))}" fill="url(#${s<0?'fibB':'fibA'})" pointer-events="none"/>`;
+ }
+ o+=`<path class="org"${at('b_sternum')} d="${tube([P(0,188),P(0,220),P(0,250)],[7,6,9])}" fill="url(#l-sternum)"/>`;
+ o+=`<path${at('b_linea')} d="M${pt(P(0,252))}L${pt(P(0,398))}" stroke="#f6eee6" stroke-width="3"/>`;
+ if(!(D.has('mflapL')&&D.has('mflapR')))o+=`<path class="org"${at('b_abvein')} d="${open([P(-1,400),P(1,370),P(-1,340),P(1,300),P(0,268),P(3,252)])}" stroke="url(#l-vein)" stroke-width="5" fill="none"/>`;
+ if(!(D.has('mflapL')||D.has('mflapR'))){REG('b_pect',P(60,200));REG('b_rectus',P(-24,330));REG('b_oblique',P(80,330));REG('b_linea',P(0,370));REG('b_abvein',P(0,300));REG('b_sternum',P(0,220));}
+ return o;}
+function vesselNet(seed,s,hinge,k){const r=rng(seed);let o='';
+ for(let i=0;i<9;i++){let x=hinge+4+r()*((hinge*k)-10),y=196+r()*196;let d=`M${pt(P(s*x,y))}`;for(let j=0;j<4;j++){x+=(r()-.3)*14;y+=(r()-.5)*22;d+='L'+pt(P(s*x,y));}
+  o+=`<path d="${d}" stroke="${i%3?'#b03a2e':'#3d5ba8'}" stroke-width="${n1(.7+r()*.9)}" fill="none" stroke-linejoin="round"/>`;}
+ return `<g class="gore" opacity=".7" pointer-events="none">${o}</g>`;}
+function pin(x,y,c){return `<g pointer-events="none"><ellipse cx="${x+5}" cy="${y+6}" rx="5" ry="3" fill="#000" opacity=".35" filter="url(#fBlur2)"/><path d="M${x} ${y}l7 9" stroke="#b9bec5" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="5.5" fill="${c}" stroke="#000" stroke-opacity=".4"/><circle cx="${x-1.8}" cy="${y-1.8}" r="1.8" fill="#fff" opacity=".7"/></g>`;}
+const PINC=['#d63a3a','#2f6fde','#f2c230','#2a9d8f','#d63a3a','#2f6fde','#f2c230','#2a9d8f'];
+function forcepsArt(x,y){return `<g pointer-events="none" transform="translate(${x} ${y}) rotate(-35)"><path d="M0 -2L70 -6M0 2L70 6" stroke="#9aa1aa" stroke-width="3.5" stroke-linecap="round"/><path d="M0 -2L70 -6M0 2L70 6" stroke="#eef1f4" stroke-width="1.2" stroke-linecap="round"/></g>`;}
+
+function bodyScene(){OY=-14;const D=S.d.body,has=k=>D.has(k);let o='';
+ const skinL=has('flapL'),skinR=has('flapR'),musL=has('mflapL'),musR=has('mflapR');
+ let skinHoles=holes(skinHalf,skinL,skinR);
+ let musHoles=holes(musHalf,musL,musR);
+ let skinE='',musE='';if(skinL)skinE+=halfEdge(-1,skinHalf);if(skinR)skinE+=halfEdge(1,skinHalf);if(musL)musE+=halfEdge(-1,musHalf);if(musR)musE+=halfEdge(1,musHalf);
+ // limbs & body skin are drawn by frogOutside; we need muscle/cavity UNDER skin, so compose manually
+ const bp=bodyPath();
+ o+=`<path d="${bp}" fill="#000" opacity=".5" filter="url(#fBlur7)" transform="translate(7,9)"/>`;
+ o+=limbs(false,false);
+ if(skinHoles){
+  o+=`<clipPath id="cMus"><path d="${skinHoles}${musHoles}" clip-rule="evenodd"/></clipPath>`;
+  if(musHoles){o+=`<clipPath id="cCav"><path d="${musHoles}"/></clipPath><g clip-path="url(#cCav)">${bodyCavity(D)}<path d="${musE}" fill="none" stroke="#000" stroke-opacity=".7" stroke-width="12" filter="url(#fBlur4)" pointer-events="none"/></g>`;}
+  o+=`<g clip-path="url(#cMus)">${muscleArt(D)}<path d="${skinE}" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="10" filter="url(#fBlur4)" pointer-events="none"/>${musE?`<path d="${musE}" fill="none" stroke="#8a4a3c" stroke-width="5" pointer-events="none"/>`:''}</g>`;
+ }
+ o+=`<g class="tex" filter="url(#fSkin)"${at('ext_vskin')}><path d="${bp}${skinHoles}" fill-rule="evenodd" fill="url(#r-skinV)"/>`;
+ const c=P(0,427);o+=`<ellipse cx="${c[0]}" cy="${c[1]}" rx="9" ry="6" fill="#b49a7c"/><ellipse cx="${c[0]}" cy="${c[1]}" rx="4.2" ry="2.6" fill="#3a2a22"/>`;
+ if(!skinHoles){const r=rng(9);o+='<g class="noise" fill="#7d725a" opacity=".22">';for(let i=0;i<40;i++){const q=P((r()-.5)*120,90+r()*90);o+=`<circle cx="${n1(q[0])}" cy="${n1(q[1])}" r="${n1(1.5+r()*3)}"/>`;}o+='</g>';}
+ o+='</g>';
+ if(skinHoles)o+=`<path d="${skinE}" fill="none" stroke="#efe4c8" stroke-width="2.5" pointer-events="none"/>`;
+ if(!skinHoles)REG('ext_vskin',P(-40,300));
+ // skin flaps
+ for(const s of[-1,1]){if(!(s<0?skinL:skinR))continue;const fp=flapPath(s,skinHalf,SKIN_H,.6);
+  o+=`<g${at('b_skinin')}><path d="${fp}" fill="#000" opacity=".45" filter="url(#fBlur4)" transform="translate(4,6)"/><path class="tex" filter="url(#fSkin)" d="${fp}" fill="url(#r-skinIn)" stroke="#efe4c8" stroke-width="2.5"/>${vesselNet(s<0?5:6,s,SKIN_H,.6)}</g>`;
+  const a=P(s*(SKIN_H+(SKIN_H-30)*.6),194),b=P(s*(SKIN_H+(SKIN_H-30)*.6),396);o+=pin(a[0],a[1],PINC[4])+pin(b[0],b[1],PINC[5]);}
+ if(skinL||skinR)REG('b_skinin',P(skinL?-128:128,250));
+ for(const s of[-1,1]){if(!(s<0?musL:musR))continue;const fp=flapPath(s,musHalf,MUS_H,.38);REG('b_oblique',P(s*100,330));
+  o+=`<g${at('b_oblique')}><path d="${fp}" fill="#000" opacity=".45" filter="url(#fBlur4)" transform="translate(4,6)"/><path class="org" d="${fp}" fill="url(#l-muscle)" stroke="#8a4a3c" stroke-width="2"/><path d="${fp}" fill="url(#fibV)" pointer-events="none"/></g>`;
+  if(s<0){o+=`<path class="org"${at('b_abvein')} d="${open([P(-(MUS_H+MUS_H*.38)+3,392),P(-(MUS_H+MUS_H*.38)+4,330),P(-(MUS_H+MUS_H*.38)+3,262)])}" stroke="url(#l-vein)" stroke-width="5" fill="none"/>`;REG('b_abvein',P(-(MUS_H+MUS_H*.38)+4,330));}
+  const a=P(s*(MUS_H+(MUS_H-24)*.38),206),b=P(s*(MUS_H+(MUS_H-24)*.38),382);o+=pin(a[0],a[1],PINC[6])+pin(b[0],b[1],PINC[7]);}
+ // incisions in progress
+ const inc=(k,pts)=>{const prog=D.has(k)?1:(S.cp[k]||0);if(prog<=0)return '';const sm=sample(pts);const m=Math.max(1,Math.round(prog*(sm.length-1)));const sub=sm.slice(0,m+1);
+   return `<path class="gore" d="M${sub.map(pt).join('L')}" stroke="#7a2a1e" stroke-width="4" fill="none" opacity=".5"/><path d="M${sub.map(pt).join('L')}" stroke="#2a0d08" stroke-width="1.6" fill="none"/>`;};
+ if(!(skinL&&skinR)){for(const k of['cutMid','cutTop','cutBot'])o+=inc(k,CUTS[k]);}
+ if(!(musL&&musR)){for(const k of['mcut','sternum','mTop','mBot'])o+=inc(k,CUTS[k]);}
+ // forceps lifting
+ if(has('lift1')&&!has('cutMid')){const p=P(0,392);o+=`<ellipse cx="${p[0]}" cy="${p[1]-2}" rx="10" ry="6" fill="#fff" opacity=".35"/>`+forcepsArt(p[0],p[1]);}
+ if(has('mlift')&&!has('mcut')){const p=P(14,386);o+=forcepsArt(p[0],p[1]);}
+ // limb pins
+ const LP=[[-150,300],[150,300],[-140,612],[140,612]];LP.forEach((q,i)=>{if(has('pin'+(i+1))){const p=P(q[0],q[1]);o+=pin(p[0],p[1],PINC[i]);}});
+ return o;}
+const CUTS={};
+function defineCuts(){OY=-14;
+ Object.assign(CUTS,{cutMid:[P(0,412),P(0,184)],cutTop:[P(-84,186),P(84,186)],cutBot:[P(-76,402),P(76,402)],
+  mcut:[P(12,390),P(12,252)],sternum:[P(6,250),P(2,192)],mTop:[P(-76,196),P(76,196)],mBot:[P(-68,390),P(68,390)]});
+ OY=0;Object.assign(CUTS,{hL:[[CX-82,112],[CX-91,160]],hR:[[CX+82,112],[CX+91,160]],bcut:[[CX,175],[CX,640]],skL:[[CX-58,620],[CX-58,200]],skR:[[CX+58,620],[CX+58,200]]});}
+function sample(pts){const o=[];for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.round(L/4));for(let j=0;j<n;j++)o.push(lerp(a,b,j/n));}o.push(pts[pts.length-1]);return o;}
+
+/* ---------------- drawing: mouth ---------------- */
+function mouthScene(){OY=0;const D=S.d.mouth,openM=D.has('hL')&&D.has('hR');let o='';
+ if(!openM){o+=frogOutside(false,{ids:false});o+=`<path d="${open(H(1,[[-80,130],[-74,110],[-62,90],[-46,70],[-26,54],[0,44],[26,54],[46,70],[62,90],[74,110],[80,130]]))}" stroke="#3a2a20" stroke-width="2.2" fill="none" opacity=".75"/>`;OY=0;
+  for(const k of['hL','hR']){const prog=D.has(k)?1:(S.cp[k]||0);if(prog>0){const sm=sample(CUTS[k]);const sub=sm.slice(0,Math.max(2,Math.round(prog*(sm.length-1))+1));o+=`<path class="gore" d="M${sub.map(pt).join('L')}" stroke="#7a2a1e" stroke-width="4" opacity=".5" fill="none"/><path d="M${sub.map(pt).join('L')}" stroke="#2a0d08" stroke-width="1.6" fill="none"/>`;}}
+  return o;}
+ const sc=1;
+ const upHalf=[[0,64],[95,72],[178,104],[236,158],[262,230],[266,300],[262,350]];
+ const upIn=[[0,73],[93,80],[172,111],[228,163],[253,232],[257,300],[253,350]];
+ const loHalf=[[0,650],[95,640],[178,604],[236,546],[262,474],[266,400],[262,350]];
+ const loIn=[[0,641],[93,632],[172,597],[228,541],[253,472],[257,400],[253,350]];
+ const halfToPath=(h)=>{const R=h.map(([dx,y])=>[CX+dx,y]),L=h.slice(0,-1).reverse().map(([dx,y])=>[CX-dx,y]);return 'M'+pt(L[L.length-1])+crC(L.slice().reverse().concat(R.slice(1)))+'Z';};
+ // simpler: build ordered points left hinge -> top/bottom -> right hinge
+ const arc=(h)=>{const R=h.map(([dx,y])=>[CX+dx,y]);const L=h.slice(1).map(([dx,y])=>[CX-dx,y]).reverse();return L.concat(R);};
+ const shape=(h)=>{const p=arc(h);return 'M'+pt(p[0])+crC(p)+'Z';};
+ o+=`<g style="transform-origin:${CX}px 350px;transform:scaleY(${S.mouthAnim?.34:sc});transition:transform .9s ease" id="mUp">`;
+ o+=`<path d="${shape(upHalf.map(([x,y])=>[x+24,y-18<40?40:y-18]))}" fill="#000" opacity=".45" filter="url(#fBlur7)" transform="translate(6,8)"/>`;
+ o+=`<g class="tex" filter="url(#fSkin)"><path d="${shape([[0,26],[110,36],[204,78],[272,146],[302,226],[308,300],[304,352]])}" fill="url(#r-skinD)"/></g>`;
+ o+=`<path d="${shape(upHalf)}" fill="#d8c9a4" stroke="#8d7f5a"/>`;
+ o+=`<g class="tex" filter="url(#fSkin)"><path d="${shape(upIn)}" fill="url(#r-oral)"/></g>`;
+ o+=`<path d="M${CX} 150V300M${CX-74} 300H${CX+74}" stroke="#f6e0d4" stroke-width="10" opacity=".18" filter="url(#fBlur2)" pointer-events="none"/><path class="gore" d="M${CX-30} 96q-20 60 -60 90q-30 30 -40 90M${CX+30} 96q20 60 60 90q30 30 40 90M${CX-120} 330q40-20 80-10M${CX+120} 330q-40-20 -80-10" stroke="#b5473c" stroke-width="1.2" fill="none" opacity=".55" pointer-events="none"/>`;
+ // maxillary teeth
+ let t='';const ar=sample(arc(upIn)).filter((p,i)=>i%2===0);for(let i=1;i<ar.length-1;i++){const a=ar[i-1],b=ar[i+1],p=ar[i];const nx=-(b[1]-a[1]),ny=b[0]-a[0],l=Math.hypot(nx,ny)||1;
+   const tip=[p[0]+nx/l*5.5*(ny>0?1:1),p[1]+ny/l*5.5];t+=`M${pt(lerp(p,a,.4))}L${pt(tip)}L${pt(lerp(p,b,.4))}`;}
+ o+=`<path${at('m_maxteeth')} d="${t}" fill="#fbf7ec" stroke="#cfc4a8" stroke-width=".6"/>`;
+ for(const s of[-1,1]){
+  o+=`<g${at('m_eyebulge')}><ellipse cx="${CX+s*108}" cy="208" rx="60" ry="50" fill="url(#r-oral)" opacity=".95"/><ellipse cx="${CX+s*100}" cy="196" rx="34" ry="24" fill="url(#shine)" opacity=".35"/></g>`;
+  o+=`<g${at('m_inares')}><ellipse cx="${CX+s*64}" cy="126" rx="12" ry="7.5" fill="#3a1d18" stroke="#9a5e50" stroke-width="2" transform="rotate(${s*-20} ${CX+s*64} 126)"/></g>`;
+  o+=`<g${at('m_vomer')}><path d="M${CX+s*20} 136 Q${CX+s*34} 132 ${CX+s*44} 148" stroke="#c88f80" stroke-width="7" fill="none" stroke-linecap="round"/>`;for(let i=0;i<6;i++){const x=CX+s*(21+i*4.2),y=136+i*2.1+(i>3?(i-3)*2:0);o+=`<path d="M${x-1.6} ${y}l1.6 -4 1.6 4z" fill="#fffaf0"/>`;}o+='</g>';
+  o+=`<g${at('m_eust')}><ellipse cx="${CX+s*152}" cy="300" rx="22" ry="15" fill="#2a1410" stroke="#a8685a" stroke-width="3"/><ellipse cx="${CX+s*150}" cy="298" rx="10" ry="6" fill="#120806"/></g>`;
+ }
+ o+='</g>';
+ o+=`<g style="transform-origin:${CX}px 350px;transform:scaleY(${S.mouthAnim?.34:sc});transition:transform .9s ease" id="mLo">`;
+ o+=`<g class="tex" filter="url(#fSkin)"><path d="${shape([[0,690],[110,680],[204,640],[272,570],[302,484],[308,400],[304,348]])}" fill="url(#r-skinV)"/></g>`;
+ o+=`<path d="${shape(loHalf)}" fill="#e3d6b6" stroke="#9a8c66"/>`;
+ o+=`<g class="tex" filter="url(#fSkin)"><path d="${shape(loIn)}" fill="url(#r-oral)"/></g>`;
+ o+=`<g${at('m_glottis')}><ellipse cx="${CX}" cy="428" rx="18" ry="27" fill="url(#r-tongue)" stroke="#a5685a"/><path d="M${CX} 406v44" stroke="#2a100c" stroke-width="3" stroke-linecap="round"/></g>`;
+ if(S.sex==='m')for(const s of[-1,1])o+=`<path${at('m_vocal')} d="M${CX+s*170} 400q${s*10} 14 ${s*4} 30" stroke="#3a1a14" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+ // tongue
+ const tg=[[0,612],[34,602],[52,566],[58,520],[52,486],[30,466],[14,470],[0,486]];
+ const tP=(()=>{const R=tg.map(([dx,y])=>[CX+dx,y]),L=tg.slice(1,-1).reverse().map(([dx,y])=>[CX-dx,y]);return closed(R.concat(L));})();
+ if(!D.has('tongue'))o+=`<path class="org"${at('m_tongue')} d="${tP}" fill="url(#r-tongue)"/><path d="${tP}" fill="url(#pores)" pointer-events="none"/><path d="M${CX} 600V500" stroke="#9a5a4c" stroke-opacity=".4" stroke-width="2" pointer-events="none"/>`;
+ else o+=`<g transform="translate(0,${612*1.5}) scale(1,-.5)"><path class="org"${at('m_tongue')} d="${tP}" fill="url(#r-tongue)"/></g><path d="M${CX} 616V680" stroke="#2c4a9a" stroke-opacity=".5" stroke-width="2" pointer-events="none"/>`;
+ o+='</g>';
+ // throat/esophagus at the hinge line
+ o+=`<g${at('m_esoph')}><ellipse cx="${CX}" cy="350" rx="80" ry="31" fill="url(#r-oral)"/><path d="M${CX-56} 351Q${CX-40} 336 ${CX-20} 342Q${CX} 330 ${CX+22} 341Q${CX+42} 335 ${CX+56} 351Q${CX+40} 366 ${CX+18} 360Q${CX} 370 ${CX-22} 361Q${CX-42} 367 ${CX-56} 351Z" fill="#1c0a07"/>`;
+ if(openM){const r=rng(8);for(let i=0;i<16;i++){const a=Math.PI*2*i/16;const x1=CX+Math.cos(a)*74,y1=351+Math.sin(a)*27,x2=CX+Math.cos(a)*(46+r()*8),y2=351+Math.sin(a)*(15+r()*4);o+=`<path d="M${n1(x1)} ${n1(y1)}Q${n1((x1+x2)/2+(r()-.5)*8)} ${n1((y1+y2)/2+(r()-.5)*6)} ${n1(x2)} ${n1(y2)}" stroke="#7a3a30" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;}}
+ o+='</g>';
+ for(const s of[-1,1])o+=`<path${at('m_hinge')} d="M${CX+s*250} 350L${CX+s*306} 350" stroke="#7a2a1e" stroke-width="5"/>`;
+ {REG('m_tongue',D.has('tongue')?[CX,650]:[CX-40,560]);REG('m_maxteeth',[CX+218,180]);REG('m_vomer',[CX-36,142]);REG('m_inares',[CX+64,126]);REG('m_eust',[CX-152,300]);REG('m_esoph',[CX+40,350]);REG('m_glottis',[CX,428]);REG('m_eyebulge',[CX+108,208]);if(S.sex==='m')REG('m_vocal',[CX-172,412]);REG('m_hinge',[CX+270,350]);}
+ return o;}
+
+/* ---------------- drawing: brain ---------------- */
+function brainScene(){OY=0;const D=S.d.brain,has=k=>D.has(k);let o='';
+ const head=[[0,30],[70,40],[140,70],[200,120],[250,190],[285,270],[305,360],[310,450],[306,540],[300,620],[296,720]];
+ const hp=(()=>{const R=head.map(([dx,y])=>[CX+dx,y]),L=head.slice(1).reverse().map(([dx,y])=>[CX-dx,y]);return closed(R.concat(L.slice(0,-1)));})();
+ const skinHalfB=[[0,166],[40,166],[80,186],[96,240],[100,320],[100,420],[98,520],[94,600],[86,648],[40,654],[0,654]];
+ const hb=(s)=>{const p=skinHalfB.map(([dx,y])=>[CX+s*dx,y]);return 'M'+pt(p[0])+'L'+pt(p[1])+crC(p.slice(1,p.length-1))+'L'+pt(p[p.length-1])+'Z';};
+ let holes='';if(has('peelL'))holes+=hb(-1);if(has('peelR'))holes+=hb(1);
+ const cav=[[0,172],[30,176],[46,200],[54,250],[58,320],[58,420],[56,520],[50,600],[40,640],[0,645]];
+ const cavP=(()=>{const R=cav.map(([dx,y])=>[CX+dx,y]),L=cav.slice(1,-1).reverse().map(([dx,y])=>[CX-dx,y]);return closed(R.concat(L));})();
+ o+=`<path d="${hp}" fill="#000" opacity=".5" filter="url(#fBlur7)" transform="translate(8,10)"/>`;
+ if(holes){
+  o+=`<clipPath id="cB"><path d="${holes}"/></clipPath><g clip-path="url(#cB)"><rect x="${CX-110}" y="150" width="220" height="530" fill="url(#l-muscle)"/><rect x="${CX-110}" y="150" width="220" height="530" fill="url(#fibV)"/>`;
+  // skull
+  const lift=has('skLift');
+  if(lift){o+=`<path d="${cavP}" fill="url(#r-mening)"/>`;o+=brainArt();o+=`<path d="${cavP}" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="8" filter="url(#fBlur4)" pointer-events="none"/>`;}
+  o+=`<g class="bone"${at('br_skull')}>`;
+  const skullBone=(s)=>{let q='';const nas=[[2,170],[40,176],[60,200],[52,232],[2,236]],fp=[[2,238],[50,236],[64,262],[68,330],[68,420],[66,520],[62,574],[2,580]],oc=[[2,582],[62,576],[84,600],[80,632],[2,640]];
+   for(const part of(lift?[]:[nas,fp,oc]))q+=`<path d="${'M'+part.map(([dx,y])=>pt([CX+s*dx,y])).join('L')+'Z'}" fill="url(#l-bone)" stroke="#a89670" stroke-width="1.2" stroke-linejoin="round"/>`;
+   if(lift)q+=`<path d="M${pt([CX+s*58,200])}L${pt([CX+s*66,262])}L${pt([CX+s*68,420])}L${pt([CX+s*64,560])}L${pt([CX+s*84,600])}L${pt([CX+s*80,632])}L${pt([CX+s*48,640])}L${pt([CX+s*56,520])}L${pt([CX+s*58,320])}L${pt([CX+s*52,236])}Z" fill="url(#l-bone)" stroke="#a89670" stroke-width="1.2"/>`;
+   return q;};
+  o+=skullBone(-1)+skullBone(1)+'</g>';
+  if(!lift)o+=`<path d="M${CX} 172V640" stroke="#8d7a55" stroke-width="1.4" stroke-dasharray="3 2" pointer-events="none"/>`;
+  for(const k of['skL','skR']){const prog=D.has(k)?1:(S.cp[k]||0);if(prog>0&&!lift){const sm=sample(CUTS[k]);const sub=sm.slice(0,Math.max(2,Math.round(prog*(sm.length-1))+1));o+=`<path d="M${sub.map(pt).join('L')}" stroke="#3a2a1a" stroke-width="2.6" stroke-dasharray="4 2"/>`;}}
+  o+=`<path d="${holes}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="10" filter="url(#fBlur4)" pointer-events="none"/></g>`;
+  REG('br_skull',[CX+62,lift?450:300]);
+ }
+ o+=`<g class="tex" filter="url(#fSkin)"${at('br_skin')}><path d="${hp}${holes}" fill-rule="evenodd" fill="url(#r-skinD)"/>`;
+ o+=`<g fill="#262d1a" stroke="#c9c48f" stroke-opacity=".5" stroke-width="2.4" filter="url(#fBlot)">`;for(const [dx,y,rx,ry] of[[-150,520,22,15],[160,540,20,14],[-210,620,18,13],[220,640,22,15],[0,690,24,12],[-230,250,14,10],[236,262,14,10]])o+=`<ellipse cx="${CX+dx}" cy="${y}" rx="${rx}" ry="${ry}"/>`;
+ if(!holes)o+=`<ellipse cx="${CX}" cy="300" rx="26" ry="18"/><ellipse cx="${CX-30}" cy="560" rx="20" ry="15"/><ellipse cx="${CX+34}" cy="610" rx="22" ry="15"/>`;o+='</g></g>';
+ if(holes){for(const s of[-1,1]){if(!has(s<0?'peelL':'peelR'))continue;const p=skinHalfB.slice(1,-1).map(([dx,y])=>[CX+s*(dx+10),y]);o+=`<path d="${open(p)}" stroke="url(#l-skinIn)" stroke-width="18" fill="none" stroke-linecap="round"/><path d="${open(p.map(q=>[q[0]+s*8,q[1]]))}" stroke="#46512c" stroke-width="4" fill="none" opacity=".7"/>`;}
+   REG('br_skin',[CX-112,520]);}
+ for(const s of[-1,1]){const e=[CX+s*170,300],t=[CX+s*262,462],n=[CX+s*46,92];
+  o+=`<g class="org"${at('br_eye')}><ellipse cx="${e[0]}" cy="${e[1]}" rx="80" ry="96" fill="url(#r-skinD)" stroke="#2a321b" stroke-width="2"/><ellipse cx="${e[0]}" cy="${e[1]+6}" rx="62" ry="74" fill="url(#eyeG)" filter="url(#fIris)"/><ellipse cx="${e[0]}" cy="${e[1]+6}" rx="30" ry="9" fill="#0c0a08" transform="rotate(${s*90} ${e[0]} ${e[1]+6})"/><path d="M${e[0]+s*80} ${e[1]-60}Q${e[0]+s*20} ${e[1]-20} ${e[0]+s*22} ${e[1]+40}Q${e[0]+s*30} ${e[1]+90} ${e[0]+s*72} ${e[1]+70}Q${e[0]+s*92} ${e[1]} ${e[0]+s*80} ${e[1]-60}Z" fill="url(#l-skinD)"/><path d="M${e[0]-s*58} ${e[1]+40}Q${e[0]} ${e[1]+92} ${e[0]+s*58} ${e[1]+40}Q${e[0]} ${e[1]+66} ${e[0]-s*58} ${e[1]+40}Z" fill="#eef" opacity=".3"/><ellipse cx="${e[0]-s*14}" cy="${e[1]-22}" rx="9" ry="5" fill="#fff" opacity=".55"/></g>`;
+  o+=`<circle cx="${t[0]}" cy="${t[1]}" r="42" fill="#6b5a3c" stroke="#3a321f" stroke-width="4"/><circle cx="${t[0]}" cy="${t[1]}" r="26" fill="#8c7a55" opacity=".6"/>`;
+  o+=`<ellipse cx="${n[0]}" cy="${n[1]}" rx="11" ry="6" fill="#1a1510" transform="rotate(${s*30} ${n[0]} ${n[1]})"/>`;}
+ REG('br_eye',[CX+170,380]);
+ // incision
+ if(!holes){const prog=D.has('bcut')?1:(S.cp.bcut||0);if(prog>0){const sm=sample(CUTS.bcut);const sub=sm.slice(0,Math.max(2,Math.round(prog*(sm.length-1))+1));o+=`<path class="gore" d="M${sub.map(pt).join('L')}" stroke="#7a2a1e" stroke-width="5" opacity=".5"/><path d="M${sub.map(pt).join('L')}" stroke="#1a0a06" stroke-width="2"/>`;}}
+ return o;}
+function brainArt(){let o='';const B=(pts)=>{const R=pts.map(([dx,y])=>[CX+dx,y]);return closed(R);};
+ o+=`<g class="gore" stroke="#9a2a20" stroke-width="1" fill="none" opacity=".6" pointer-events="none"><path d="M${CX-50} 300q20 40 6 90M${CX+50} 320q-20 30 -4 80M${CX-40} 470q10 30 -2 70"/></g>`;
+ o+=`<g${at('br_mening')}><path d="M${CX-54} 250 Q${CX-60} 420 ${CX-50} 600" stroke="#0e0a08" stroke-width="5" fill="none" opacity=".55"/><path d="M${CX+54} 250 Q${CX+60} 420 ${CX+50} 600" stroke="#0e0a08" stroke-width="5" fill="none" opacity=".55"/></g>`;
+ o+=`<g class="org"${at('br_nerve')} stroke="url(#l-brain)" stroke-width="4" fill="none" stroke-linecap="round"><path d="M${CX-26} 520L${CX-54} 504M${CX+26} 520L${CX+54} 504M${CX-20} 560L${CX-52} 576M${CX+20} 560L${CX+52} 576M${CX-8} 200L${CX-28} 176M${CX+8} 200L${CX+28} 176"/></g>`;
+ o+=`<path class="org"${at('br_cord')} d="${tube([[CX,606],[CX,650],[CX,690]],[22,21,20])}" fill="url(#l-brain)"/><path d="M${CX} 612V690" stroke="#a5806a" stroke-width="1.4" pointer-events="none"/>`;
+ o+=`<path class="org"${at('br_med')} d="${B([[-31,496],[31,496],[25,540],[16,580],[12,612],[-12,612],[-16,580],[-25,540]])}" fill="url(#r-brain)"/>`;
+ o+=`<path d="${B([[0,500],[12,530],[0,566],[-12,530]])}" fill="#7a3a34" opacity=".85" pointer-events="none"/>`;
+ o+=`<path class="org"${at('br_cbm')} d="${B([[-35,486],[0,478],[35,486],[33,498],[0,493],[-33,498]])}" fill="url(#r-brain)"/>`;
+ for(const s of[-1,1])o+=`<circle class="org"${at('br_optic')} cx="${CX+s*26}" cy="455" r="27" fill="url(#r-brain)"/>`;
+ o+=`<path class="org"${at('br_dien')} d="${B([[0,394],[17,398],[22,414],[17,432],[0,438],[-17,432],[-22,414],[-17,398]])}" fill="url(#r-brain)"/><circle cx="${CX}" cy="404" r="4.5" fill="#8a5a4c" pointer-events="none"/>`;
+ for(const s of[-1,1])o+=`<path class="org"${at('br_cereb')} d="${B([[s*2,262],[s*22,257],[s*39,272],[s*47,310],[s*47,350],[s*41,384],[s*27,399],[s*8,401],[s*2,390]])}" fill="url(#r-brain)"/>`;
+ o+=`<path class="org"${at('br_olf')} d="${B([[0,196],[14,198],[22,210],[24,240],[20,262],[0,266],[-20,262],[-24,240],[-22,210],[-14,198]])}" fill="url(#r-brain)"/><path d="M${CX} 200V262" stroke="#a5806a" stroke-width="1.5" pointer-events="none"/>`;
+ o+=`<g class="gore" stroke="#b8453a" stroke-width="1.1" fill="none" opacity=".75" pointer-events="none"><path d="M${CX-40} 280q8 30 -2 60q-6 20 4 40M${CX+40} 280q-8 30 2 60q6 20 -4 40M${CX-24} 296q6 22 0 44q-4 14 2 30M${CX+24} 296q-6 22 0 44q4 14 -2 30M${CX-44} 440q14 12 4 30M${CX+44} 440q-14 12 -4 30M${CX-12} 205q6 20 -2 40M${CX+12} 205q-6 20 2 40M${CX-20} 520q8 20 0 50M${CX+20} 520q-8 20 0 50"/></g>`;
+ REG('br_olf',[CX-20,228]);REG('br_cereb',[CX+44,330]);REG('br_dien',[CX-20,414]);REG('br_optic',[CX-48,455]);REG('br_cbm',[CX+34,488]);REG('br_med',[CX-24,548]);REG('br_cord',[CX+10,650]);REG('br_nerve',[CX+52,576]);REG('br_mening',[CX-56,420]);
+ return o;}
+
+/* ---------------- drawing: skeleton ---------------- */
+function skelScene(){OY=-8;let o='';const B=(id,d)=>`<path class="bone"${at(id)} d="${d}" fill="url(#l-bone)"/>`;
+ const sh=(d)=>`<path d="${d}" fill="#000" opacity=".45" filter="url(#fBlur4)" transform="translate(5,7)"/>`;
+ const skullH=[[0,44],[30,46],[62,54],[92,70],[114,94],[126,124],[130,154],[124,180],[104,186],[66,180],[30,184],[0,186]];
+ const skP=sym(skullH);
+ const orb=s=>{const c=P(s*60,120);return `M${c[0]-33} ${c[1]}a33 42 0 1 0 66 0a33 42 0 1 0 -66 0Z`;};
+ o+=sh(skP);
+ o+=`<g class="bone"${at('sk_skull')}><path d="${skP}${orb(-1)}${orb(1)}" fill-rule="evenodd" fill="url(#l-bone)"/><path d="${closed(H(1,[[0,84],[20,88],[23,130],[20,178],[0,180],[-20,178],[-23,130],[-20,88]]))}" fill="url(#r-bone)" stroke="#b5a37c" stroke-width="1"/>
+   <path d="M${pt(P(0,48))}L${pt(P(0,180))}M${pt(P(-24,88))}L${pt(P(-40,60))}M${pt(P(24,88))}L${pt(P(40,60))}" stroke="#a8946c" stroke-width="1.2" fill="none"/></g>`;
+ for(const s of[-1,1]){const c=P(s*60,120);o+=`<ellipse${at('sk_orbit')} cx="${c[0]}" cy="${c[1]}" rx="31" ry="40" fill="#000" fill-opacity=".01"/>`;}
+ o+=`<path class="bone"${at('sk_maxilla')} d="${open(H(1,[[-120,180],[-128,150],[-122,118],[-108,90],[-84,66],[-50,52],[0,46],[50,52],[84,66],[108,90],[122,118],[128,150],[120,180]]))}" stroke="url(#l-bone)" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+ // vertebrae
+ const vy=[200,220,240,260,280,300,320,340];const tp=[0,46,54,48,40,36,34,32];
+ let v='';vy.forEach((y,i)=>{const c=P(0,y);v+=`<rect x="${c[0]-11}" y="${c[1]-8}" width="22" height="17" rx="6" fill="url(#l-bone)" stroke="#a8946c"/>`;});
+ let tps='';vy.forEach((y,i)=>{if(!tp[i])return;for(const s of[-1,1])tps+=`<path d="${bone(P(s*9,y),P(s*tp[i],y+(i>4?6:i===1?-2:2)),i===1?7:6)}" fill="url(#l-bone)"/>`;});
+ o+=sh(tube([P(0,190),P(0,360)],[24,24]));
+ o+=`<g class="bone"${at('sk_vert')}>${tps}${v}<path d="M${pt(P(0,192))}L${pt(P(0,350))}" stroke="#a8946c" stroke-width="2"/></g>`;
+ o+=`<g class="bone"${at('sk_sacral')}><rect x="${CX-12}" y="${P(0,352)[1]}" width="24" height="16" rx="6" fill="url(#l-bone)"/>${[-1,1].map(s=>`<path d="${tube(H(s,[[8,360],[30,368],[50,382]]),[12,14,17])}" fill="url(#l-bone)"/>`).join('')}</g>`;
+ o+=sh(tube([P(0,372),P(0,470)],[12,6]))+B('sk_uro',tube([P(0,370),P(0,420),P(0,472)],[12,10,5]));
+ o+=`<g class="bone"${at('sk_ilium')}>${[-1,1].map(s=>`<path d="${tube(H(s,[[50,380],[44,420],[32,460],[18,492]]),[13,11,10,12])}" fill="url(#l-bone)"/>`).join('')}<ellipse cx="${CX}" cy="${P(0,500)[1]}" rx="27" ry="15" fill="url(#r-bone)"/><circle cx="${CX-16}" cy="${P(0,498)[1]}" r="6" fill="#b29f78"/><circle cx="${CX+16}" cy="${P(0,498)[1]}" r="6" fill="#b29f78"/></g>`;
+ for(const s of[-1,1]){
+  const hip=P(s*18,498),knee=P(s*140,530),ank=P(s*118,590),tar=P(s*142,628);
+  o+=sh(bone(hip,knee,9))+B('sk_femur',bone(hip,knee,9));
+  o+=sh(bone(knee,ank,8.5))+`<g class="bone"${at('sk_tibfib')}><path d="${bone(knee,ank,8.5)}" fill="url(#l-bone)"/><path d="M${pt(lerp(knee,ank,.15))}L${pt(lerp(knee,ank,.85))}" stroke="#a8946c" stroke-width="1.2"/></g>`;
+  const dx=tar[0]-ank[0],dy=tar[1]-ank[1],l=Math.hypot(dx,dy),nx=-dy/l*4,ny=dx/l*4;
+  o+=`<g class="bone"${at('sk_tarsal')}><path d="${bone([ank[0]+nx,ank[1]+ny],[tar[0]+nx,tar[1]+ny],5)}" fill="url(#l-bone)"/><path d="${bone([ank[0]-nx,ank[1]-ny],[tar[0]-nx,tar[1]-ny],5)}" fill="url(#l-bone)"/></g>`;
+  let ft='';const tips=[[122,654],[134,664],[150,670],[170,672],[188,656]];tips.forEach((tp,i)=>{const base=P(s*(136+i*4),630+Math.abs(i-2)),mid=lerp(base,P(s*tp[0],tp[1]),.55),tip=P(s*tp[0],tp[1]);ft+=`<path d="${bone(base,mid,3.2)}" fill="url(#l-bone)"/><path d="${bone(mid,tip,2.6)}" fill="url(#l-bone)"/>`;});
+  o+=`<g class="bone"${at('sk_foot')}>${ft}</g>`;
+  // pectoral girdle and arm
+  o+=`<g class="bone"${at('sk_pect')}><path d="${closed(H(s,[[18,206],[40,198],[66,204],[72,220],[52,232],[24,228]]))}" fill="url(#r-bone)" opacity=".9"/><path d="${bone(P(s*64,214),P(s*88,228),8)}" fill="url(#l-bone)"/></g>`;
+  const sho=P(s*90,228),elb=P(s*160,252),wr=P(s*172,304);
+  o+=sh(bone(sho,elb,8))+B('sk_humerus',bone(sho,elb,8));
+  o+=`<g class="bone"${at('sk_radioulna')}><path d="${bone(elb,wr,7)}" fill="url(#l-bone)"/><path d="M${pt(lerp(elb,wr,.2))}L${pt(lerp(elb,wr,.8))}" stroke="#a8946c" stroke-width="1.1"/></g>`;
+  let hd='';[[0,0],[7,2],[-6,4],[3,8]].forEach(([a,b])=>{const q=P(s*(172+a),310+b);hd+=`<circle cx="${n1(q[0])}" cy="${n1(q[1])}" r="4" fill="url(#r-bone)"/>`;});
+  [[150,350],[164,360],[180,358],[196,340]].forEach((tp,i)=>{const base=P(s*(164+i*5),318),mid=lerp(base,P(s*tp[0],tp[1]),.5);hd+=`<path d="${bone(base,mid,3)}" fill="url(#l-bone)"/><path d="${bone(mid,P(s*tp[0],tp[1]),2.5)}" fill="url(#l-bone)"/>`;});
+  o+=`<g class="bone"${at('sk_hand')}>${hd}</g>`;
+ }
+ REG('sk_skull',P(-20,140));REG('sk_orbit',P(60,120));REG('sk_maxilla',P(-127,150));REG('sk_vert',P(-40,240));REG('sk_sacral',P(40,374));REG('sk_uro',P(0,440));REG('sk_ilium',P(-40,430));REG('sk_pect',P(50,206));
+ REG('sk_humerus',P(-125,240));REG('sk_radioulna',P(166,280));REG('sk_hand',P(-180,352));REG('sk_femur',P(80,514));REG('sk_tibfib',P(-130,560));REG('sk_tarsal',P(130,610));REG('sk_foot',P(-160,660));
+ return o;}
+
+/* ---------------- steps ---------------- */
+let STEPS={};
+function defineSteps(){OY=-14;const Q=(dx,y)=>P(dx,y);
+ STEPS={
+ ext:[
+  {find:['ext_eye'],view:'d',t:'Use the hand lens to click on one of the eyes. Notice how high on the head they sit.'},
+  {find:['ext_tympanum'],view:'d',t:'Find the tympanum (eardrum), the round disc just behind each eye.'},
+  {find:['ext_nares'],view:'d',t:'Find the external nares (nostrils) near the tip of the snout.'},
+  {find:['ext_dlfold'],view:'d',t:'Find a dorsolateral fold, one of the pale ridges running down each side of the back.'},
+  {flip:1,t:'Press <b>Turn over</b> at the bottom of the tool bar to look at the belly (ventral) side.'},
+  {find:['ext_cloaca'],view:'v',t:'Find the cloaca opening between the hind legs.'},
+  {find:['ext_thumb'],cond:()=>S.sex==='m',t:'Look closely at the hands. Click the swollen, dark thumb pad. It tells you this frog is a male.'},
+  {find:['ext_forelimb'],cond:()=>S.sex==='f',t:'Look at the hands: there are no swollen thumb pads, so this frog is a female. Click a front leg and count the fingers.'},
+  {find:['ext_web'],t:'Click a hind foot. Count the toes and look at the webbing between them.'}
+ ],
+ mouth:[
+  {tool:'scissors',t:'Preserved jaw muscles are stiff. Cut through the hinge at each corner of the mouth so the jaws open wide. Drag the scissors along each yellow line.',why:'Cut only a short way back from each corner, just enough to open the mouth.',
+   tg:[{k:'hL',cut:CUTS.hL},{k:'hR',cut:CUTS.hR}],bad:{scalpel:'A scalpel would slip on the hard jaw bones. Scissors give you control here.',bone:'Bone cutters crush tissue. Scissors are enough to cut the jaw hinge.'}},
+  {tool:'probe',t:'Use the probe to flip the tongue forward. Where is it attached?',tg:[{k:'tongue',hit:'m_tongue',at:[CX,540]}],bad:{forceps:'Forceps can tear the soft tongue. A blunt probe lifts it gently.'}},
+  {tool:'probe',t:'Gently slide the probe into one of the Eustachian tube openings at the back corners of the mouth.',tg:[{k:'eust',hit:'m_eust',at:[CX+152,300]}]},
+  {tool:'probe',t:'Now slide the probe into the esophagus, the large opening at the back of the throat.',tg:[{k:'eso',hit:'m_esoph',at:[CX,350]}]},
+  {find:['m_glottis'],t:'Find the glottis, the slit in the floor of the mouth that leads to the lungs.'},
+  {find:['m_vomer'],t:'Find the vomerine teeth on the roof of the mouth, then compare them with the maxillary teeth along the edge of the upper jaw.'},
+  {find:['m_inares'],t:'Find an internal naris. Where does it lead?'},
+  {find:['m_vocal'],cond:()=>S.sex==='m',t:'This is a male. Find the vocal sac openings near the corners of the lower jaw.'}
+ ],
+ body:[
+  {tool:'pins',t:'Pin the frog belly-up through each hand and foot. Click each hand and foot.',why:'Angle the pins away from the body so they are out of the way while you cut.',
+   tg:[{k:'pin1',sp:Q(-150,300)},{k:'pin2',sp:Q(150,300)},{k:'pin3',sp:Q(-140,612)},{k:'pin4',sp:Q(140,612)}],bad:{scissors:'The frog would slide around in the tray. Pin it down before you cut.',scalpel:'The frog would slide around in the tray. Pin it down before you cut.'}},
+  {tool:'forceps',t:'With the forceps, pinch and lift the loose belly skin just above the hind legs.',why:'Lifting the skin away from the body keeps the scissors from cutting the muscle underneath.',tg:[{k:'lift1',sp:Q(0,392)}],bad:{scissors:'Lift the skin with forceps first, so you cut only skin and not the muscle below.'}},
+  {tool:'scissors',t:'Cut through the skin up the middle of the belly, from the hind legs to the jaw. Drag along the line.',why:'Keep the scissor points angled up so they lift the skin as they cut.',tg:[{k:'cutMid',cut:CUTS.cutMid}],
+   bad:{scalpel:'A scalpel slices deep with very little pressure and could cut into the organs. Use scissors with the points angled up.'}},
+  {tool:'scissors',t:'Make a cut across the chest, toward each front leg.',tg:[{k:'cutTop',cut:CUTS.cutTop}]},
+  {tool:'scissors',t:'Make a cut across the lower belly, toward each hind leg.',tg:[{k:'cutBot',cut:CUTS.cutBot}]},
+  {tool:'pins',t:'Fold back each flap of skin and pin it to the tray. Click each flap.',tg:[{k:'flapL',sp:Q(-50,300)},{k:'flapR',sp:Q(50,300)}],bad:{forceps:'The flaps will fall back unless you pin them down.'}},
+  {find:['b_skinin'],t:'Look at the inside of a skin flap with the hand lens. What are the red and blue lines?'},
+  {find:['b_abvein'],t:'Find the ventral abdominal vein, the dark blue line running down the middle of the belly muscles.'},
+  {tool:'forceps',t:'Lift the belly muscle with the forceps, just to one side of the vein.',tg:[{k:'mlift',sp:Q(14,386)}]},
+  {tool:'scissors',t:'Cut through the muscle up the belly, a little to one side of the midline so you do not cut the vein. Stop at the breastbone.',why:'Keep the points up: the intestines are right under this thin muscle.',tg:[{k:'mcut',cut:CUTS.mcut}],
+   bad:{scalpel:'A scalpel could cut straight through the thin muscle into the intestines. Use scissors with the points up.'}},
+  {tool:'bone',t:'Use the bone cutters to cut through the sternum (breastbone) and shoulder girdle.',why:'Lift up as you cut so you do not damage the heart just underneath.',tg:[{k:'sternum',cut:CUTS.sternum}],
+   bad:{scissors:'Dissecting scissors can be bent or dulled by bone. Use the bone cutters.',scalpel:'A scalpel cannot cut through bone safely. Use the bone cutters.'}},
+  {tool:'scissors',t:'Make cuts across the muscle at the top and bottom, as you did with the skin.',tg:[{k:'mTop',cut:CUTS.mTop},{k:'mBot',cut:CUTS.mBot}]},
+  {tool:'pins',t:'Fold back the muscle flaps and pin them. The body cavity is now open.',tg:[{k:'mflapL',sp:Q(-46,300)},{k:'mflapR',sp:Q(46,300)}]},
+  {next:1,t:'Before you move anything, look at the organs in their natural positions. Use the hand lens to explore, then press <b>Next</b>.'},
+  {find:['b_ventricle','b_ratrium','b_latrium','b_conus'],t:'Find the heart near the top of the body cavity.'},
+  {find:['b_liver'],t:'Find the liver, the large brown organ with three lobes.'},
+  {find:['b_lung'],t:'Find a lung. It peeks out from under the liver on each side.'},
+  {find:['b_stomach'],t:'Find the stomach on the right side of the tray (the frog\'s left side).'},
+  {opt:1,tool:'probe',t:'Use the probe to lift the liver and look for the green gallbladder underneath.',tg:[{k:'liverUp',hit:'b_liver',at:Q(40,280)}],bad:{forceps:'Forceps can tear the soft liver. Lift it gently with the probe.'}},
+  {find:['b_gall'],t:'Find the gallbladder.'},
+  {find:['b_ileum'],t:'Find the small intestine, coiled and held by the clear mesentery.'},
+  {tool:'forceps',t:'Lift out the yellow-orange fat bodies with the forceps.',why:'Removing them gives you room to see the organs underneath.',tg:[{k:'rmFatL',hit:'b_fat',at:Q(-72,360)},{k:'rmFatR',hit:'b_fat',at:Q(72,360)}],bad:{scissors:'The fat bodies are only loosely attached. Lift them out with forceps.'}},
+  {tool:'forceps',cond:()=>S.sex==='f',t:'Gently lift out each ovary. Notice the thousands of eggs.',tg:[{k:'rmOvL',hit:'b_ovary',at:Q(-50,340)},{k:'rmOvR',hit:'b_ovary',at:Q(50,340)}]},
+  {tool:'scissors',t:'Cut the liver free from its attachments and remove it.',tg:[{k:'rmLiver',hit:'b_liver',at:Q(-50,290)}],bad:{forceps:'The liver is attached by blood vessels and ducts. Cut them with scissors first.'}},
+  {tool:'scissors',t:'Cut the blood vessels attached to the heart and remove it.',tg:[{k:'rmHeart',hit:['b_ventricle','b_ratrium','b_latrium','b_conus'],at:Q(0,235)}],bad:{forceps:'The heart is held by large blood vessels. Cut them with scissors first.'}},
+  {tool:'scissors',t:'Cut through the esophagus near the top of the stomach and through the large intestine just above the cloaca.',tg:[{k:'cutEso',sp:Q(8,230)},{k:'cutInt',sp:Q(0,412)}]},
+  {tool:'forceps',t:'Lift out the whole digestive tract and place it in the dish.',tg:[{k:'rmGut',hit:['b_stomach','b_ileum','b_lgint','b_duod','b_mesent','b_pancreas','b_spleen','b_gall'],at:Q(30,320)}],bad:{scissors:'The tract is free at both ends now. Lift it out with forceps.'}},
+  {find:['b_kidney'],t:'Find a kidney against the back wall of the body cavity.'},
+  {find:['b_testis'],cond:()=>S.sex==='m',t:'Find a testis, attached to the front of a kidney.'},
+  {find:['b_oviduct'],cond:()=>S.sex==='f'&&S.level>=11,t:'Find an oviduct, the white coiled tube along the side of the body cavity.'},
+  {tool:'forceps',t:'Remove the lung on the left side of the tray so you can look inside it.',tg:[{k:'rmLung',hit:'b_lung',at:Q(-54,250)}]},
+  {cu:'cutStomach',t:'In the specimen dish below the close-up, choose <b>Digestive tract</b> and press <b>Stomach opened</b>. What did this frog eat?'}
+ ],
+ brain:[
+  {tool:'scalpel',t:'The frog is now back-side up. With the scalpel, make a shallow cut through the skin down the middle of the head, from between the eyes to the neck.',why:'Press lightly: the skull is just under the skin.',tg:[{k:'bcut',cut:CUTS.bcut}],
+   bad:{scissors:'The skin is stretched tight over the skull, so there is no loose skin to start a scissor cut. A light scalpel cut works better.'}},
+  {tool:'forceps',t:'Peel the skin back on each side with the forceps.',tg:[{k:'peelL',sp:[CX-50,420]},{k:'peelR',sp:[CX+50,420]}]},
+  {tool:'bone',t:'Starting at the back of the skull, cut through the bone along each side of the brain case.',why:'Take small bites with the tips angled up so the brain is not crushed.',tg:[{k:'skL',cut:CUTS.skL},{k:'skR',cut:CUTS.skR}],
+   bad:{scissors:'Dissecting scissors are not strong enough for bone. Use the bone cutters.',scalpel:'A scalpel cannot cut through bone safely. Use the bone cutters.'}},
+  {tool:'forceps',t:'Lift away the loose top of the skull to expose the brain.',tg:[{k:'skLift',sp:[CX,400]}]},
+  {find:['br_olf'],t:'Find the olfactory lobes at the front of the brain.'},
+  {find:['br_cereb'],t:'Find the cerebrum (the two cerebral hemispheres).'},
+  {find:['br_optic'],t:'Find the optic lobes, the two round lobes in the middle.'},
+  {find:['br_cbm'],t:'Find the cerebellum, the thin band behind the optic lobes.'},
+  {find:['br_med'],t:'Find the medulla oblongata, where the brain meets the spinal cord.'}
+ ],
+ skel:[
+  {find:['sk_skull'],t:'This is a prepared frog skeleton. Find the skull and notice the huge eye sockets.'},
+  {find:['sk_vert'],t:'Find the vertebrae. Count them: how many are there between the skull and the hips?'},
+  {find:['sk_uro'],t:'Find the urostyle, a bone that only frogs and toads have.'},
+  {find:['sk_ilium'],t:'Find the ilium, part of the pelvic girdle (hip).'},
+  {find:['sk_femur'],t:'Find the femur (thigh bone).'},
+  {find:['sk_tibfib'],t:'Find the tibiofibula. Why is it a single bone?'},
+  {find:['sk_tarsal'],t:'Find the long ankle bones. How do they help the frog jump?'},
+  {find:['sk_radioulna'],t:'Find the radio-ulna in the front leg.'}
+ ]};
+ OY=0;}
+const GOAL={ext:'Explore the outside of the frog. Use the hand lens to identify each structure, and turn the frog over to see both sides.',
+ mouth:'Open the mouth wide, then use the right tool to examine the tongue, a Eustachian tube and the esophagus.',
+ body:()=>`Open the body cavity safely without damaging the organs. Then remove the fat bodies,${S.sex==='f'?' the ovaries,':''} the liver, the heart, the digestive tract and one lung.`,
+ brain:'Expose the brain without crushing it.',skel:'Use the hand lens to identify the bones. Compare them with the bones in your own body.'};
+
+function applicable(st){if(st.cond&&!st.cond())return false;if(S.mode==='own'&&(st.find||st.next||st.opt||st.cu||st.flip))return false;if(st.find&&st.find.every(id=>(INFO[id]||[])[2]>S.level))return false;return true;}
+function stepDone(tab,i){const st=STEPS[tab][i],D=S.d[tab];if(st.tg)return st.tg.every(t=>D.has(t.k));if(st.find)return D.has('f'+i);if(st.next)return D.has('n'+i);if(st.flip)return D.has('flip');if(st.cu)return D.has(st.cu);return true;}
+function curIdx(tab=S.tab){const L=STEPS[tab];for(let i=0;i<L.length;i++){if(!applicable(L[i]))continue;if(!stepDone(tab,i))return i;}return -1;}
+function counts(tab=S.tab){const L=STEPS[tab];let tot=0,done=0;for(let i=0;i<L.length;i++){if(!applicable(L[i]))continue;tot++;if(stepDone(tab,i))done++;}return[done,tot];}
+
+/* ---------------- rendering ---------------- */
+let REGS={};function REG(id,a){if(!REGS[id])REGS[id]=a;}
+function sceneSVG(){REGS={};let o=trayArt()+'<g clip-path="url(#waxClip)">';
+ if(S.tab==='ext')o+=frogOutside(S.dorsal);
+ else if(S.tab==='body')o+=bodyScene();
+ else if(S.tab==='mouth')o+=mouthScene();
+ else if(S.tab==='brain')o+=brainScene();
+ else o+=skelScene();
+ return o+'</g>';}
+function VB(){if(S.tab==='body'&&(S.d.body.has('flapL')||S.d.body.has('flapR')))return[145,60,470,433];
+ if(S.tab==='mouth'&&!(S.d.mouth.has('hL')&&S.d.mouth.has('hR')))return[190,6,380,350];return[0,0,760,700];}
+function render(){const v=VB();tray.setAttribute('viewBox',v.join(' '));const k=v[2]/760;$('labels').style.setProperty('--lf',(13.5*k)+'px');$('labels').style.setProperty('--ls',(3.2*k)+'px');$('labels').style.strokeWidth=(1.2*k);
+ $('scene').innerHTML=sceneSVG();
+ if(S.tab==='mouth'&&S.mouthAnim){S.mouthAnim=false;requestAnimationFrame(()=>requestAnimationFrame(()=>{for(const id of['mUp','mLo']){const g=$(id);if(g)g.style.transform='scaleY(1)';}}));}
+ // level filter: make structures above level non-interactive
+ document.querySelectorAll('#scene [data-id]').forEach(e=>{const inf=INFO[e.dataset.id];if(inf&&inf[2]>S.level){e.removeAttribute('data-id');e.style.cursor='default';}});
+ if(S.soft){document.querySelectorAll('#scene .gore,#scene .noise').forEach(e=>e.remove());document.querySelectorAll('#scene .org,#scene .tex,#scene .bone').forEach(e=>{e.style.filter='drop-shadow(1px 2px 1.5px rgba(0,0,0,.3))';});}
+ if(S.sel)document.querySelectorAll(`#scene [data-id="${S.sel}"]`).forEach(e=>e.classList.add('sel'));
+ drawMarks();drawLabels();panel();tabsUI();toolsUI();closeup();}
+function drawMarks(){let o='';if(S.mode==='own'){for(const [s2,t] of cands()){if(!t.cut||s2.tool!==S.tool)continue;const prog=S.cp[t.k]||0;const sm=sample(t.cut);o+=`<path class="cutGuide faint" d="M${sm.slice(Math.round(prog*(sm.length-1))).map(pt).join('L')}"/>`;}$('marks').innerHTML=o;return;}
+ const i=curIdx();if(i<0){$('marks').innerHTML='';return;}const st=STEPS[S.tab][i],D=S.d[S.tab];
+ const guided=S.mode==='guided';
+ if(st.tg)for(const t of st.tg){if(D.has(t.k))continue;
+  if(t.cut){if(!guided&&S.tool!==st.tool)continue;const prog=S.cp[t.k]||0;const sm=sample(t.cut);const from=sm[Math.round(prog*(sm.length-1))];
+   o+=`<path class="cutGuide${guided?'':' faint'}" d="M${sm.slice(Math.round(prog*(sm.length-1))).map(pt).join('L')}"/>`;if(guided){o+=`<circle cx="${n1(from[0])}" cy="${n1(from[1])}" r="7" class="pulseFill"/><circle cx="${n1(from[0])}" cy="${n1(from[1])}" r="7" fill="none" stroke="#ffd23a" stroke-width="2"/>`;}}
+  else if(guided){const p=t.sp||t.at;o+=`<circle cx="${n1(p[0])}" cy="${n1(p[1])}" r="${t.sp?14:20}" class="pulseFill"/><circle cx="${n1(p[0])}" cy="${n1(p[1])}" r="${t.sp?14:20}" class="pulse"/>`;}}
+ if(st.find&&guided&&S.mode==='guided'&&S.hint){const a=REGS[st.find.find(id=>REGS[id])];if(a)o+=`<circle cx="${a[0]}" cy="${a[1]}" r="22" class="pulse"/>`;}
+ $('marks').innerHTML=o;}
+function drawLabels(){const L=[],R=[];const v=VB(),k=v[2]/760;let colL={ext:178,body:178,mouth:112,brain:118,skel:160}[S.tab],colR=760-colL;if(S.tab==='body'&&k<1){colL=238;colR=522;}else if(k<1){colL=v[0]+70;colR=v[0]+v[2]-70;}const gap=18*k,top=v[1]+14*k,bot=v[1]+v[3]-10*k;
+ for(const id in REGS){const inf=INFO[id];if(!inf||inf[2]>S.level)continue;if(!(S.labels||id===S.sel))continue;const a=REGS[id];(a[0]<CX||(a[0]===CX&&L.length<=R.length)?L:R).push({id,a});}
+ const lay=(arr)=>{arr.sort((p,q)=>p.a[1]-q.a[1]);let y=top;for(const it of arr){it.y=Math.max(it.a[1],y);y=it.y+gap;}if(y-gap>bot){for(let i=arr.length-1,lim=bot;i>=0;i--){arr[i].y=Math.min(arr[i].y,lim);lim=arr[i].y-gap;}}};
+ lay(L);lay(R);let o='';
+ const one=(it,side)=>{const x=side<0?colL:colR;const nm=INFO[it.id][0];o+=`<g class="${it.id===S.sel?'sel':''}"><path d="M${n1(it.a[0])} ${n1(it.a[1])}L${n1(x+(side<0?6:-6)*k)} ${n1(it.y)}H${x}"/><circle cx="${n1(it.a[0])}" cy="${n1(it.a[1])}" r="${n1(3*k)}"/><text x="${n1(x+(side<0?-4:4)*k)}" y="${n1(it.y+4.5*k)}" text-anchor="${side<0?'end':'start'}">${nm}</text></g>`;};
+ L.forEach(it=>one(it,-1));R.forEach(it=>one(it,1));$('labels').innerHTML=o;}
+function tabsUI(){$('tabs').innerHTML=TABS.map(([k,nm],i)=>{const[dn,tot]=counts(k);const fin=tot>0&&dn===tot;return `<button class="tab${k===S.tab?' on':''}${fin?' done':''}" data-tab="${k}" aria-pressed="${k===S.tab}"><span class="n">${fin?'✓':i+1}</span>${nm}</button>`;}).join('');}
+function toolsUI(){let o='';for(const k in TOOLS)o+=`<button class="tool${S.tool===k?' on':''}" data-tool="${k}" aria-pressed="${S.tool===k}" title="${TOOLS[k]}"><svg viewBox="0 0 40 30">${ICON[k]}</svg>${TOOLS[k]}</button>`;
+ o+=`<div class="sep"></div><label class="chk"><input type="checkbox" id="labChk"${S.labels?' checked':''}>Labels</label>`;
+ if(S.tab==='ext')o+=`<button class="flip" id="flipBtn">Turn over</button>`;
+ $('tools').innerHTML=o;$('labChk').onchange=e=>{S.labels=e.target.checked;drawLabels();};
+ if($('flipBtn'))$('flipBtn').onclick=()=>{S.dorsal=!S.dorsal;if(!S.dorsal)S.d.ext.add('flip');S.sel=null;render();};}
+function panel(){const i=curIdx(),L=STEPS[S.tab],[dn,tot]=counts();const guided=S.mode==='guided';let h='',b='';
+ $('procTitle').textContent=guided?'Guided procedure':'On your own';
+ $('procCnt').textContent=tot?(guided?`${dn} of ${tot} steps done`:`${dn} of ${tot} tasks done`):'';
+ if(i<0){h=tot?`<b>This part is finished.</b> ${S.tab==='skel'?'Great work. Every part of the frog has been examined.':'Choose the next tab above to keep going.'}`:'Explore freely with the hand lens.';
+}
+ else{const st=L[i];
+  if(guided){let t=st.t;if(st.view&&(st.view==='d')!==S.dorsal)t+=` <i>(Press Turn over first.)</i>`;
+   h=(st.tool?`<span class="tooltag">${TOOLS[st.tool]}</span>`:st.find?`<span class="tooltag">Hand lens</span>`:'')+t+(st.why?`<div class="why">${st.why}</div>`:'');
+   if(st.next)b+=`<button class="btn go" id="bNext">Next</button>`;
+   if(st.find)b+=`<button class="btn" id="bShow">Show me</button>`;
+   if(st.tg)b+=`<button class="btn" id="bDo">Do it for me</button>`;
+   if(st.find||st.next)b+=`<button class="btn" id="bSkip">Skip</button>`;}
+  else{const g=typeof GOAL[S.tab]==='function'?GOAL[S.tab]():GOAL[S.tab];h=`<b>Explore in any order.</b> ${g} Pick a tool and try it anywhere; the frog reacts the way a real specimen would.`+(S.hint?`<div class="why"><b>Idea:</b> ${st.t.replace(/Drag[^.]*\./,'')}${st.tool?` (Tool: ${TOOLS[st.tool]})`:''}</div>`:'');
+   b+=`<button class="btn" id="bHint">Give me an idea</button>`;}}
+ b+=`<button class="btn sm" id="bReset" style="margin-left:auto">Reset this part</button>`;
+ $('procText').innerHTML=h;$('procBtns').innerHTML=b;
+ const on=(id,f)=>{const e=$(id);if(e)e.onclick=f;};
+ on('bNext',()=>{S.d[S.tab].add('n'+i);advance();});
+ on('bSkip',()=>{const st=L[i];S.d[S.tab].add(st.next?'n'+i:'f'+i);advance();});
+ on('bShow',()=>{const st=L[i];const id=st.find.find(x=>REGS[x]&&INFO[x][2]<=S.level)||st.find[0];select(id);S.d[S.tab].add('f'+i);advance(false);});
+ on('bDo',()=>{const st=L[i];for(const t of st.tg)S.d[S.tab].add(t.k);if(S.tab==='mouth'&&st.tg.some(t=>t.k==='hL'))S.mouthAnim=true;advance();});
+ on('bHint',()=>{S.hint=true;panel();});
+ on('bReset',()=>{S.d[S.tab]=new Set();for(const k in S.cp)if(Object.values(STEPS[S.tab]).some(st=>st.tg&&st.tg.some(t=>t.k===k)))delete S.cp[k];if(S.tab==='ext')S.dorsal=true;S.sel=null;S.cu.dish=null;S.hint=false;banner('This part has been reset.','info');render();});
+ info();}
+function info(){const el=$('info');let id=S.sel;if(S.cu.dish){id={fat:'b_fat',ovary:'b_ovary',liver:'b_liver',heart:'b_heart',gut:'b_gut',lung:'b_lung'}[S.cu.dish];}
+ if(!id||!INFO[id]){el.innerHTML=`<p class="muted">Choose the <b>Hand lens</b> and click any part of the frog to identify it. Each description names the organ system and the main tissues involved.</p>`;return;}
+ const [nm,sys,,a,b,c]=INFO[id];const col=SYS[sys]||'#6B7486';
+ let h=`<h3>${nm} <span class="chip" style="border-color:${col};color:${col}">${sys.toUpperCase()}</span></h3><p>${a}</p>`;
+ if(b)h+=`<p>${b}</p>`;const ts=TISSUE[id]||TISSUE_SYS[sys];if(ts)h+=`<p class="lv"><b>Tissues:</b> ${ts}</p>`;if(c)h+=`<details><summary class="muted" style="cursor:pointer">Going further: keeping the body in balance</summary><p>${c}</p></details>`;
+ el.innerHTML=h;}
+function select(id){S.sel=id;S.cu.dish=null;document.querySelectorAll('#scene .sel').forEach(e=>e.classList.remove('sel'));if(id)document.querySelectorAll(`#scene [data-id="${id}"]`).forEach(e=>e.classList.add('sel'));drawLabels();info();closeup();dishUI();}
+function advance(rerender=true){S.hint=false;const i=curIdx();if(S.mode==='guided'&&i>=0){const st=STEPS[S.tab][i];if(st.tool)S.tool=st.tool;else if(st.find)S.tool='lens';}
+ if(i<0)banner(S.tab==='skel'?'All done! You have examined every part of the frog.':'This part is finished. Choose the next tab to keep going.','ok');
+ if(rerender)render();else{drawMarks();panel();tabsUI();toolsUI();}}
+let bT;function banner(m,k='info'){const b=$('banner');b.textContent=m;b.className='banner '+k;b.style.display='block';clearTimeout(bT);bT=setTimeout(()=>b.style.display='none',k==='bad'?4200:2600);}
+
+/* ---------------- close-up ---------------- */
+const DISH=[['fat','Fat bodies',['rmFatL','rmFatR']],['ovary','Ovaries',['rmOvL','rmOvR']],['liver','Liver',['rmLiver']],['heart','Heart',['rmHeart']],['gut','Digestive tract',['rmGut']],['lung','Lung',['rmLung']]];
+function dishUI(){const D=S.d.body;const items=DISH.filter(([k,,keys])=>keys.some(x=>D.has(x)));
+ $('dish').innerHTML=`<span class="lbl">Specimen dish:</span>`+(items.length?items.map(([k,nm])=>`<button class="btn sm${S.cu.dish===k?' on':''}" data-dish="${k}">${nm}</button>`).join(''):'<span class="empty">Organs you remove will appear here.</span>');}
+function closeup(){const cu=$('cu'),views=$('cuViews');dishUI();
+ if(S.cu.dish){const k=S.cu.dish;const opts={heart:[['out','Outside'],['in','Cut open']],gut:[['out','Outside'],['in','Stomach opened'],['in2','Intestine section']],lung:[['out','Outside'],['in','Cut open']],ovary:[['out','Outside'],['in','Eggs ×20']]}[k]||[['out','Outside']];
+  if(!opts.some(o=>o[0]===S.cu.view))S.cu.view='out';
+  views.innerHTML=opts.length>1?opts.map(([v,nm])=>`<button class="btn sm${S.cu.view===v?' on':''}" data-cuv="${v}">${nm}</button>`).join(''):'';
+  $('cuTitle').textContent=DISH.find(d=>d[0]===k)[1];
+  if(S.cu.view==='out'){OY=-14;REGS_SAVE();let g='';
+   if(k==='fat')g=fatArt(-1)+`<g transform="translate(60,0)">${fatArt(1)}</g>`;else if(k==='ovary')g=ovaryArt(-1)+`<g transform="translate(-30,0)">${ovaryArt(1)}</g>`;
+   else if(k==='liver')g=liverArt()+gallArt();else if(k==='heart')g=heartArt();else if(k==='gut')g=gutArt(true,true)+`<path class="org" d="${tube([P(6,186),P(10,215),P(14,244)],[14,13,15])}" fill="url(#l-stomach)"/>`;
+   else if(k==='lung')g=`<path class="org" d="${closed(H(-1,[[30,206],[46,198],[62,206],[72,228],[76,256],[72,284],[60,300],[46,296],[38,272],[32,240]]))}" fill="url(#r-lung)"/><path d="${tube([P(-30,206),P(-20,192),P(-6,184)],[6,5,5])}" fill="#e8d6c8"/>`;
+   REGS_RESTORE();cu.innerHTML=`<rect x="-2000" y="-2000" width="5000" height="5000" fill="#cfd4da"/><g id="cuG">${g}</g>`;cu.querySelectorAll('[data-id]').forEach(e=>e.removeAttribute('data-id'));
+   const bb=$('cuG').getBBox();fitVB(cu,bb.x,bb.y,bb.width,bb.height,.18);
+   $('cuNote').textContent='Removed organ on a clean dish. '+(opts.length>1?'Use the buttons above to look inside.':'');}
+  else{cu.setAttribute('viewBox','0 0 420 300');cu.innerHTML=DETAIL[k+'_'+S.cu.view]();$('cuNote').textContent='';
+   if(k==='gut'&&S.cu.view==='in'&&!S.d.body.has('cutStomach')){S.d.body.add('cutStomach');setTimeout(()=>{advance();},50);}}
+  setMag(null);return;}
+ views.innerHTML='';
+ $('cuTitle').textContent=S.sel?INFO[S.sel][0]:'Hand lens';
+ cu.innerHTML=`<rect x="-2000" y="-2000" width="5000" height="5000" fill="#151210"/><use href="#scene"/>`;
+ if(S.sel){const els=[...document.querySelectorAll(`#scene [data-id="${S.sel}"]`)];if(els.length){const tr=$('tray'),m=tr.getScreenCTM();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+   for(const e of els){const r=e.getBoundingClientRect();if(!r.width&&!r.height)continue;x0=Math.min(x0,r.left);y0=Math.min(y0,r.top);x1=Math.max(x1,r.right);y1=Math.max(y1,r.bottom);}
+   if(x1>x0){const a=(x0-m.e)/m.a,b=(y0-m.f)/m.d,w=(x1-x0)/m.a,h=(y1-y0)/m.d;const big=Math.max(w,h)<70?(70-Math.max(w,h))/2:0;fitVB(cu,a-big,b-big,w+2*big,h+2*big,.22);}}
+   $('cuNote').textContent='';}
+ else{const p=S.lensAt||[CX,300];const w=170;fitVB(cu,p[0]-w/2,p[1]-w/2,w,w,0);$('cuNote').textContent=S.lensAt?'':'Move the hand lens over the frog to magnify it. Click a structure to identify it.';}
+ setMag();}
+function fitVB(svg,x,y,w,h,pad){const r=svg.getBoundingClientRect();const ar=(r.width||400)/(r.height||300);w*=1+2*pad;h*=1+2*pad;x-=w*pad/(1+2*pad);y-=h*pad/(1+2*pad);
+ const cx=x+w/2,cy=y+h/2;if(w/h<ar)w=h*ar;else h=w/ar;svg.setAttribute('viewBox',`${n1(cx-w/2)} ${n1(cy-h/2)} ${n1(w)} ${n1(h)}`);}
+function setMag(){const cu=$('cu'),tr=$('tray');const a=cu.getScreenCTM(),b=tr.getScreenCTM();if(!a||!b||S.cu.dish){$('cuMag').textContent='';return;}$('cuMag').textContent='×'+(a.a/b.a).toFixed(1);}
+let _rs;function REGS_SAVE(){_rs=REGS;REGS={};}function REGS_RESTORE(){REGS=_rs;}
+
+/* detailed cut-open drawings (original illustrations) */
+const lab=(x,y,tx,ty,t,anchor='start')=>`<g class="lab"><path d="M${x} ${y}L${tx} ${ty}"/><circle cx="${x}" cy="${y}" r="2.5"/><text x="${tx+(anchor==='end'?-3:3)}" y="${ty+4}" text-anchor="${anchor}" style="font-size:13px">${t}</text></g>`;
+const DETAIL={
+ heart_in:()=>{let o=`<rect x="-500" y="-400" width="1420" height="1100" fill="#cfd4da"/><g class="org">`;
+  o+=`<path d="M120 70Q130 30 180 34Q215 36 215 80Q214 120 180 130Q130 132 120 100Z" fill="url(#r-heartA)"/><path d="M220 82Q222 42 262 42Q298 46 298 84Q296 120 262 126Q226 124 220 100Z" fill="url(#r-heartA)"/>`;
+  o+=`<path d="M108 128Q150 112 210 114Q280 112 312 132Q318 190 262 248Q226 282 208 286Q190 280 154 246Q104 194 108 128Z" fill="url(#r-heartV)"/></g>`;
+  o+=`<path d="M138 72Q150 50 178 52Q200 56 200 84Q198 110 176 116Q146 116 138 96Z" fill="#3c1f3a"/><path d="M234 84Q236 60 260 60Q282 62 282 86Q280 108 260 112Q238 110 234 96Z" fill="#3c1f3a"/>`;
+  o+=`<path d="M217 46V128" stroke="#e7c1c8" stroke-width="5"/>`;
+  o+=`<path d="M136 140Q170 130 210 132Q262 130 288 146Q290 190 250 236Q222 262 208 266Q194 262 166 234Q130 196 136 140Z" fill="#6e1c18"/>`;
+  let tr='';const r=rng(5);for(let i=0;i<60;i++){const x=150+r()*125,y=145+r()*100;if(Math.abs(x-210)>(266-y)*0.75)continue;tr+=`M${n1(x)} ${n1(y)}q${n1((r()-.5)*14)} ${n1(4+r()*6)} ${n1((r()-.5)*12)} ${n1(10+r()*8)}`;}
+  o+=`<path d="${tr}" stroke="#c4554a" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  o+=`<path d="M194 128l10 16 6-16M224 130l-8 16-6-16" fill="#f0d0c8" stroke="#9a4a40"/>`;
+  o+=`<g class="org"><path d="${tube([[150,130],[130,96],[120,60],[132,24]],[26,24,22,20])}" fill="url(#l-artery)"/></g><path d="M126 120Q148 100 124 84Q104 66 132 50Q150 38 128 26" stroke="#f6d2c6" stroke-width="4" fill="none"/>`;
+  o+=lab(170,82,60,60,'Right atrium','end')+lab(262,84,330,58,'Left atrium')+lab(217,100,330,110,'Septum')+lab(240,200,330,200,'Ventricle (spongy wall)')+lab(124,96,60,120,'Conus arteriosus','end')+lab(130,70,60,30,'Spiral valve','end')+lab(204,140,60,190,'Valve between chambers','end');return o;},
+ gut_in:()=>{let o=`<rect x="-500" y="-400" width="1420" height="1100" fill="#cfd4da"/>`;
+  const out=`M70 60Q150 30 250 60Q330 90 340 160Q345 220 300 250Q270 268 250 250Q262 214 250 190Q220 140 150 130Q90 125 70 110Q50 85 70 60Z`;
+  o+=`<path class="org" d="${out}" fill="url(#r-stomach)"/><path d="M84 72Q150 50 246 76Q316 102 324 162Q328 214 292 236Q280 242 270 236Q276 206 262 180Q228 126 152 116Q100 112 84 100Q72 86 84 72Z" fill="#e8b9a8"/>`;
+  let rg='';for(let k=0;k<7;k++){const off=k*7;rg+=`M${92+off*.3} ${80+off}Q${170} ${66+off} ${240} ${90+off}Q${300+k} ${116+off} ${306-k*2} ${168+off*.6}`;}
+  o+=`<path d="${rg}" stroke="#c98676" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  o+=`<g><ellipse cx="190" cy="104" rx="16" ry="9" fill="#3a2a1a" transform="rotate(-20 190 104)"/><ellipse cx="190" cy="104" rx="12" ry="5" fill="#6a4a2a" opacity=".6" transform="rotate(-20 190 104)"/><ellipse cx="214" cy="112" rx="14" ry="8" fill="#2a2018" transform="rotate(15 214 112)"/>
+   <path d="M150 96l10 6 8-3 9 7M240 140l12-4 6 8 10-2M262 120l8 10 2 10" stroke="#2a1a10" stroke-width="2" fill="none" stroke-linecap="round"/>
+   <path d="M286 170q20-8 22 12q-14 10-22-12z" fill="#d8d2c0" opacity=".75" stroke="#7a705c"/><path d="M288 172l16 6M292 168l8 12" stroke="#7a705c" stroke-width=".8"/>
+   <circle cx="132" cy="92" r="6" fill="#4a3a1a"/><circle cx="132" cy="92" r="3" fill="#7a6a3a"/></g>`;
+  o+=`<path d="M292 250Q300 268 318 270" stroke="#a88a6a" stroke-width="12" fill="none" stroke-linecap="round"/><ellipse cx="290" cy="248" rx="9" ry="5" fill="#8a6a4a"/>`;
+  o+=lab(150,82,40,30,'Rugae (folds)','start')+lab(200,108,230,24,'Insect remains')+lab(296,176,360,160,'Insect wing')+lab(290,248,360,270,'Pyloric sphincter')+lab(76,90,40,150,'Esophagus end');return o;},
+ gut_in2:()=>{let o=`<rect x="-500" y="-400" width="1420" height="1100" fill="#cfd4da"/>`;
+  o+=`<path d="M210 40L170 0H250Z" fill="#f3e6dc" opacity=".8"/><circle cx="200" cy="18" r="5" fill="#c0392b"/><circle cx="220" cy="20" r="5" fill="#3d5ba8"/>`;
+  o+=`<circle class="org" cx="210" cy="160" r="112" fill="url(#r-gut)"/><circle cx="210" cy="160" r="96" fill="#d9a08c"/>`;
+  let d='';const N=16;for(let i=0;i<=N*8;i++){const a=i/(N*8)*Math.PI*2;const rr=64+24*Math.pow(Math.abs(Math.sin(a*N/2)),.8);d+=(i?'L':'M')+n1(210+Math.cos(a)*rr)+' '+n1(160+Math.sin(a)*rr);}
+  o+=`<circle cx="210" cy="160" r="90" fill="#e6b9a4"/><path d="${d}Z" fill="#4a2e28"/>`;
+  let f='';for(let i=0;i<N;i++){const a=(i+.5)/N*Math.PI*2;f+=`<path d="M${n1(210+Math.cos(a)*90)} ${n1(160+Math.sin(a)*90)}L${n1(210+Math.cos(a)*62)} ${n1(160+Math.sin(a)*62)}" stroke="#c0392b" stroke-width="1" opacity=".5"/>`;}
+  o+=f+`<ellipse cx="200" cy="170" rx="10" ry="6" fill="#8a7a50" opacity=".7"/>`;
+  o+=lab(210,50,300,30,'Mesentery')+lab(300,160,330,190,'Muscle layer')+lab(262,120,330,100,'Folded lining')+lab(206,160,90,260,'Lumen (space)','end')+lab(130,108,60,80,'Blood vessels','end');return o;},
+ lung_in:()=>{let o=`<rect x="-500" y="-400" width="1420" height="1100" fill="#cfd4da"/><clipPath id="lc"><path d="M90 150Q90 70 170 50Q270 34 330 90Q362 140 340 200Q310 262 220 262Q110 258 90 150Z"/></clipPath>`;
+  o+=`<path class="org" d="M80 150Q80 60 170 40Q280 24 340 86Q376 140 350 206Q316 274 220 274Q100 270 80 150Z" fill="url(#r-lung)"/><path d="M90 150Q90 70 170 50Q270 34 330 90Q362 140 340 200Q310 262 220 262Q110 258 90 150Z" fill="#8a4a44"/>`;
+  let hx='';const s=17;for(let r=0;r<16;r++)for(let c=0;c<20;c++){const x=70+c*s*1.5,y=30+r*s*1.73+(c%2?s*.86:0);let p='';for(let k=0;k<6;k++){const a=Math.PI/3*k;p+=(k?'L':'M')+n1(x+Math.cos(a)*s*.98)+' '+n1(y+Math.sin(a)*s*.98);}hx+=p+'Z';}
+  o+=`<g clip-path="url(#lc)"><path d="${hx}" fill="#5a2a26" stroke="#f0c8c0" stroke-width="3.2"/><path d="${hx}" fill="none" stroke="#d05a50" stroke-width=".8" stroke-dasharray="2 3"/></g>`;
+  o+=`<path d="${tube([[80,150],[50,136],[22,130]],[14,11,10])}" fill="#ecdcd0"/>`;
+  o+=lab(205,150,330,26,'Thin walls (septa)')+lab(222,182,350,240,'Air pockets')+lab(60,140,40,190,'Bronchus','start')+lab(338,120,370,100,'Lung wall');return o;},
+ ovary_in:()=>{let o=`<rect x="-500" y="-400" width="1420" height="1100" fill="#e4d6be"/>`;let e='';const r=rng(3);
+  for(let y=0;y<9;y++)for(let x=0;x<12;x++){const cx=20+x*36+(y%2?18:0)+(r()-.5)*4,cy=16+y*34+(r()-.5)*4,rr=15+r()*3;const rot=(r()-.5)*50;e+=`<g transform="rotate(${n1(rot)} ${n1(cx)} ${n1(cy)})"><circle cx="${n1(cx)}" cy="${n1(cy)}" r="${n1(rr)}" fill="url(#eggL)"/><ellipse cx="${n1(cx-5)}" cy="${n1(cy-7)}" rx="4" ry="2.5" fill="#fff" opacity=".55"/></g>`;}
+  o+=e+`<path d="M0 60Q120 90 200 70T420 90M0 200Q140 180 230 210T420 190" stroke="#c0392b" stroke-width="1.3" fill="none" opacity=".55"/>`;
+  o+=lab(200,140,250,24,'Animal pole (pigmented)')+lab(204,158,250,276,'Vegetal pole (yolk)')+lab(90,72,60,40,'Blood vessel','end');return o;}
+};
+
+/* ---------------- interaction ---------------- */
+const tray=$('tray');
+function svgPt(e){const m=tray.getScreenCTM().inverse();return[e.clientX*m.a+e.clientY*m.c+m.e,e.clientX*m.b+e.clientY*m.d+m.f];}
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+let drag=null,hovEl=null;
+function hitId(e){const t=e.target.closest&&e.target.closest('#scene [data-id]');return t?{id:t.dataset.id,k:t.dataset.k||null,el:t}:null;}
+function targetHit(t,p,h){if(t.sp)return dist(p,t.sp)<20;if(t.hit&&h){const ids=[].concat(t.hit);if(!ids.includes(h.id))return false;if(h.k&&/^rm(Fat|Ov)/.test(t.k))return h.k===t.k;if(t.k==='rmLung')return true;return true;}return false;}
+function cutStart(t,p){const prog=S.cp[t.k]||0;const sm=sample(t.cut);const cur=sm[Math.round(prog*(sm.length-1))];if(dist(p,cur)<22)return{rev:false};if(prog===0&&dist(p,sm[sm.length-1])<22)return{rev:true};return null;}
+const M_=['mflapL','mflapR'];
+const NEEDS={flapL:['cutMid','cutTop','cutBot'],flapR:['cutMid','cutTop','cutBot'],mlift:['flapL','flapR'],mcut:['flapL','flapR'],sternum:['flapL','flapR'],mTop:['flapL','flapR'],mBot:['flapL','flapR'],
+ mflapL:['mcut','sternum','mTop','mBot'],mflapR:['mcut','sternum','mTop','mBot'],liverUp:M_,rmFatL:M_,rmFatR:M_,rmOvL:M_,rmOvR:M_,rmLiver:M_,rmHeart:M_,cutInt:M_,cutEso:[...M_,'rmLiver','rmHeart'],rmGut:['cutEso','cutInt'],rmLung:M_,
+ tongue:['hL','hR'],eust:['hL','hR'],eso:['hL','hR'],peelL:['bcut'],peelR:['bcut'],skL:['peelL'],skR:['peelR'],skLift:['skL','skR']};
+const needsMet=k=>(NEEDS[k]||[]).every(x=>S.d[S.tab].has(x));
+function cands(wantBlocked=false){const D=S.d[S.tab],out=[];
+ if(S.mode==='guided'){if(wantBlocked)return out;const i=curIdx();if(i>=0&&STEPS[S.tab][i].tg)for(const t of STEPS[S.tab][i].tg)if(!D.has(t.k))out.push([STEPS[S.tab][i],t]);return out;}
+ for(const st of STEPS[S.tab]){if(!st.tg||(st.cond&&!st.cond()))continue;for(const t of st.tg)if(!D.has(t.k)&&needsMet(t.k)!==wantBlocked)out.push([st,t]);}return out;}
+function wrongTool(st){const guided=S.mode==='guided';const m=(st.bad&&st.bad[S.tool])||({lens:'The hand lens is for looking. This step needs a tool.',pins:'Pins hold things in place in the wax. Is that what this step needs?',forceps:'Forceps grip and lift tissue. They do not cut.',scissors:'Scissors cut whatever is between the blades. Is cutting what this step needs?',scalpel:'A scalpel slices deep with very little pressure. It could cut structures you want to keep.',probe:'A probe is blunt. It is for moving and pointing, not cutting or holding.',bone:'Bone cutters are heavy-duty and only for cutting bone.'}[S.tool]);
+ banner(m+(guided?` Use the ${TOOLS[st.tool]}.`:''),'bad');panel();}
+function laterHit(p,h){const L=STEPS[S.tab],i=curIdx();for(let j=i+1;j<L.length;j++){const st=L[j];if(!applicable(st)||!st.tg)continue;for(const t of st.tg){if(S.d[S.tab].has(t.k))continue;if(t.cut){const sm=sample(t.cut);if(dist(p,sm[0])<16||dist(p,sm[sm.length-1])<16)return st;}else if(targetHit(t,p,h))return st;}}return null;}
+tray.addEventListener('pointerdown',e=>{if(e.button>0)return;const p=svgPt(e),h=hitId(e);const i=curIdx();const st=i>=0?STEPS[S.tab][i]:null;const D=S.d[S.tab];const own=S.mode==='own';
+ const C=cands();
+ for(const [s2,t] of C){if(!t.cut)continue;const cs=cutStart(t,p);if(cs){if(S.tool!==s2.tool){if(S.tool==='lens'&&h)break;wrongTool(s2);return;}
+   if(cs.rev){t.cut=t.cut.slice().reverse();}drag={t,sm:sample(t.cut)};tray.setPointerCapture(e.pointerId);e.preventDefault();return;}}
+ if(S.tab==='body'&&C.some(([,t])=>t.k==='mcut')&&S.tool==='scissors'&&Math.abs(p[0]-CX)<5&&p[1]>P(0,250)[1]&&p[1]<P(0,395)[1]){banner('Careful! Cutting right on the midline would slice the ventral abdominal vein. Start the cut a little to one side.','bad');return;}
+ const hits=C.filter(([,t])=>!t.cut&&targetHit(t,p,h));
+ if(hits.length&&S.tool!=='lens'){const m=hits.find(([s2])=>s2.tool===S.tool);if(m){doTarget(m[1]);return;}wrongTool(hits[0][0]);return;}
+ if(S.tool==='lens'){if(h){select(h.id);if(st&&st.find&&st.find.includes(h.id)){D.add('f'+i);banner('Yes! That is the '+INFO[h.id][0].toLowerCase().replace(/ \(.*\)/,'')+'.','ok');advance(false);drawLabels();}}else select(null);return;}
+ if(!own&&st&&st.find){banner('Use the hand lens to identify structures.','info');return;}
+ if(own){const B=cands(true).filter(([s2,t])=>s2.tool===S.tool&&(t.cut?(()=>{const sm=sample(t.cut);return dist(p,sm[0])<18||dist(p,sm[sm.length-1])<18;})():targetHit(t,p,h)));
+   if(B.length){banner('You can\'t reach that yet. Something is still covering it, or another cut has to come first.','info');return;}
+   banner(h?`The ${TOOLS[S.tool].toLowerCase()} won't do anything useful to the ${INFO[h.id]?INFO[h.id][0].toLowerCase():'tissue'} right now. Try another tool or another spot.`:'Nothing to do there. Try another spot, or use the hand lens to explore.','info');return;}
+ const later=laterHit(p,h);if(later&&S.tool===later.tool){banner('Not yet. Think about what has to happen before this step.','bad');return;}
+ if(st&&st.tg){if(S.tool===st.tool)banner('Not quite there. Follow the yellow marker.','info');else wrongTool(st);}
+ else if(S.tool!=='lens')banner('There is nothing to do with that tool right now. Use the hand lens to explore.','info');});
+tray.addEventListener('pointermove',e=>{const p=svgPt(e);ghost(p);
+ if(drag){const{t,sm}=drag;let prog=Math.round((S.cp[t.k]||0)*(sm.length-1));for(let k=prog+1;k<Math.min(sm.length,prog+10);k++){if(dist(p,sm[k])<16)prog=k;}
+  S.cp[t.k]=prog/(sm.length-1);if(prog>=sm.length-2){S.cp[t.k]=1;drag=null;doTarget(t);return;}
+  // live incision
+  let inc=$('liveCut');if(!inc){inc=document.createElementNS('http://www.w3.org/2000/svg','path');inc.id='liveCut';inc.setAttribute('stroke','#2a0d08');inc.setAttribute('stroke-width','2.2');inc.setAttribute('fill','none');$('marks').appendChild(inc);}
+  inc.setAttribute('d','M'+sm.slice(0,prog+1).map(pt).join('L'));return;}
+ const h=hitId(e);const el=h?h.el:null;if(el!==hovEl){if(hovEl)hovEl.classList.remove('hov');hovEl=el;if(el&&(S.tool==='lens'))el.classList.add('hov');}
+ if(S.tool==='lens'&&!S.sel&&!S.cu.dish){S.lensAt=p;const w=170;fitVB($('cu'),p[0]-w/2,p[1]-w/2,w,w,0);$('cuNote').textContent='';}});
+tray.addEventListener('pointerup',()=>{if(drag){drag=null;render();}});
+tray.addEventListener('pointerleave',()=>{$('ghost').innerHTML='';if(hovEl){hovEl.classList.remove('hov');hovEl=null;}});
+function ghost(p){if(S.tool==='lens'){$('ghost').innerHTML='';tray.classList.remove('cross');return;}tray.classList.add('cross');
+ const k=VB()[2]/760;$('ghost').innerHTML=`<g transform="translate(${n1(p[0]+4*k)} ${n1(p[1]-30*k)}) scale(${n1(1.3*k)})" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:#fff;filter:drop-shadow(0 1px 1.5px #000)">${ICON[S.tool]}</g>`;}
+function doTarget(t){const D=S.d[S.tab];D.add(t.k);
+ const msg={pin4:'The frog is pinned.',lift1:'Skin lifted.',flapR:'Skin flaps pinned back.',flapL:'Skin flap pinned back.',sternum:'The breastbone is cut.',mflapR:'The body cavity is open.',mflapL:'Muscle flap pinned back.',liverUp:'The liver is lifted. Look underneath!',rmLiver:'The liver is in the specimen dish.',rmHeart:'The heart is in the specimen dish.',rmGut:'The digestive tract is in the specimen dish.',rmLung:'The lung is in the specimen dish.',tongue:'The tongue flips forward: it is attached at the front!',skLift:'The brain is exposed.'}[t.k];
+ if(t.k==='hL'||t.k==='hR'){if(D.has('hL')&&D.has('hR')){S.mouthAnim=true;banner('The mouth opens wide.','ok');}}
+ else if(msg)banner(msg,'ok');
+ if(/^rm/.test(t.k)){const dk=DISH.find(d=>d[2].includes(t.k));if(dk&&!(S.sel))S.cu.dish=null;}
+ if(t.k==='rmLiver'||t.k==='rmGut'||t.k==='rmHeart')S.sel=null;
+ advance();}
+
+/* ---------------- controls ---------------- */
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.sel=null;S.cu.dish=null;S.lensAt=null;S.hint=false;const i=curIdx();if(S.mode==='guided'&&i>=0){const st=STEPS[S.tab][i];S.tool=st.tool||'lens';}else S.tool='lens';render();});
+$('tools').addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(!b)return;S.tool=b.dataset.tool;toolsUI();drawMarks();});
+$('dish').addEventListener('click',e=>{const b=e.target.closest('[data-dish]');if(!b)return;S.cu.dish=S.cu.dish===b.dataset.dish?null:b.dataset.dish;S.cu.view='out';S.sel=null;document.querySelectorAll('#scene .sel').forEach(x=>x.classList.remove('sel'));drawLabels();info();closeup();});
+$('cuViews').addEventListener('click',e=>{const b=e.target.closest('[data-cuv]');if(!b)return;S.cu.view=b.dataset.cuv;closeup();});
+$('sex').onchange=e=>{S.sex=e.target.value;S.d.body=new Set();S.d.ext.delete('f6');S.d.ext.delete('f7');S.d.mouth=new Set([...S.d.mouth].filter(k=>k!=='f7'));for(const k in S.cp)if(!/^(h|b|sk)/.test(k))delete S.cp[k];S.sel=null;S.cu.dish=null;banner(`New ${S.sex==='m'?'male':'female'} specimen in the tray. The body cavity dissection starts fresh.`,'info');render();};
+const seg=(id,f)=>$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...$(id).children].forEach(x=>x.classList.toggle('on',x===b));f(b.dataset.v);});
+seg('modeSeg',v=>{S.mode=v;S.hint=false;const i=curIdx();if(v==='guided'&&i>=0){const st=STEPS[S.tab][i];S.tool=st.tool||'lens';}banner(v==='own'?'On your own: explore freely. Choose any tool and work in any order.':'Guided: follow the yellow markers.','info');render();});
+window.addEventListener('resize',()=>{closeup();});
+window.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;const keys={'1':'lens','2':'pins','3':'forceps','4':'scissors','5':'scalpel','6':'probe','7':'bone'};if(keys[e.key]){S.tool=keys[e.key];toolsUI();drawMarks();}});
+
+defineCuts();defineSteps();
+render();
+window.__frog={S,render,STEPS,curIdx,doTarget,advance};
+})();
+</script>
+</body>
+</html>
