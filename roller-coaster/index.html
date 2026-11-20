@@ -13,16 +13,6 @@
   --grid1:#E3E8F1; --grid2:#F2F4F8; --support:#C3CBD8; --platform:#D5DCE8; --rail:#0B1630; --rail2:#6B7486;
 }
 /* dark mode: same colour meanings, brighter so they show on a dark background */
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --navy:#A9C1FF; --ink:#E6EBF5; --card:#1B2537; --cream:#3B2D16; --amberDk:#F4B860;
-  --teal:#3CC4B3; --coral:#FF7A55; --blue:#6E9BFF; --purple:#B79DE6; --grey:#9AA5B8; --line:#2E3A52;
-  --bg:#0E1420; --surface:#151D2C; --on-navy:#0B1630;
-  --grid1:#26314A; --grid2:#19223A; --support:#4A5872; --platform:#4A5872; --rail:#C7D3EC; --rail2:#55627A; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --navy:#A9C1FF; --ink:#E6EBF5; --card:#1B2537; --cream:#3B2D16; --amberDk:#F4B860;
-  --teal:#3CC4B3; --coral:#FF7A55; --blue:#6E9BFF; --purple:#B79DE6; --grey:#9AA5B8; --line:#2E3A52;
-  --bg:#0E1420; --surface:#151D2C; --on-navy:#0B1630;
-  --grid1:#26314A; --grid2:#19223A; --support:#4A5872; --platform:#4A5872; --rail:#C7D3EC; --rail2:#55627A; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
 h1,h2,.eq{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
@@ -79,28 +69,13 @@ sub,sup{font-size:70%}
 @media (max-width:560px){.sliders{grid-template-columns:1fr}}
 
 /* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
-.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2,var(--panel,#fff));color:var(--muted);cursor:pointer}
-.theme-sw:hover{border-color:var(--muted)}
-.theme-sw:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
-.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
-.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
-.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface,var(--panel,#fff))}
-@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
-header .theme-sw{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#C9D2E3;margin-left:6px}
-header .theme-sw:hover{border-color:rgba(255,255,255,.6)}
-header .theme-sw .knob{background:var(--amber)}
-header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"] .moon{color:#0B1630}
-@media (max-width:900px), (max-height:520px){header .theme-sw{margin-left:auto}}
 </style>
-<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
 <header>
   <span class="kicker">SPH4C · ENERGY</span>
   <h1>Roller Coaster Energy Lab</h1>
   <div class="eqs"><span>E<sub>g</sub> = mgh</span><span>E<sub>k</sub> = ½mv²</span><span>E<sub>total</sub> = E<sub>g</sub> + E<sub>k</sub> + E<sub>th</sub></span><span>top of loop: v ≥ √(g r)</span></div>
-  <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
 </header>
 <div class="wrap">
   <div class="stage" id="stage">
@@ -351,8 +326,6 @@ function readColors(){
   ['bg','ink','card','cream','amberDk','teal','coral','purple','grey','navy','grid1','grid2','support','platform','rail','rail2'].forEach(function(n){ C[n] = cs.getPropertyValue('--'+n).trim(); });
 }
 readColors();
-new MutationObserver(function(){ readColors(); if(S) draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ readColors(); if(S) draw(); }); } catch(e) {}
 var VIEW = {};
 function resize(){
   var st = $('stage'), w = st.clientWidth || 1240, h = st.clientHeight || 400, dpr = window.devicePixelRatio || 1;
@@ -509,13 +482,6 @@ resize();
 reset();
 window.__coaster = {simulate:simulate, step:step, newSim:newSim, at:at};
 })();
-</script>
-<script>
-(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
-const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
-const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
-btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
-mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
 </script>
 </body>
 </html>

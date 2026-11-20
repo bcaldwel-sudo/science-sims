@@ -13,18 +13,6 @@
   --scale:#2B2F38; --scale2:#474D5A; --lcd:#0F2A1E; --lcdtext:#8CF5B0; --label:#1A1D2B; --labelbg:rgba(255,255,255,.88);
   --water:#CFE6F5; --cover:rgba(190,215,235,.18);
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#11131B; --surface:#191C27; --card:#212534; --ink:#E4E7F2; --muted:#A0A6BC; --line:#2F3446;
-  --header:#151831; --accent:#8C96F2; --on-accent:#10122A; --good:#58C48A; --warn:#F08A5D;
-  --wall1:#1F2330; --wall2:#191C27; --bench:#2A2F3B; --bench2:#1D2129; --glass:#9DB2C4; --glassfill:rgba(255,255,255,.07);
-  --scale:#0E1015; --scale2:#2D323E; --label:#E4E7F2; --labelbg:rgba(25,28,39,.88);
-  --water:#24445C; --cover:rgba(150,180,210,.10); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#11131B; --surface:#191C27; --card:#212534; --ink:#E4E7F2; --muted:#A0A6BC; --line:#2F3446;
-  --header:#151831; --accent:#8C96F2; --on-accent:#10122A; --good:#58C48A; --warn:#F08A5D;
-  --wall1:#1F2330; --wall2:#191C27; --bench:#2A2F3B; --bench2:#1D2129; --glass:#9DB2C4; --glassfill:rgba(255,255,255,.07);
-  --scale:#0E1015; --scale2:#2D323E; --label:#E4E7F2; --labelbg:rgba(25,28,39,.88);
-  --water:#24445C; --cover:rgba(150,180,210,.10); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
@@ -80,18 +68,6 @@ button{font:inherit}
 #testList ul{margin:2px 0 0;padding-left:18px}
 #testList li{margin:2px 0}
 .none{color:var(--muted)}
-.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2,var(--panel,#fff));color:var(--muted);cursor:pointer}
-.theme-sw:hover{border-color:var(--muted)}
-.theme-sw:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
-.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
-.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
-.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface,var(--panel,#fff))}
-@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
-header .theme-sw{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#C9D2E3;margin-left:6px}
-header .theme-sw:hover{border-color:rgba(255,255,255,.6)}
-header .theme-sw .knob{background:#E8EAF6}
-header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"] .moon{color:var(--header)}
 @media (max-width:1180px){main{grid-template-columns:220px minmax(0,1fr) 230px}.tool span{display:none}.tool{padding:3px 5px}}
 @media (max-width:900px){
   body{overflow:auto;height:auto}
@@ -101,14 +77,12 @@ header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"
 }
 @media (max-height:640px){header{padding:4px 14px}header h1{font-size:18px}main{padding:7px 10px;gap:8px}#right{gap:6px;padding:8px 10px}.rd .v{font-size:19px}#left{gap:8px;padding:8px 10px}}
 </style>
-<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
 <header>
   <span class="kicker">CHEMISTRY LAB</span>
   <h1>Reaction Bench</h1>
   <span class="sub">Mix two reactants, watch closely, and use the tools to look for evidence of a chemical change.</span>
-  <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
 </header>
 <main>
   <section class="panel" id="left" aria-label="Set up">
@@ -694,13 +668,6 @@ try{const u=new URLSearchParams(location.search),i=parseInt(u.get('r'));if(RX[i]
 pick();
 requestAnimationFrame(frame);
 })();
-</script>
-<script>
-(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
-const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
-const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
-btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
-mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
 </script>
 </body>
 </html>
