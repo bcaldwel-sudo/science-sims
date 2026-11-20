@@ -215,30 +215,35 @@ const $=id=>document.getElementById(id);
 const NS='http://www.w3.org/2000/svg';
 const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;};
 
-/* ---------- the science model ----------
-   rate = Pmax x light factor x CO2 factor x temperature factor x colour factor
-   - light: rises steadily until LIGHT_SAT %, then stays flat (light saturation)
-   - CO2: rises steadily until CO2_SAT ppm, then stays flat
+/* ---------- the science model (limiting factors) ----------
+   At 30 °C the oxygen rate is set by whichever factor is in shortest supply:
+     rate(30 °C) = the SMALLER of  [light-limited rate]  and  [CO2-limited rate]
+   then the temperature factor scales it (1 at 30 °C), and coloured light reduces the useful light.
+   Brett's quiz values, all at 30 °C:
+   - 30 % light, 500 ppm: 26.1 mL/h (starting set-up)
+   - 30 % light: O2 is flat from 220 ppm up, and falls steadily to 0 below 220 ppm
+   - 500 ppm: O2 rises with light up to 36 %, then stays flat
+   - maximum 31.3 mL/h, first reached at 36 % light and 270 ppm; nothing at 30 °C goes higher
    - temperature: best near 27 C, falls off fast above about 35 C (enzymes damaged)
    - colour: highest in blue (~440 nm) and red (~675 nm), low in green */
-/* Light saturation point (% light intensity). Above this, more light gives no more oxygen.
-   Brett's quiz: at 30 °C and 500 ppm, O2 flow stops increasing at 36 %. Change this one number to move it. */
-const LIGHT_SAT=36;
-const fLight=L=>Math.min(L,LIGHT_SAT)/LIGHT_SAT;
-/* CO2 saturation point (ppm). Brett's set-up, at 30 % light and 30 °C:
-   from CO2_SAT up, O2 stays at 26.1 mL/h; below it, O2 falls steadily toward 0 at 0 ppm
-   (CO2 becomes the limiting factor). Change this one number to move the level-off point. */
-const CO2_SAT=220;
-const fCO2=C=>Math.min(C,CO2_SAT)/CO2_SAT;
+const START={light:30,co2:500,temp:30,white:true,wl:450}, START_O2=26.1;
+const LIGHT_SAT=36;                                   /* % light where O2 stops rising */
+const PER_LIGHT=START_O2/START.light;                 /* 0.87 mL/h per % light */
+const O2_TOP=PER_LIGHT*LIGHT_SAT;                     /* 31.32 mL/h, the most possible at 30 °C */
+/* CO2-limited rate: straight lines through these points (ppm, mL/h), flat after the last one */
+const CO2_PTS=[[0,0],[220,START_O2],[270,O2_TOP]];
+function co2Limit(C){
+  const P=CO2_PTS;
+  if(C>=P[P.length-1][0])return P[P.length-1][1];
+  for(let i=1;i<P.length;i++)if(C<=P[i][0]){const[a,ya]=P[i-1],[b,yb]=P[i];return ya+(yb-ya)*(C-a)/(b-a);}
+}
+const lightLimit=L=>PER_LIGHT*Math.min(L,LIGHT_SAT);
 const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
 const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
 const fColour=w=>Math.min(1,0.95*g(w,440,38)+0.9*g(w,675,30)+0.14*g(w,560,90));
-/* starting set-up: 30 % light, 30 °C, 500 ppm CO2 gives exactly 26.1 mL/h of oxygen */
-const START={light:30,co2:500,temp:30,white:true,wl:450}, START_O2=26.1;
-const PMAX=START_O2/(fLight(START.light)*fCO2(START.co2)*fTemp(START.temp));
 function trueRate(s){
   const c=s.white?1:fColour(s.wl);
-  return PMAX*fLight(s.light)*fCO2(s.co2)*fTemp(s.temp)*c;
+  return Math.min(lightLimit(s.light*c),co2Limit(s.co2))*fTemp(s.temp)/fTemp(30);
 }
 /* No random variation: the same settings always give exactly the same O2 value (used for quiz questions). */
 const S={...START};
