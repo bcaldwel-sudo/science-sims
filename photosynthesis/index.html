@@ -217,11 +217,14 @@ const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const
 
 /* ---------- the science model ----------
    rate = Pmax x light factor x CO2 factor x temperature factor x colour factor
-   - light: rises quickly then levels off (light saturation)
+   - light: rises steadily until LIGHT_SAT %, then stays flat (light saturation)
    - CO2: rises then levels off
    - temperature: best near 27 C, falls off fast above about 35 C (enzymes damaged)
    - colour: highest in blue (~440 nm) and red (~675 nm), low in green */
-const fLight=L=>(1-Math.exp(-L/28))/(1-Math.exp(-100/28));
+/* Light saturation point (% light intensity). Above this, more light gives no more oxygen.
+   Brett's quiz: at 30 °C and 500 ppm, O2 flow stops increasing at 36 %. Change this one number to move it. */
+const LIGHT_SAT=36;
+const fLight=L=>Math.min(L,LIGHT_SAT)/LIGHT_SAT;
 const fCO2=C=>(C/(C+200))*1.2;
 const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
 const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
