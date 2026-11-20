@@ -215,27 +215,53 @@ const $=id=>document.getElementById(id);
 const NS='http://www.w3.org/2000/svg';
 const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;};
 
-/* ---------- the science model ----------
-   rate = Pmax x light factor x CO2 factor x temperature factor x colour factor
-   - light: rises steadily until LIGHT_SAT %, then stays flat (light saturation)
-   - CO2: rises then levels off
-   - temperature: best near 27 C, falls off fast above about 35 C (enzymes damaged)
-   - colour: highest in blue (~440 nm) and red (~675 nm), low in green */
-/* Light saturation point (% light intensity). Above this, more light gives no more oxygen.
-   Brett's quiz: at 30 °C and 500 ppm, O2 flow stops increasing at 36 %. Change this one number to move it. */
-const LIGHT_SAT=36;
-const fLight=L=>Math.min(L,LIGHT_SAT)/LIGHT_SAT;
-const fCO2=C=>(C/(C+200))*1.2;
-const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
-const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
-const fColour=w=>Math.min(1,0.95*g(w,440,38)+0.9*g(w,675,30)+0.14*g(w,560,90));
-/* starting set-up: 30 % light, 30 °C, 500 ppm CO2 gives exactly 26.1 mL/h of oxygen */
+/* ---------- the science model (limiting factors) ----------
+   The oxygen rate is held back by whichever factor is in shortest supply:
+     rate = the SMALLER of  [light-limited rate]  and  [CO2-limited rate]
+   Temperature sets the most the plant can do (MAX) and where light and CO2 stop helping.
+   Brett's quiz values (white light):
+     30 °C: start 30 % / 500 ppm = 26.1 mL/h; at 30 % light, flat from 220 ppm up, falls to 0 below;
+            at 500 ppm, light stops helping at 36 %; max 31.3 mL/h first at 36 % and 270 ppm
+     25 °C: max 51.8 mL/h first at 79 % light and 570 ppm
+     20 °C: max 41.7 mL/h first at 50 % light and 370 ppm
+   Coloured light: blue (~440 nm) and red (~675 nm) work best, green poorly (it reduces the useful light). */
 const START={light:30,co2:500,temp:30,white:true,wl:450}, START_O2=26.1;
-const PMAX=START_O2/(fLight(START.light)*fCO2(START.co2)*fTemp(START.temp));
+const O2_TOP30=START_O2*36/30;                        /* 31.32 mL/h, the most possible at 30 °C */
+/* most oxygen possible at each temperature (mL/h); straight lines in between.
+   Rises to a peak at 25 °C, then falls fast as enzymes are damaged. */
+const MAX_PTS=[[0,4],[5,8],[10,16],[15,28],[20,41.7],[25,51.8],[30,O2_TOP30],[35,12],[40,3],[45,0.5]];
+/* where light (%) and CO2 (ppm) stop helping, at Brett's three temperatures */
+const SAT_PTS=[[20,50,370],[25,79,570],[30,36,270]];
+const lerp=(P,x,k=1)=>{if(x<=P[0][0])return P[0][k];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[k]+(b[k]-a[k])*(x-a[0])/(b[0]-a[0]);}return P[P.length-1][k];};
+const maxAt=T=>lerp(MAX_PTS,T);
+function satAt(T){
+  /* between 20 and 30 °C: straight lines between Brett's points. Outside: scale the nearest point with the max. */
+  if(T>=20&&T<=30)return [lerp(SAT_PTS,T,1),lerp(SAT_PTS,T,2)];
+  const e=T<20?SAT_PTS[0]:SAT_PTS[2], r=maxAt(T)/maxAt(e[0]);
+  return [e[1]*r,e[2]*r];
+}
+/* Light curve shape (fraction of the light level-off point -> fraction of max): two straight lines
+   with a bend. At 30 °C it is one straight line (so 30 % light gives exactly 26.1). At 20-25 °C it rises
+   faster in dim light, so a warm-but-not-hot plant does better than at 30 °C in the same light,
+   while still rising clearly (about 0.3-0.4 mL/h per %) right up to the level-off point. */
+const KNEE_PTS=[[20,0.5,0.75],[25,0.4,0.75],[30,0.5,0.5]];
+function lightShape(x,T){
+  if(x>=1)return 1;
+  const kx=lerp(KNEE_PTS,T,1), ky=lerp(KNEE_PTS,T,2);
+  return x<=kx?ky*x/kx:ky+(1-ky)*(x-kx)/(1-kx);
+}
+/* CO2 curve shape (fraction of the CO2 level-off point -> fraction of max). At 30 °C this gives
+   0 ppm -> 0, 220 ppm -> 26.1, 270 ppm -> 31.32, flat above. */
+const CO2_SHAPE=[[0,0],[220/270,START_O2/O2_TOP30],[1,1]];
 function trueRate(s){
   const c=s.white?1:fColour(s.wl);
-  return PMAX*fLight(s.light)*fCO2(s.co2)*fTemp(s.temp)*c;
+  const M=maxAt(s.temp), [Ls,Cs]=satAt(s.temp);
+  const lightLim=M*lightShape(s.light*c/Ls,s.temp);
+  const co2Lim=M*(s.co2>=Cs?1:lerp(CO2_SHAPE,s.co2/Cs));
+  return Math.min(lightLim,co2Lim);
 }
+const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
+const fColour=w=>Math.min(1,0.95*g(w,440,38)+0.9*g(w,675,30)+0.14*g(w,560,90));
 /* No random variation: the same settings always give exactly the same O2 value (used for quiz questions). */
 const S={...START};
 let target=0, shown=0, vol=0, simMin=0;
@@ -366,7 +392,7 @@ function frame(now){
 const TYP=0.5;
 /* the starting set-up is the "typical" level, so every bar starts on the dashed line */
 const O2_TYP=START_O2;
-const O2_MAX=trueRate({light:100,co2:1000,temp:27,white:true});   /* best possible rate in this model */
+const O2_MAX=Math.max(...MAX_PTS.map(p=>p[1]));   /* best possible rate in this model (51.8 at 25 °C) */
 const scaleTo=(v,typ,max)=>{v=Math.max(0,Math.min(max,v));return v<=typ?TYP*v/typ:TYP+(1-TYP)*(v-typ)/(max-typ);};
 const TOP=0.9;                        /* full range fills 90% of the plot, leaving room for numbers */
 $('typLine').style.bottom=(TYP*TOP*100)+'%';
