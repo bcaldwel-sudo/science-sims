@@ -5,29 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pondweed Photosynthesis Lab</title>
 <style>
-/* Layout: lab bench diagram + controls on the left, graph over data table on the right; one laptop screen, no page scroll. */
+/* Layout: lab bench diagram + controls on the left, bar graph over data table on the right; one laptop screen, no page scroll. */
 :root{
+  color-scheme:light;
   --bg:#EEF3EF; --surface:#FFFFFF; --card:#E6EEE8; --ink:#16251C; --muted:#56685C; --line:#CFDBD2;
   --header:#12352A; --accent:#1F7A4D; --on-accent:#FFFFFF; --amber:#F2B63D;
   --water:#D4EAF5; --water2:#B9DCEE; --glass:#7E9AA8; --glassfill:rgba(255,255,255,.35);
   --gas:#FFFFFF; --leaf:#2F8A3E; --leaf2:#5DB34F; --stem:#3E7A2E;
   --metal:#7C878F; --metal2:#B5BEC4; --bench:#C9A97E; --bench2:#A88458; --box:#3A4650; --screen:#0F2A1E; --screentext:#7CF0A6;
   --red:#D33A3A; --tick:#4A5A62; --grid1:#DCE5DF; --grid2:#EEF3EF; --pt:#1F7A4D;
+  --b1:#E8A317; --b2:#D33A3A; --b3:#3A6FC4; --b4:#1F8A4D;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0D1612; --surface:#14201A; --card:#1B2A22; --ink:#E3EEE6; --muted:#9DB2A4; --line:#2A3C31;
-  --header:#0A241B; --accent:#4CC383; --on-accent:#08170F;
-  --water:#163447; --water2:#1D4560; --glass:#8FB0C0; --glassfill:rgba(255,255,255,.06);
-  --gas:#E8F4FA; --leaf:#45A957; --leaf2:#7BD06A; --stem:#5C9B48;
-  --metal:#8C979F; --metal2:#5A646B; --bench:#5B4630; --bench2:#46351F; --box:#29323A; --screen:#06140D;
-  --tick:#B4C4CC; --grid1:#26362D; --grid2:#18241D; --pt:#4CC383; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0D1612; --surface:#14201A; --card:#1B2A22; --ink:#E3EEE6; --muted:#9DB2A4; --line:#2A3C31;
-  --header:#0A241B; --accent:#4CC383; --on-accent:#08170F;
-  --water:#163447; --water2:#1D4560; --glass:#8FB0C0; --glassfill:rgba(255,255,255,.06);
-  --gas:#E8F4FA; --leaf:#45A957; --leaf2:#7BD06A; --stem:#5C9B48;
-  --metal:#8C979F; --metal2:#5A646B; --bench:#5B4630; --bench2:#46351F; --box:#29323A; --screen:#06140D;
-  --tick:#B4C4CC; --grid1:#26362D; --grid2:#18241D; --pt:#4CC383; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
 h1,h2,.num{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
@@ -51,6 +39,9 @@ header .eq small{font-size:12px;color:#A9C4B4}
 .controls{flex:none;padding:7px 12px 8px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:3px}
 .slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .slider label{font-weight:700;white-space:nowrap}
+.numin{font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap}
+.numin input{width:62px;font:inherit;color:var(--accent);background:var(--surface);border:2px solid var(--line);border-radius:7px;padding:0 4px;text-align:right;font-variant-numeric:tabular-nums}
+.numin input:hover{border-color:var(--accent)}
 .slider output{font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--accent);height:20px;margin:0}
 input[type=range]:disabled{opacity:.35}
@@ -64,16 +55,20 @@ button{font:inherit;font-weight:700;border-radius:9px;border:2px solid var(--acc
 button.go{background:var(--accent);color:var(--on-accent)}
 button:disabled{opacity:.45;cursor:default}
 button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.graphcard{flex:1;min-height:170px;display:flex;flex-direction:column;padding:6px 10px 6px}
-.gtop{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
-.gtop h2{margin:0;font-size:16px}
-.axis{display:flex;gap:4px 12px;flex-wrap:wrap;align-items:center;font-size:14px}
-.axis b{font-size:13px;color:var(--muted)}
-.axis label{display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
-.axis input{accent-color:var(--accent);margin:0}
-.gbox{flex:1;min-height:0;position:relative}
-.gbox canvas{position:absolute;inset:0;width:100%;height:100%}
+.graphcard{flex:1;min-height:220px;display:flex;flex-direction:column;padding:8px 14px 10px;gap:6px}
+.graphcard h2{margin:0;font-size:16px}
+.plot{flex:1;min-height:0;position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0 5%;padding:0 2% 0 66px;border-bottom:2px solid var(--ink)}
+.bcol{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.bar{width:70%;max-width:90px;border-radius:7px 7px 0 0;transition:height .35s ease;height:0;position:relative}
+.bval{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:3px;font-family:Cambria,Georgia,serif;font-weight:700;font-size:16px;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink);visibility:hidden}
+.plot.nums .bval{visibility:visible}
+.typ{position:absolute;left:0;right:0;border-top:2px dashed var(--muted);opacity:.75;pointer-events:none}
+.typ span{position:absolute;left:0;width:58px;top:0;transform:translateY(-50%);font-size:12px;line-height:1.1;text-align:right;color:var(--muted);font-weight:700;background:var(--surface);padding:1px 4px 1px 0}
+.blabels{display:grid;grid-template-columns:repeat(4,1fr);gap:0 5%;padding:0 2% 0 66px;text-align:center;font-weight:700;font-size:14px;line-height:1.15}
+.blabels small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.bfoot{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
 .tip{font-size:12.5px;color:var(--muted)}
+.b-light{background:var(--b1)} .b-temp{background:var(--b2)} .b-co2{background:var(--b3)} .b-o2{background:var(--b4)}
 .tablecard{flex:none;height:clamp(150px,30vh,230px);display:flex;flex-direction:column;padding:6px 10px 8px;gap:5px}
 .trow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .trow h2{margin:0 auto 0 0;font-size:16px}
@@ -109,34 +104,18 @@ sub,sup{font-size:70%}
   body{overflow:auto;height:auto}
   .wrap{grid-template-columns:1fr}
   .stage{flex:none;height:62vw;min-height:240px}
-  .graphcard{flex:none;height:330px}
+  .graphcard{flex:none;height:340px}
   header .eq{display:none}
 }
 @media (max-width:560px){.controls{grid-template-columns:1fr}.readouts{grid-template-columns:1fr 1fr}}
 
-/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
-.theme-sw{box-sizing:border-box;min-width:0;min-height:0;line-height:0;font:inherit;flex:none;align-self:center;position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0;margin:0 0 0 auto;border:1px solid var(--line);border-radius:999px;background:var(--surface-2,var(--panel,#fff));color:var(--muted);cursor:pointer}
-.theme-sw:hover{border-color:var(--muted)}
-.theme-sw:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.theme-sw .knob{position:absolute;top:2px;left:2px;width:26px;height:24px;border-radius:999px;background:var(--ink);transition:transform .2s ease}
-.theme-sw[aria-checked="true"] .knob{transform:translateX(28px)}
-.theme-sw svg{position:relative;width:16px;height:16px;justify-self:center;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:color .2s}
-.theme-sw[aria-checked="false"] .sun,.theme-sw[aria-checked="true"] .moon{color:var(--surface,var(--panel,#fff))}
-@media (prefers-reduced-motion: reduce){.theme-sw .knob,.theme-sw svg{transition:none}}
-header .theme-sw{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#C9D2E3;margin-left:6px}
-header .theme-sw:hover{border-color:rgba(255,255,255,.6)}
-header .theme-sw .knob{background:var(--amber)}
-header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"] .moon{color:#0B1630}
-@media (max-width:900px), (max-height:500px){header .theme-sw{margin-left:auto}}
 </style>
-<script>/* apply a saved light/dark choice before the page draws */try{var t=localStorage.getItem('sims-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 </head>
 <body>
 <header>
   <span class="kicker">GRADE 9 · PLANTS</span>
   <h1>Pondweed Photosynthesis Lab</h1>
   <div class="eq">carbon dioxide + water <small>(light energy)</small> → glucose + oxygen</div>
-  <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><span class="knob" aria-hidden="true"></span><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
 </header>
 <div class="wrap">
   <div class="col">
@@ -162,7 +141,7 @@ header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"
         <!-- water bath heater/cooler -->
         <rect class="box" x="248" y="352" width="278" height="30" rx="4"/>
         <rect class="screen" x="420" y="358" width="72" height="18" rx="3"/>
-        <text class="stxt" x="456" y="372" text-anchor="middle" id="heatTxt">20 °C</text>
+        <text class="stxt" x="456" y="372" text-anchor="middle" id="heatTxt">30 °C</text>
         <circle class="metal2" cx="270" cy="367" r="6"/>
         <!-- beaker water -->
         <g clip-path="url(#beakerClip)">
@@ -203,7 +182,7 @@ header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"
         <rect class="metal" x="292" y="150" width="8" height="70" rx="3"/>
         <rect class="box" x="176" y="316" width="84" height="64" rx="6"/>
         <rect class="screen" x="184" y="324" width="68" height="22" rx="3"/>
-        <text class="stxt" x="218" y="340" text-anchor="middle" id="co2Txt">400 ppm</text>
+        <text class="stxt" x="218" y="340" text-anchor="middle" id="co2Txt">500 ppm</text>
         <text x="218" y="366" text-anchor="middle" style="fill:#C9D6DE;font:700 11px Calibri,Carlito,Arial,sans-serif">CO₂ meter</text>
         <!-- lamp -->
         <ellipse class="metal" cx="70" cy="379" rx="40" ry="6"/>
@@ -238,35 +217,34 @@ header .theme-sw[aria-checked="false"] .sun,header .theme-sw[aria-checked="true"
       <button id="emptyBtn" title="Refill the tube with water and restart the clock">Empty tube</button>
     </div>
     <section class="card controls" aria-label="Experiment controls">
-      <div class="slider"><div class="top"><label for="light">Light intensity</label><output id="lightO" for="light"></output></div>
-        <input type="range" id="light" min="0" max="100" step="1" value="50"></div>
-      <div class="slider"><div class="top"><label for="co2">CO₂ level</label><output id="co2O" for="co2"></output></div>
-        <input type="range" id="co2" min="0" max="1000" step="10" value="400"></div>
+      <div class="slider"><div class="top"><label for="light">Light intensity</label><span class="numin"><input type="number" id="lightN" min="0" max="100" step="1" value="30" aria-label="Type light intensity (%)"> %</span></div>
+        <input type="range" id="light" min="0" max="100" step="1" value="30"></div>
+      <div class="slider"><div class="top"><label for="co2">CO₂ level</label><span class="numin"><input type="number" id="co2N" min="0" max="1000" step="5" value="500" aria-label="Type CO₂ level (ppm)"> ppm</span></div>
+        <input type="range" id="co2" min="0" max="1000" step="5" value="500"></div>
       <div class="slider"><div class="top"><label for="temp">Temperature</label><output id="tempO" for="temp"></output></div>
-        <input type="range" id="temp" min="0" max="45" step="1" value="20"></div>
+        <input type="range" id="temp" min="0" max="45" step="1" value="30"></div>
       <div class="slider"><div class="top"><span class="seg" role="group" aria-label="Light colour"><button type="button" id="whiteBtn" aria-pressed="true">White light</button><button type="button" id="colBtn" aria-pressed="false">Coloured light</button></span><output id="wlO" for="wl"></output></div>
         <input type="range" id="wl" min="380" max="750" step="5" value="450" aria-label="Light wavelength (nanometres)" disabled></div>
     </section>
   </div>
   <div class="col">
-    <section class="card graphcard" aria-label="Graph">
-      <div class="gtop">
-        <h2>Oxygen production graph</h2>
-        <div class="axis" role="radiogroup" aria-label="x-axis"><b>x-axis:</b>
-          <label><input type="radio" name="xax" value="light" checked> Light intensity</label>
-          <label><input type="radio" name="xax" value="co2"> CO₂</label>
-          <label><input type="radio" name="xax" value="temp"> Temperature</label>
-          <label><input type="radio" name="xax" value="wl"> Wavelength</label>
-        </div>
+    <section class="card graphcard" aria-label="Bar graph of the current set-up">
+      <h2>Current set-up</h2>
+      <div class="plot" id="plot">
+        <div class="typ" id="typLine"><span>typical<br>level</span></div>
+        <div class="bcol"><div class="bar b-light" id="barLight"><span class="bval" id="valLight"></span></div></div>
+        <div class="bcol"><div class="bar b-temp" id="barTemp"><span class="bval" id="valTemp"></span></div></div>
+        <div class="bcol"><div class="bar b-co2" id="barCO2"><span class="bval" id="valCO2"></span></div></div>
+        <div class="bcol"><div class="bar b-o2" id="barO2"><span class="bval" id="valO2"></span></div></div>
       </div>
-      <div class="gbox"><canvas id="graph"></canvas></div>
-      <div class="tip" id="gtip">Change one thing at a time, and press “Record data” after each change.</div>
+      <div class="blabels"><div>Light intensity<small>(%)</small></div><div>Temperature<small>(°C)</small></div><div>CO₂ level<small>(ppm)</small></div><div>O₂ flow<small>(mL/h)</small></div></div>
+      <div class="bfoot"><button id="numBtn" aria-pressed="false">Show numerical values</button></div>
+      <div class="tip">Bars above the dashed line are higher than typical. Bars below it are lower.</div>
     </section>
     <section class="card tablecard" aria-label="Data table">
       <div class="trow">
         <h2>Data table</h2>
         <button class="go" id="recBtn">Record data</button>
-        <button id="csvBtn">Download CSV</button>
         <button id="copyBtn">Copy table</button>
         <button id="clearBtn">Clear all</button>
       </div>
@@ -290,12 +268,14 @@ const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const
    - CO2: rises then levels off
    - temperature: best near 27 C, falls off fast above about 35 C (enzymes damaged)
    - colour: highest in blue (~440 nm) and red (~675 nm), low in green */
-const PMAX=40;
 const fLight=L=>(1-Math.exp(-L/28))/(1-Math.exp(-100/28));
 const fCO2=C=>(C/(C+200))*1.2;
 const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
 const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
 const fColour=w=>Math.min(1,0.95*g(w,440,38)+0.9*g(w,675,30)+0.14*g(w,560,90));
+/* starting set-up: 30 % light, 30 °C, 500 ppm CO2 gives exactly 26.1 mL/h of oxygen */
+const START={light:30,co2:500,temp:30,white:true,wl:450}, START_O2=26.1;
+const PMAX=START_O2/(fLight(START.light)*fCO2(START.co2)*fTemp(START.temp));
 function trueRate(s){
   const c=s.white?1:fColour(s.wl);
   return PMAX*fLight(s.light)*fCO2(s.co2)*fTemp(s.temp)*c;
@@ -303,7 +283,7 @@ function trueRate(s){
 /* tiny measurement variation (about ±1.5%), new each time a setting changes */
 function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 let noise=1;
-const S={light:50,co2:400,temp:20,white:true,wl:450};
+const S={...START};
 let target=0, shown=0, vol=0, simMin=0;
 
 /* ---------- colour of light ---------- */
@@ -358,8 +338,8 @@ const thY=T=>320-T*4.4;
 const light=$('light'),co2=$('co2'),temp=$('temp'),wl=$('wl');
 function readControls(){S.light=+light.value;S.co2=+co2.value;S.temp=+temp.value;S.wl=+wl.value;}
 function updateScene(){
-  $('lightO').textContent=S.light+' %';
-  $('co2O').textContent=S.co2+' ppm';
+  if(document.activeElement!==$('lightN'))$('lightN').value=S.light;
+  if(document.activeElement!==$('co2N'))$('co2N').value=S.co2;
   $('tempO').textContent=S.temp+' °C';
   $('wlO').textContent=S.white?'':`${S.wl} nm · ${wlName(S.wl)}`;
   wl.disabled=S.white;
@@ -378,8 +358,20 @@ function updateScene(){
   $('co2Txt').textContent=S.co2+' ppm';
   const y=thY(S.temp);$('thermo').setAttribute('y',y);$('thermo').setAttribute('height',336-y);
 }
-function changed(){readControls();noise=1+0.015*Math.max(-2,Math.min(2,gauss()));target=trueRate(S)*noise;updateScene();}
+function changed(){readControls();noise=1+0.015*Math.max(-2,Math.min(2,gauss()));target=trueRate(S)*noise;updateScene();drawGraph();}
 [light,co2,temp,wl].forEach(el=>el.addEventListener('input',changed));
+/* typed values: update as they type (if valid), tidy up when they leave the box or press Enter */
+[[light,$('lightN')],[co2,$('co2N')]].forEach(([sl,box])=>{
+  const max=+box.max;
+  const apply=fix=>{let v=parseFloat(box.value);
+    if(isNaN(v)){if(fix)box.value=sl.value;return;}
+    v=Math.round(Math.max(0,Math.min(max,v))/+sl.step)*+sl.step;sl.value=v;S[sl.id]=v;
+    if(fix)box.value=v;changed();};
+  box.addEventListener('input',()=>apply(false));
+  box.addEventListener('change',()=>apply(true));
+  box.addEventListener('blur',()=>apply(true));
+  box.addEventListener('keydown',e=>{if(e.key==='Enter'){apply(true);box.select();}});
+});
 $('whiteBtn').onclick=()=>{S.white=true;changed();};
 $('colBtn').onclick=()=>{S.white=false;changed();};
 $('emptyBtn').onclick=()=>{vol=0;simMin=0;bubbles.forEach(b=>b.el.remove());bubbles.length=0;};
@@ -403,6 +395,7 @@ function frame(now){
   $('rateV').textContent=shown.toFixed(1)+' mL/h';
   $('volV').textContent=vol.toFixed(1)+' mL';
   $('timeV').textContent=Math.floor(simMin)+' min';
+  drawO2();
   /* bubbles: more bubbles when the rate is higher */
   if(!reduce){
     spawnAcc+=dt*shown*0.35;
@@ -426,15 +419,15 @@ function renderTable(flashLast){
   rows.forEach((r,i)=>{const tr=document.createElement('tr');if(flashLast&&i===rows.length-1)tr.className='new';
     const sw=`<span class="sw" style="background:${r.white?'#FFF3B0':wlRGB(r.wl)}"></span>`;
     tr.innerHTML=`<td>${r.n}</td><td>${r.light}</td><td>${sw}${colourText(r)}</td><td>${r.co2}</td><td>${r.temp}</td><td class="o2v">${r.o2.toFixed(1)}</td><td><button class="del" title="Delete trial ${r.n}" aria-label="Delete trial ${r.n}">×</button></td>`;
-    tr.querySelector('button').onclick=()=>{rows.splice(i,1);renderTable();drawGraph();};
+    tr.querySelector('button').onclick=()=>{rows.splice(i,1);renderTable();};
     tbody.appendChild(tr);});
   if(flashLast){const sc=tbody.closest('.tscroll');sc.scrollTop=sc.scrollHeight;}
 }
 function say(t){$('msg').textContent=t;clearTimeout(say.t);say.t=setTimeout(()=>$('msg').textContent='',4000);}
-$('recBtn').onclick=()=>{rows.push({n:++trialNo,light:S.light,white:S.white,wl:S.wl,co2:S.co2,temp:S.temp,o2:Math.round(target*10)/10});renderTable(true);drawGraph();};
+$('recBtn').onclick=()=>{rows.push({n:++trialNo,light:S.light,white:S.white,wl:S.wl,co2:S.co2,temp:S.temp,o2:Math.round(target*10)/10});renderTable(true);};
 $('clearBtn').onclick=()=>{
   if(!rows.length)return;
-  if($('clearBtn').dataset.sure){rows.length=0;trialNo=0;renderTable();drawGraph();delete $('clearBtn').dataset.sure;$('clearBtn').textContent='Clear all';say('Table cleared.');}
+  if($('clearBtn').dataset.sure){rows.length=0;trialNo=0;renderTable();delete $('clearBtn').dataset.sure;$('clearBtn').textContent='Clear all';say('Table cleared.');}
   else{$('clearBtn').dataset.sure='1';$('clearBtn').textContent='Sure? Click again';setTimeout(()=>{delete $('clearBtn').dataset.sure;$('clearBtn').textContent='Clear all';},3000);}
 };
 function csvText(sep){
@@ -442,74 +435,44 @@ function csvText(sep){
   const q=v=>sep===','&&/[",]/.test(v)?'"'+String(v).replace(/"/g,'""')+'"':v;
   return [head.join(sep)].concat(rows.map(r=>[r.n,r.light,r.white?'White':wlName(r.wl),r.white?'':r.wl,r.co2,r.temp,r.o2.toFixed(1)].map(q).join(sep))).join('\r\n');
 }
-$('csvBtn').onclick=()=>{
-  if(!rows.length){say('Record some data first.');return;}
-  try{const blob=new Blob([csvText(',')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='photosynthesis-data.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);say('Saved photosynthesis-data.csv. If nothing downloaded, use “Copy table” and paste into a spreadsheet.');}
-  catch(e){say('Download is blocked here. Use “Copy table” and paste into a spreadsheet.');}
-};
 $('copyBtn').onclick=()=>{
   if(!rows.length){say('Record some data first.');return;}
   const txt=csvText('\t');
-  const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();say(ok?'Copied. Paste into Google Sheets, Excel or a Word table.':'Could not copy. Try “Download CSV”.');};
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();say(ok?'Copied. Paste into Google Sheets, Excel or a Word table.':'Could not copy here. Write the values down from the table instead.');};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>say('Copied. Paste into Google Sheets, Excel or a Word table.'),fallback);else fallback();
 };
 
-/* ---------- graph ---------- */
-const AX={
-  light:{key:'light',label:'Light intensity (%)',min:0,max:100,step:20},
-  co2:{key:'co2',label:'CO₂ level (ppm)',min:0,max:1000,step:200},
-  temp:{key:'temp',label:'Temperature (°C)',min:0,max:45,step:5},
-  wl:{key:'wl',label:'Wavelength of light (nm)',min:380,max:750,step:50,first:400}
-};
-let xax='light';
-document.querySelectorAll('input[name=xax]').forEach(r=>r.addEventListener('change',()=>{xax=r.value;drawGraph();}));
-const cv=$('graph');
-const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+/* ---------- bar graph ----------
+   No y-axis: each bar is scaled on its own range so that the typical (moderate)
+   value sits at the dashed line (half height), 0 at the bottom and the top of the
+   range at full height. A bar above the line means "higher than typical". */
+const TYP=0.5;
+/* the starting set-up is the "typical" level, so every bar starts on the dashed line */
+const O2_TYP=START_O2;
+const O2_MAX=trueRate({light:100,co2:1000,temp:27,white:true});   /* best possible rate in this model */
+const scaleTo=(v,typ,max)=>{v=Math.max(0,Math.min(max,v));return v<=typ?TYP*v/typ:TYP+(1-TYP)*(v-typ)/(max-typ);};
+const TOP=0.9;                        /* full range fills 90% of the plot, leaving room for numbers */
+$('typLine').style.bottom=(TYP*TOP*100)+'%';
+const setBar=(id,f)=>{$(id).style.height=(f*TOP*100).toFixed(2)+'%';};
 function drawGraph(){
-  const box=cv.parentElement.getBoundingClientRect();const dpr=window.devicePixelRatio||1;
-  const W=Math.max(50,box.width),H=Math.max(50,box.height);
-  cv.width=W*dpr;cv.height=H*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
-  const ink=css('--ink'),muted=css('--muted'),grid=css('--grid1'),pt=css('--pt');
-  const A=AX[xax];const L=48,R=14,T=12,B=36;const pw=W-L-R,ph=H-T-B;
-  const YMAX=45;
-  const X=v=>L+(v-A.min)/(A.max-A.min)*pw, Y=v=>T+ph-(v/YMAX)*ph;
-  c.font='12px Calibri, Carlito, "Segoe UI", Arial, sans-serif';c.lineWidth=1;
-  /* grid + y ticks */
-  c.strokeStyle=grid;c.fillStyle=muted;c.textAlign='right';c.textBaseline='middle';
-  for(let v=0;v<=YMAX;v+=5){const y=Y(v);c.beginPath();c.moveTo(L,y);c.lineTo(L+pw,y);c.stroke();if(v%10===0||ph>260)c.fillText(v,L-6,y);}
-  c.textAlign='center';c.textBaseline='top';
-  for(let v=A.first||A.min;v<=A.max;v+=A.step){const x=X(v);c.beginPath();c.moveTo(x,T);c.lineTo(x,T+ph);c.stroke();c.fillText(v,x,T+ph+4);}
-  /* colour band under the wavelength axis */
-  if(xax==='wl'){for(let w=380;w<750;w+=2){c.fillStyle=wlRGB(w);c.fillRect(X(w),T+ph-5,X(w+2)-X(w)+0.5,5);}}
-  /* axes */
-  c.strokeStyle=ink;c.lineWidth=1.6;c.beginPath();c.moveTo(L,T);c.lineTo(L,T+ph);c.lineTo(L+pw,T+ph);c.stroke();
-  c.fillStyle=ink;c.font='bold 13px Calibri, Carlito, "Segoe UI", Arial, sans-serif';
-  c.textAlign='center';c.textBaseline='bottom';c.fillText(A.label,L+pw/2,H-1);
-  c.save();c.translate(13,T+ph/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText('O₂ production rate (mL/h)',0,0);c.restore();
-  /* points */
-  let pts=rows.filter(r=>xax!=='wl'||!r.white).map(r=>({x:r[A.key],y:r.o2,r}));
-  const hidden=xax==='wl'?rows.filter(r=>r.white).length:0;
-  pts.sort((a,b)=>a.x-b.x);
-  if(pts.length>1){c.strokeStyle=pt;c.globalAlpha=.55;c.lineWidth=2;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(X(p.x),Y(p.y)):c.moveTo(X(p.x),Y(p.y)));c.stroke();c.globalAlpha=1;}
-  pts.forEach(p=>{c.beginPath();c.arc(X(p.x),Y(p.y),5.5,0,Math.PI*2);c.fillStyle=xax==='wl'?wlRGB(p.x):pt;c.fill();c.lineWidth=1.5;c.strokeStyle=ink;c.stroke();});
-  if(!pts.length){c.fillStyle=muted;c.font='14px Calibri, Carlito, "Segoe UI", Arial, sans-serif';c.textAlign='center';c.textBaseline='middle';
-    c.fillText(xax==='wl'&&rows.length?'Use “Coloured light” and record trials to graph wavelength.':'Recorded trials will appear here.',L+pw/2,T+ph/2);}
-  $('gtip').textContent=hidden?`White-light trials (${hidden}) are not shown on the wavelength graph.`:'Change one thing at a time, and press “Record data” after each change.';
+  setBar('barLight',scaleTo(S.light,START.light,100));
+  setBar('barTemp',scaleTo(S.temp,START.temp,45));
+  setBar('barCO2',scaleTo(S.co2,START.co2,1000));
+  $('valLight').textContent=S.light+' %';
+  $('valTemp').textContent=S.temp+' °C';
+  $('valCO2').textContent=S.co2+' ppm';
 }
-new ResizeObserver(drawGraph).observe(cv.parentElement);
-new MutationObserver(()=>drawGraph()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',drawGraph);
+let lastO2=-1;
+function drawO2(){
+  const r=Math.round(shown*10)/10;if(r===lastO2)return;lastO2=r;
+  $('barO2').style.transition='none';setBar('barO2',scaleTo(shown,O2_TYP,O2_MAX));
+  $('valO2').textContent=r.toFixed(1)+' mL/h';
+}
+$('numBtn').onclick=()=>{const on=$('plot').classList.toggle('nums');$('numBtn').setAttribute('aria-pressed',on);$('numBtn').textContent=on?'Hide numerical values':'Show numerical values';};
 
-changed();shown=target;renderTable();drawGraph();requestAnimationFrame(frame);
+changed();target=trueRate(S);shown=target;renderTable();drawO2();requestAnimationFrame(frame);
 window.__photo={trueRate,S,rows};
 })();
-</script>
-<script>
-(()=>{const root=document.documentElement,btn=document.getElementById('themeSw'),mq=matchMedia('(prefers-color-scheme: dark)');
-const cur=()=>root.getAttribute('data-theme')||(mq.matches?'dark':'light');
-const sync=()=>{const d=cur()==='dark';btn.setAttribute('aria-checked',String(d));btn.title=d?'Switch to light mode':'Switch to dark mode';};
-btn.addEventListener('click',()=>{const n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('sims-theme',n);}catch(e){}sync();});
-mq.addEventListener?.('change',sync);new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme']});sync();})();
 </script>
 </body>
 </html>
