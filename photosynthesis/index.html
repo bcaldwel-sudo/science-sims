@@ -228,7 +228,7 @@ const fLight=L=>Math.min(L,LIGHT_SAT)/LIGHT_SAT;
 /* CO2 saturation point (ppm). Brett's set-up, at 30 % light and 30 °C:
    from CO2_SAT up, O2 stays at 26.1 mL/h; below it, O2 falls steadily toward 0 at 0 ppm
    (CO2 becomes the limiting factor). Change this one number to move the level-off point. */
-const CO2_SAT=300;
+const CO2_SAT=220;
 const fCO2=C=>Math.min(C,CO2_SAT)/CO2_SAT;
 const fTemp=T=>T<=27?Math.exp(-Math.pow((T-27)/12,2)):Math.exp(-Math.pow((T-27)/7.5,2));
 const g=(x,m,s)=>Math.exp(-Math.pow((x-m)/s,2));
