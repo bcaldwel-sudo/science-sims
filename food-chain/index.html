@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;900&family=Lexend:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: field notebook. A food chain pyramid on the left (one band per feeding level, top predator at the top); population records on the right: graph on top, tabs for bars, energy pyramid and data table below. */
+/* Layout: field notebook. A food chain pyramid on the left (one band per feeding level, top predator at the top); population records on the right: line graph on top, bar graph below. */
 :root{
   --bg:#eef1e8; --surface:#ffffff; --surface-2:#f5f7f0; --ink:#1a2419; --muted:#56634f; --line:#d4dbc9; --grid:#e6eadf;
   --l0:#2f8a2a; --l1:#d08300; --l2:#0f86a8; --l3:#8a45c2; --sick:#c22d2d; --accent:#2b5d3a;
@@ -69,29 +69,21 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .legend i{width:16px;height:4px;border-radius:2px;background:var(--c)}
 .chartbox{flex:1;min-height:0;position:relative;margin:4px 8px 8px}
 .chartbox canvas{position:absolute;inset:0;width:100%;height:100%}
-[role="tablist"]{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line)}
-[role="tab"]{border:none;background:none;border-radius:8px 8px 0 0;padding:7px 12px;color:var(--muted);font-weight:500;border-bottom:3px solid transparent}
-[role="tab"][aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
-.tabpanel{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 12px 10px;gap:6px}
-.note{margin:0;color:var(--muted);font-size:12.5px}
-.tablebar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.tablebar .spacer{flex:1}
-.tablewrap{flex:1;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:8px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:4px 8px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
-th{position:sticky;top:0;background:var(--surface-2);font-weight:600;font-size:12px}
-td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-space:normal;min-width:120px}
-.empty td{text-align:center;color:var(--muted);font-family:var(--f-body)}
-.toast{font-size:12px;color:var(--accent)}
 
 /* smaller laptop windows: tighten, never scroll */
 @media (max-width:1100px){
   .meadow{grid-template-columns:minmax(0,1fr) 156px}
   .lab{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
-  [role="tab"]{padding:7px 8px}
   .legend{gap:2px 8px;font-size:11.5px}
   .eco>span{display:none}
+}
+/* narrow windows, e.g. embedded in a D2L page: let names wrap instead of cutting them off */
+@media (max-width:900px){
+  .sub{white-space:normal;font-size:12.5px;line-height:1.3}
+  .ph{align-items:flex-start;padding-top:6px}
+  .ph h2{white-space:normal;font-size:11.5px;line-height:1.25;min-width:0}
+  .ctl .name{white-space:normal;font-size:13px;line-height:1.15}
+  .ctl .count{font-size:16px}
 }
 @media (max-height:620px){
   body{padding-block:6px}
@@ -118,7 +110,6 @@ td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-spac
   .eco select{max-width:170px}
 }
 
-/* light/dark switch, top-right corner. Remembers the choice; until then it follows the computer's setting. */
 </style>
 
 <div class="wrap">
@@ -148,33 +139,9 @@ td:last-child,th:last-child{text-align:left;font-family:var(--f-body);white-spac
       <div class="chartbox"><canvas id="chart" role="img" aria-label="Line graph of each population as a percent of its balanced level, by month"></canvas></div>
     </section>
 
-    <section class="card" aria-label="Results">
-      <div role="tablist" aria-label="Results views">
-        <button role="tab" id="tab-bars" aria-selected="true" aria-controls="p-bars">Bar graph</button>
-        <button role="tab" id="tab-pyr" aria-selected="false" aria-controls="p-pyr" tabindex="-1">Energy pyramid</button>
-        <button role="tab" id="tab-data" aria-selected="false" aria-controls="p-data" tabindex="-1">Data table</button>
-      </div>
-      <div class="tabpanel" id="p-bars" role="tabpanel" aria-labelledby="tab-bars">
-        <div class="chartbox" style="margin:0"><canvas id="bars" role="img" aria-label="Bar graph of each population compared with its balanced level"></canvas></div>
-      </div>
-      <div class="tabpanel" id="p-pyr" role="tabpanel" aria-labelledby="tab-pyr" hidden>
-        <div class="chartbox" style="margin:0"><canvas id="pyr" role="img" aria-label="Energy pyramid"></canvas></div>
-        <p class="note">At balance each level holds only about 10% of the energy in the level below it. The rest is used for living (moving, growing, keeping warm) or lost as heat.</p>
-      </div>
-      <div class="tabpanel" id="p-data" role="tabpanel" aria-labelledby="tab-data" hidden>
-        <div class="tablebar">
-          <button id="record" class="primary">Record this month</button>
-          <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="auto"> Record every 6 months</label>
-          <span class="spacer"></span>
-          <span class="toast" id="toast" aria-live="polite"></span>
-          <button id="copy">Copy table</button>
-          <button id="clear">Clear</button>
-        </div>
-        <div class="tablewrap"><table>
-          <thead><tr id="thead"></tr></thead>
-          <tbody id="tbody"></tbody>
-        </table></div>
-      </div>
+    <section class="card" aria-label="Bar graph">
+      <div class="ph"><h2>Populations compared with balance</h2></div>
+      <div class="chartbox"><canvas id="bars" role="img" aria-label="Bar graph of each population compared with its balanced level"></canvas></div>
     </section>
   </div>
 </div>
@@ -267,7 +234,7 @@ function advanceBy(dm){
     if(sinceSample>=0.1-1e-9){sinceSample=0;hist.push({t:time,p:pop.slice()});}
     const m=Math.floor(time+1e-9);
     if(m>month){month=m;time=m;monthAgo=hist.length>10?hist[hist.length-11].p.slice():monthAgo;
-      if(auto.checked && month%6===0) record();}
+}
   }
 }
 function advance(){const target=month+1;while(month<target)advanceBy(0.02);}
@@ -376,10 +343,7 @@ const SPRITES={
 const meadow=document.getElementById('meadow');
 meadow.innerHTML='<div class="pyrcv"><canvas id="pyrcanvas" role="img"></canvas></div><div class="ctls" id="ctls"></div>';
 const pyrCanvas=document.getElementById('pyrcanvas'), ctls=document.getElementById('ctls');
-const auto=document.getElementById('auto'), tbody=document.getElementById('tbody');
 let rows=[], order=[], linkText=[];
-const tables={};   // each ecosystem keeps its own data table
-let rowsData=[];
 function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}}
 
 function setEco(key){
@@ -414,9 +378,7 @@ function setEco(key){
     document.getElementById('sick'+i).onclick=()=>{sick[i]=!sick[i];note(`${s.sickName||'Disease'} ${sick[i]?'starts in':'ends in'} ${s.short}`);syncButtons();refresh();};
   });
   document.getElementById('legend').innerHTML=order.map(i=>`<span style="--c:var(${SP[i].color})"><i></i>${SP[i].name}</span>`).join('');
-  document.getElementById('thead').innerHTML='<th>Month</th>'+SP.map(s=>`<th>${s.name}</th>`).join('')+'<th>What happened</th>';
-  rowsData=tables[ecoKey]||(tables[ecoKey]=[]);
-  setupModel(); reset(); setPlaying(false); renderTable(); refresh();
+  setupModel(); reset(); setPlaying(false); refresh();
 }
 
 /* ---------- food chain pyramid ---------- */
@@ -495,6 +457,9 @@ function drawChart(){
 }
 
 /* ---------- bar graph: % of balanced level ---------- */
+function fitFont(g,text,maxW,weight,fam,size){   // shrink the label until it fits under its own bar
+  for(;size>8;size-=0.5){g.font=`${weight} ${size}px ${css(fam)}`;if(g.measureText(text).width<=maxW)return;}
+}
 function drawBars(){
   const c=document.getElementById('bars'); if(!c.clientWidth)return;
   const {g,w,h}=sizeCanvas(c); g.clearRect(0,0,w,h);
@@ -507,44 +472,10 @@ function drawBars(){
     g.fillStyle=COL[s.color];g.fillRect(x0,y(pc),bW,y(0)-y(pc));
     g.fillStyle=COL['--ink'];g.textAlign='center';g.textBaseline='bottom';g.font='500 12px '+css('--f-mono');
     g.fillText(R(disp(i)).toLocaleString(),x0+bW/2,y(pc)-3);
-    g.textBaseline='top';g.font='500 12px '+css('--f-body');g.fillText(s.name,x0+bW/2,h-B+5);
-    g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');g.fillText(R(pc)+'%'+(bw>110?' of balance':''),x0+bW/2,h-B+19);
+    g.textBaseline='top';fitFont(g,s.name,bw*.94,'500','--f-body',12);g.fillText(s.name,x0+bW/2,h-B+5);
+    const lab=R(pc)+'%'+(bw>110?' of balance':'');fitFont(g,lab,bw*.94,'','--f-mono',11);g.fillStyle=COL['--muted'];g.fillText(lab,x0+bW/2,h-B+19);
   });
 }
-
-/* ---------- energy pyramid: at balance each level holds 10% of the level below ---------- */
-function drawPyr(){
-  const c=document.getElementById('pyr'); if(!c.clientWidth)return;
-  const {g,w,h}=sizeCanvas(c); g.clearRect(0,0,w,h);
-  const E=pop.map((v,i)=>1e6*Math.pow(0.1,i)*v/TT[i]); const maxE=Math.max(...E,1);
-  const rowH=(h-8)/N, maxW=w*.52, cx=8+maxW/2;
-  order.forEach((i,n)=>{
-    const s=SP[i], y0=4+n*rowH, ww=E[i]>0?Math.max(4,maxW*Math.sqrt(E[i]/maxE)):0;   // sqrt keeps the top levels visible
-    g.fillStyle=COL[s.color];g.globalAlpha=.9;g.fillRect(cx-ww/2,y0+3,ww,rowH-6);g.globalAlpha=1;
-    g.fillStyle=COL['--ink'];g.textAlign='left';g.textBaseline='middle';g.font='600 12px '+css('--f-body');
-    const tx=cx+maxW/2+12;g.fillText(s.name,tx,y0+rowH/2-7);const nw=g.measureText(s.name+'  ').width;
-    g.font='12px '+css('--f-mono');g.fillText(R(E[i]).toLocaleString()+' kJ',tx+nw,y0+rowH/2-7);
-    if(i>0){const pct=E[i-1]>0?E[i]/E[i-1]*100:0;g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');
-      g.fillText(`${pct<1&&pct>0?pct.toFixed(1):R(pct)}% of the level below`,tx,y0+rowH/2+9);}
-  });
-}
-
-/* ---------- data table ---------- */
-function renderTable(){
-  tbody.innerHTML=rowsData.length?rowsData.map(r=>`<tr><td>${r.t}</td>${r.p.map(v=>`<td>${v.toLocaleString()}</td>`).join('')}<td>${r.note}</td></tr>`).join('')
-    :`<tr class="empty"><td colspan="${N+2}">No rows yet. Press <b>Record this month</b> to save the populations.</td></tr>`;
-  const tw=tbody.closest('.tablewrap');tw.scrollTop=tw.scrollHeight;
-}
-function record(){rowsData.push({t:month,p:SP.map((s,i)=>R(disp(i))),note:pending.join('; ')});pending=[];renderTable();}
-document.getElementById('record').onclick=record;
-document.getElementById('clear').onclick=()=>{rowsData.length=0;renderTable();};
-document.getElementById('copy').onclick=async()=>{
-  const txt=[['Month',...SP.map(s=>s.name),'What happened'].join('\t'),...rowsData.map(r=>[r.t,...r.p,r.note].join('\t'))].join('\n');
-  const t=document.getElementById('toast');
-  try{await navigator.clipboard.writeText(txt);t.textContent='Copied. Paste into a spreadsheet.';}
-  catch(e){t.textContent='Copy blocked. Select the table and copy it instead.';}
-  setTimeout(()=>t.textContent='',3000);
-};
 
 /* ---------- controls ---------- */
 const playBtn=document.getElementById('play');
@@ -559,11 +490,6 @@ const groups={};Object.entries(ECOS).forEach(([k,e])=>(groups[e.group]||(groups[
 ecoSel.innerHTML=Object.entries(groups).map(([gname,opts])=>`<optgroup label="${gname}">${opts.join('')}</optgroup>`).join('');
 ecoSel.onchange=()=>setEco(ecoSel.value);
 
-// tabs
-const tabs=[...document.querySelectorAll('[role="tab"]')];
-function selectTab(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on;});drawSide();}
-tabs.forEach((t,k)=>{t.onclick=()=>selectTab(t);t.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=tabs[(k+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];n.focus();selectTab(n);}};});
-
 /* ---------- loop ---------- */
 function refresh(){
   document.getElementById('month').textContent=month;
@@ -572,7 +498,7 @@ function refresh(){
     document.getElementById('minus'+i).disabled=i===0?pop[0]<=20:pop[i]<=0;});
   drawChart();drawSide();drawMeadow();
 }
-function drawSide(){drawBars();drawPyr();}
+function drawSide(){drawBars();}
 function frame(now){
   if(playing){const dm=Math.min(0.25,(now-lastT)/1000*MONTHS_PER_SECOND);advanceBy(dm);refresh();}
   lastT=now; requestAnimationFrame(frame);
