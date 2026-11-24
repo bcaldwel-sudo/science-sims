@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
 h1{font-family:var(--f-display);font-weight:900;font-size:26px;line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
 .sub{margin:0;color:var(--muted);font-size:13.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lab{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px}
+.lab{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:10px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0;min-height:0;display:flex;flex-direction:column}
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--line)}
 .toolbar .spacer{flex:1}
@@ -61,14 +61,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .ctl button[aria-pressed="true"]{background:var(--sick);border-color:var(--sick);color:var(--surface);font-weight:600}
 
 /* right column */
-.right{display:grid;grid-template-rows:minmax(0,1.05fr) minmax(0,1fr);gap:10px;min-height:0;min-width:0}
+.right{display:grid;grid-template-rows:minmax(0,1.75fr) minmax(0,1fr);gap:10px;min-height:0;min-width:0}
 .ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px 0}
 .ph h2{margin:0;white-space:nowrap;font-family:var(--f-display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;font-weight:500;justify-content:flex-end}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:16px;height:4px;border-radius:2px;background:var(--c)}
 .chartbox{flex:1;min-height:0;position:relative;margin:4px 8px 8px}
-.chartbox canvas{position:absolute;inset:0;width:100%;height:100%}
+.chartbox canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y}
+#chart{cursor:crosshair}
 
 /* smaller laptop windows: tighten, never scroll */
 @media (max-width:1100px){
@@ -432,29 +433,67 @@ function drawMeadow(){
 /* ---------- line graph: every population as % of its balanced level ---------- */
 const chart=document.getElementById('chart');
 function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));for(const m of[1,1.5,2,2.5,3,4,5,6,8,10])if(m*p>=v)return m*p;return 10*p;}
+function niceStep(raw){const p=Math.pow(10,Math.floor(Math.log10(raw)));for(const m of[1,2,2.5,5,10])if(m*p>=raw)return m*p;return 10*p;}
+let hoverX=null;   // mouse or finger position over the line graph, for the month read-out
 function drawChart(){
   const {g,w,h}=sizeCanvas(chart); g.clearRect(0,0,w,h);
-  const L=44,Rr=12,Tt=8,B=20;
-  const tMax=Math.max(48,Math.ceil(time/12)*12), x=t=>L+(w-L-Rr)*t/tMax;
+  const L=46,Rr=14,Tt=10,B=22, pw=w-L-Rr, ph=h-B-Tt;
+  // time axis grows a year at a time, so the lines always fill most of the width
+  const tMax=Math.max(24,Math.ceil((time-1e-9)/12)*12), x=t=>L+pw*t/tMax;
   const pct=(o,i)=>o.p[i]/TT[i]*100;
-  let peak=0;hist.forEach(o=>SP.forEach((s,i)=>peak=Math.max(peak,pct(o,i))));
-  const top=Math.max(200,niceMax(peak*1.05)), y=v=>h-B-(h-B-Tt)*v/top;
-  const stepY=top<=200?50:top<=400?100:top<=1000?200:500;
-  g.font='11px '+css('--f-mono');g.textAlign='right';g.textBaseline='middle';g.lineWidth=1;
-  for(let v=0;v<=top;v+=stepY){g.strokeStyle=COL['--grid'];g.beginPath();g.moveTo(L,y(v)+.5);g.lineTo(w-Rr,y(v)+.5);g.stroke();g.fillStyle=COL['--muted'];g.fillText(v+'%',L-5,y(v));}
-  g.strokeStyle=COL['--ink'];g.globalAlpha=.55;g.setLineDash([6,4]);g.beginPath();g.moveTo(L,y(100));g.lineTo(w-Rr,y(100));g.stroke();g.setLineDash([]);g.globalAlpha=1;
+  // y-axis fits the data (always keeping the 100% balance line in view)
+  let lo=100,hi=100;hist.forEach(o=>SP.forEach((s,i)=>{const v=pct(o,i);if(v<lo)lo=v;if(v>hi)hi=v;}));
+  const pad=Math.max((hi-lo)*0.08,4);lo=Math.max(0,lo-pad);hi=hi+pad;
+  if(hi-lo<20){const m=(hi+lo)/2;lo=Math.max(0,m-10);hi=lo+20;}
+  const stepY=niceStep((hi-lo)/Math.max(3,Math.min(8,Math.floor(ph/34))));
+  lo=Math.floor(lo/stepY)*stepY;hi=Math.ceil(hi/stepY)*stepY;
+  const y=v=>Tt+ph*(hi-v)/(hi-lo);
+  g.lineWidth=1;g.font='11px '+css('--f-mono');g.textAlign='right';g.textBaseline='middle';
+  for(let v=lo;v<=hi+1e-9;v+=stepY){g.strokeStyle=COL['--grid'];g.beginPath();g.moveTo(L,R(y(v))+.5);g.lineTo(w-Rr,R(y(v))+.5);g.stroke();
+    g.fillStyle=COL['--muted'];g.fillText((Number.isInteger(v)?v:v.toFixed(1))+'%',L-5,y(v));}
+  // month grid: a faint line every month, a labelled tick as often as space allows
+  const gap=pw/tMax, stepT=[1,2,3,4,6,12,24,48,96].find(st=>gap*st>=26)||96;
+  for(let t=0;t<=tMax;t++){
+    const major=t%stepT===0;
+    if(!major&&gap<5)continue;
+    g.strokeStyle=COL['--grid'];g.globalAlpha=major?1:.55;g.beginPath();g.moveTo(R(x(t))+.5,Tt);g.lineTo(R(x(t))+.5,h-B+(major?4:0));g.stroke();g.globalAlpha=1;
+  }
+  g.strokeStyle=COL['--line'];g.beginPath();g.moveTo(L,h-B+.5);g.lineTo(w-Rr,h-B+.5);g.stroke();
+  g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');g.textAlign='center';g.textBaseline='alphabetic';
+  for(let t=0;t<=tMax;t+=stepT)g.fillText(t,x(t),h-6);
+  g.textAlign='left';g.fillText('month',2,h-6);
+  // balance line
+  g.strokeStyle=COL['--ink'];g.globalAlpha=.6;g.setLineDash([6,4]);g.beginPath();g.moveTo(L,y(100));g.lineTo(w-Rr,y(100));g.stroke();g.setLineDash([]);g.globalAlpha=1;
   g.fillStyle=COL['--muted'];g.textAlign='right';g.textBaseline='bottom';g.font='500 11px '+css('--f-body');g.fillText('balanced = 100%',w-Rr-2,y(100)-2);
-  events.forEach(e=>{g.strokeStyle=COL['--muted'];g.globalAlpha=.5;g.setLineDash([2,3]);g.beginPath();g.moveTo(x(e.t),Tt);g.lineTo(x(e.t),h-B);g.stroke();g.setLineDash([]);g.globalAlpha=1;});
+  // when a change was made
+  events.forEach(e=>{g.strokeStyle=COL['--muted'];g.globalAlpha=.6;g.setLineDash([2,3]);g.beginPath();g.moveTo(x(e.t),Tt);g.lineTo(x(e.t),h-B);g.stroke();g.setLineDash([]);g.globalAlpha=1;});
+  g.save();g.beginPath();g.rect(L,Tt-3,pw+3,ph+6);g.clip();
   SP.forEach((s,i)=>{
     g.strokeStyle=COL[s.color];g.lineWidth=2.5;g.lineJoin='round';g.lineCap='round';g.beginPath();
     hist.forEach((o,k)=>{const X=x(o.t),Y=y(pct(o,i));k?g.lineTo(X,Y):g.moveTo(X,Y);});g.stroke();
     const last=hist[hist.length-1];g.fillStyle=COL[s.color];g.beginPath();g.arc(x(last.t),y(pct(last,i)),3.5,0,7);g.fill();
   });
-  g.fillStyle=COL['--muted'];g.font='11px '+css('--f-mono');g.textAlign='center';g.textBaseline='alphabetic';
-  const stepT=tMax>240?48:tMax>120?24:12;
-  for(let t=0;t<=tMax;t+=stepT)g.fillText(t,x(t),h-5);
-  g.textAlign='left';g.fillText('month',2,h-5);
+  g.restore();
+  // read-out: month and each population under the pointer
+  if(hoverX!==null&&hoverX>=L-4&&hoverX<=w-Rr+4){
+    const tq=Math.min(time,Math.max(0,(hoverX-L)/pw*tMax));
+    let o=hist[0];for(const q of hist){if(Math.abs(q.t-tq)<Math.abs(o.t-tq))o=q;}
+    const X=x(o.t);
+    g.strokeStyle=COL['--ink'];g.lineWidth=1;g.beginPath();g.moveTo(R(X)+.5,Tt);g.lineTo(R(X)+.5,h-B);g.stroke();
+    order.forEach(i=>{g.fillStyle=COL['--surface'];g.beginPath();g.arc(X,y(pct(o,i)),5,0,7);g.fill();g.fillStyle=COL[SP[i].color];g.beginPath();g.arc(X,y(pct(o,i)),3.5,0,7);g.fill();});
+    const lines=[`Month ${o.t.toFixed(1).replace(/\.0$/,'')}`,...order.map(i=>`${SP[i].name}: ${R(o.p[i]*F[i]).toLocaleString()} (${R(pct(o,i))}%)`)];
+    g.font='500 12px '+css('--f-body');const bwid=Math.max(...lines.map(t=>g.measureText(t).width))+30, bh=lines.length*17+10;
+    let bx=X+12;if(bx+bwid>w-4)bx=X-12-bwid;const by=Tt+4;
+    g.fillStyle=COL['--surface'];g.strokeStyle=COL['--line'];g.globalAlpha=.96;g.beginPath();g.roundRect?g.roundRect(bx,by,bwid,bh,8):g.rect(bx,by,bwid,bh);g.fill();g.globalAlpha=1;g.stroke();
+    g.textAlign='left';g.textBaseline='middle';
+    lines.forEach((t,k)=>{const ly=by+13+k*17;
+      if(k){const i=order[k-1];g.fillStyle=COL[SP[i].color];g.fillRect(bx+10,ly-2,12,4);g.fillStyle=COL['--ink'];g.font='12px '+css('--f-body');g.fillText(t,bx+26,ly);}
+      else{g.fillStyle=COL['--ink'];g.font='600 12px '+css('--f-body');g.fillText(t,bx+10,ly);}});
+  }
 }
+const setHover=e=>{const r=chart.getBoundingClientRect();hoverX=e.clientX-r.left;drawChart();};
+chart.addEventListener('pointermove',setHover);chart.addEventListener('pointerdown',setHover);
+chart.addEventListener('pointerleave',()=>{hoverX=null;drawChart();});
 
 /* ---------- bar graph: % of balanced level ---------- */
 function fitFont(g,text,maxW,weight,fam,size){   // shrink the label until it fits under its own bar
