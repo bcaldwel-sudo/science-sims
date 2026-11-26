@@ -213,7 +213,6 @@ svg text { font-family: var(--body); fill: var(--ink); }
   <path id="arc" class="arc" d="" opacity="0"/>
   <path id="a1" d="M${Q.x} ${Q.y}L${Q.x + 34} ${Q.y}A34 34 0 0 0 ${Q.x + 34 * cs} ${Q.y - 34 * sn}Z" fill="color-mix(in srgb, var(--f1) 22%, transparent)" stroke="var(--f1)" stroke-width="2" opacity="0"/>
   ${T("a1t", Q.x + 37, Q.y - 6, "36.9°", "t1", 12.5, "start")}
-  ${T("arct", Q.x + 64, Q.y + 52, "63.7°", "tn", 17, "start")}
   <rect id="band" class="band" x="${Q.x - 9}" y="${F1.y}" width="18" height="${Q.y - F1.y}" opacity="0"/>
   ${T("bandt", Q.x - 16, (F1.y + Q.y) / 2 + 5, "cancel", "tm", 13, "end")}
   <line id="px" class="proj" x1="${F1.x}" y1="${F1.y}" x2="${F1.x}" y2="${Q.y}" opacity="0"/>
@@ -226,7 +225,6 @@ svg text { font-family: var(--body); fill: var(--ink); }
   ${arrow("aFx", Q, X1, "ks")}
   ${arrow("aFy", { x: Q.x + 30, y: Q.y }, { x: Q.x + 30, y: Q.y + FY }, "ks")}
   ${arrow("aNet", Q, NET, "kn")}
-  <path id="rt2" d="M${X1.x - 14} ${Q.y}v14h14" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity="0"/>
   <circle id="f2x0" cx="${Q.x}" cy="${Q.y}" r="34" fill="none" stroke="var(--f2)" stroke-width="2" stroke-dasharray="4 5" opacity="0"/>
   ${charge("cQ", Q, "+", "q")}
   ${T("lQ", Q.x - 34, Q.y - 8, "Q = +2.00 μC", "", 21, "end")}
@@ -241,6 +239,7 @@ svg text { font-family: var(--body); fill: var(--ink); }
   ${T("zFx", Q.x + 28, Q.y - 12, "Fₓ = +0.288 N", "ts", 15, "start")}
   ${T("zFy", Q.x + 40, Q.y + FY / 2 + 40, "Fᵧ = −0.583 N", "ts", 15, "start")}
   ${T("zNet", (Q.x + NET.x) / 2 - 14, (Q.y + NET.y) / 2 + 10, "F<tspan font-size='11' dy='4'>net</tspan><tspan dy='-4'> = 0.650 N</tspan>", "tn", 16, "end")}
+  ${T("arct", Q.x + 64, Q.y + 52, "63.7°", "tn", 17, "start")}
   ${T("adj", Q.x + 28, Q.y - 32, "adjacent", "ts", 12, "start")}
   ${T("opp", X1.x + 12, Q.y + FY / 2 + 20, "opposite", "ts", 12, "start")}
   `;
@@ -298,7 +297,7 @@ svg text { font-family: var(--body); fill: var(--ink); }
     [[slide("aF1y", Q.x - X1.x, 0), 100, 1000], [op("zF1y", 0), 0, 300], [op("zF2y", 0), 0, 300],
      [slide("aF2y", 0, F1.y - Q.y), 1200, 1000], [op("band", 1), 2300], [op("bandt", 1), 2300], [grow("aFy"), 2700, 1000], [op("zFy", 1), 3600]],
     [[op("aF1y", 0), 0], [op("aF2y", 0), 0], [op("band", 0), 0], [op("bandt", 0), 0], [op("aF1", 0), 0], [op("aF2", 0), 0],
-     [slide("aFy", X1.x - Q.x - 30, 0), 300, 1100], [op("zFy", 0), 0, 300], [op("rt2", 1), 1400], [grow("aNet"), 1700, 1200], [op("zNet", 1), 2700],
+     [slide("aFy", X1.x - Q.x - 30, 0), 300, 1100], [op("zFy", 0), 0, 300], [grow("aNet"), 1700, 1200], [op("zNet", 1), 2700],
      [cls("aNet", "pulse", true), 2900]],
     [[cls("aNet", "pulse", false), 0], [pop("sqx"), 200, 700], [op("sqxt", 1), 700], [pop("sqy"), 900, 700], [op("sqyt", 1), 1400], [pop("sqn"), 1900, 900], [op("sqnt", 1), 2700]],
     [[op("sqx", 0), 0], [op("sqy", 0), 0], [op("sqn", 0), 0], [op("sqxt", 0), 0], [op("sqyt", 0), 0], [op("sqnt", 0), 0],
