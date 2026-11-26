@@ -10,6 +10,7 @@ Interactive science simulations for students, built as single self-contained HTM
 | Hooke's Law / Simple Harmonic Motion Virtual Lab: virtual version of the in-class spring lab (stretch and period data) | `hookes-law-shm-lab/` |
 | Adding Forces at Angles: animated step-by-step walkthrough of adding two Coulomb forces by components (SPH4U 3.3) | `forces-at-angles/` |
 | Meadow Food Chain: producers and consumers, population changes, disease, energy pyramid | `food-chain/` |
+| Carbon and Nitrogen Cycles Lab (SNC1L 6.7): follow a carbon atom, humans and CO₂, follow a nitrogen atom | `carbon-cycle/` |
 
 ## D2L embed codes
 
@@ -69,8 +70,8 @@ To put a sim on a D2L page: open the page's HTML editor, click the **</>** (Sour
 <iframe src="https://bcaldwel-sudo.github.io/science-sims/frog-dissection/" title="Frog Dissection Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
 ```
 
-**Carbon Cycle Lab**
+**Carbon and Nitrogen Cycles Lab**
 
 ```html
-<iframe src="https://bcaldwel-sudo.github.io/science-sims/carbon-cycle/" title="Carbon Cycle Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/carbon-cycle/" title="Carbon and Nitrogen Cycles Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
 ```

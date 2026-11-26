@@ -3,67 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Carbon Cycle Lab</title>
+<title>Carbon and Nitrogen Cycles Lab</title>
 <style>
-/* Two activities in one page: 1) follow a carbon atom around a landscape, 2) a simple, fully deterministic model of atmospheric CO2. Light mode only. */
+/* Carbon and Nitrogen Cycles Lab (SNC1L 6.7). Three tabs: 1) follow a carbon atom, 2) humans and CO2 (simple deterministic model), 3) follow a nitrogen atom.
+   Short sentences for students who read below grade level. Same key words as the 6.7 handout and quiz. Light mode only. */
 :root{
   color-scheme:light;
-  --bg:#EEF2F4; --surface:#FFFFFF; --card:#F3F6F8; --ink:#17232B; --muted:#55666F; --line:#CFD9DE;
-  --header:#123247; --accent:#1C6E9C; --on-accent:#FFFFFF; --amber:#F2B63D; --glow:#FFC21A;
-  --atmo:#3C9AD8; --bio:#2E9447; --hydro:#1D4F91; --geo:#9A6A3A;
-  --you:#D9480F; --base:#7D8A92; --hist:#2B2B2B; --pre:#2E9447;
-  --src:#E0562B; --sink:#2F7FC1; --sinkland:#2E9447;
+  --bg:#EEF2F4; --surface:#FFFFFF; --card:#F3F6F8; --ink:#17232B; --muted:#4D5E67; --line:#CFD9DE;
+  --header:#123247; --accent:#1C6E9C; --amber:#F2B63D; --glow:#FFC21A;
+  --atm:#3C9AD8; --land:#2E9447; --ocean:#1D4F91; --lith:#9A6A3A; --living:#2E7D32; --nonliving:#6B6B6B;
+  --you:#D9480F; --base:#7D8A92; --hist:#2B2B2B; --pre:#2E9447; --src:#E0562B; --sink:#2F7FC1;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:15px}
-h1,h2,.num{font-family:Cambria,Caladea,Georgia,"Times New Roman",serif}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Arial,"Segoe UI",Helvetica,sans-serif;font-size:16px}
 body{display:flex;flex-direction:column;overflow:hidden}
-header{flex:none;background:var(--header);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-header h1{margin:0;font-size:21px;font-weight:700;white-space:nowrap}
-.tabs{display:flex;gap:6px}
-.tabs button{border:2px solid #7FB2D3;background:transparent;color:#fff;padding:3px 12px}
+header{flex:none;background:var(--header);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}
+header h1{margin:0;font-size:20px;font-weight:700;white-space:nowrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:2px solid #7FB2D3;background:transparent;color:#fff;padding:4px 12px;font-size:15px}
 .tabs button[aria-selected="true"]{background:#fff;color:var(--header);border-color:#fff}
 button{font:inherit;font-weight:700;border-radius:9px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);padding:3px 11px;cursor:pointer;white-space:nowrap}
-button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+button:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 select{font:inherit;border:2px solid var(--line);border-radius:8px;padding:2px 4px;background:var(--surface);color:var(--ink);max-width:100%}
 .view{flex:1;min-height:0;display:none;gap:8px;padding:8px 10px 10px}
 .view.on{display:grid}
-#pathView{grid-template-columns:minmax(0,1.85fr) minmax(220px,1fr)}
-#modelView{grid-template-columns:minmax(0,1fr) minmax(0,1.12fr)}
+.explore{grid-template-columns:minmax(0,1.7fr) minmax(250px,1fr)}
+#humanView{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
 .col{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
 .card{border:1px solid var(--line);border-radius:12px;background:var(--surface);min-width:0}
-.stage{flex:1;min-height:180px;position:relative;overflow:hidden}
+.stage{flex:1;min-height:200px;position:relative;overflow:hidden}
 .stage>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-sub,sup{font-size:70%}
-.muted{color:var(--muted)}
-/* ---------- Path view ---------- */
-.ptools{flex:none;padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14px}
-.ptools label{font-weight:700}
+sub{font-size:70%}
+/* ---------- explorer side panel ---------- */
+.ptools{flex:none;padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:15px}
+.ptools label{font-weight:700;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .loc{flex:none;padding:7px 11px}
-.loc .k{font-size:12.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-.loc .n{font-family:Cambria,Georgia,serif;font-size:20px;font-weight:700;line-height:1.15;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.loc p{margin:3px 0 0;font-size:14px;line-height:1.3}
-.badge{display:inline-block;font-family:Calibri,Carlito,Arial,sans-serif;font-size:12px;font-weight:700;color:#fff;border-radius:20px;padding:1px 8px;vertical-align:middle;white-space:nowrap}
-.sp-atmosphere{background:var(--atmo)} .sp-biosphere{background:var(--bio)} .sp-hydrosphere{background:var(--hydro)} .sp-geosphere{background:var(--geo)}
-.move{flex:none;padding:7px 11px;border-left:5px solid var(--accent)}
+.loc .k{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.loc .n{font-size:21px;font-weight:700;line-height:1.2;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.loc p{margin:4px 0 0;font-size:15.5px;line-height:1.35}
+.badge{display:inline-block;font-size:12.5px;font-weight:700;color:#fff;border-radius:20px;padding:2px 9px;vertical-align:middle;white-space:nowrap}
+.g-atm{background:var(--atm)} .g-land{background:var(--land)} .g-ocean{background:var(--ocean)} .g-lith{background:var(--lith)}
+.g-living{background:#fff;color:var(--living);border:2px solid var(--living)} .g-nonliving{background:#fff;color:var(--nonliving);border:2px solid var(--nonliving)}
+.move{flex:none;padding:7px 11px;border-left:6px solid var(--accent)}
 .move.bad{border-left-color:#C0392B;background:#FDF1EF}
-.move.win{border-left-color:var(--bio);background:#EEF8F0}
-.move h2{margin:0;font-size:16.5px;line-height:1.2}
-.move p{margin:3px 0 0;font-size:14px;line-height:1.3}
-.speed{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:0 6px;margin-left:4px;border:1.5px solid}
-.speed.fast{color:#1D6B39;border-color:#7CC18F}
-.speed.slow{color:#8A4B12;border-color:#E0A46A}
-.journey{flex:1;min-height:70px;display:flex;flex-direction:column;padding:6px 10px 8px}
+.move.win{border-left-color:var(--land);background:#EEF8F0}
+.move h2{margin:0;font-size:17.5px;line-height:1.25}
+.move p{margin:4px 0 0;font-size:15.5px;line-height:1.35}
+.tag{display:inline-block;font-size:13px;font-weight:700;border-radius:6px;padding:0 6px;margin:2px 4px 0 0;border:1.5px solid}
+.tag.slow{color:#8A4B12;border-color:#E0A46A}
+.tag.people{color:#9B2C12;border-color:#E9967E}
+.journey{flex:1;min-height:90px;display:flex;flex-direction:column;padding:6px 10px 8px}
 .journey .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px;flex-wrap:wrap}
-.journey h2{margin:0;font-size:15.5px}
-.dots{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--muted)}
-.dot{width:12px;height:12px;border-radius:50%;border:2px solid;display:inline-block}
-.dot.atmosphere{border-color:var(--atmo)} .dot.biosphere{border-color:var(--bio)} .dot.hydrosphere{border-color:var(--hydro)} .dot.geosphere{border-color:var(--geo)}
-.dot.atmosphere.v{background:var(--atmo)} .dot.biosphere.v{background:var(--bio)} .dot.hydrosphere.v{background:var(--hydro)} .dot.geosphere.v{background:var(--geo)}
-ol.log{flex:1;min-height:0;overflow:auto;margin:5px 0 0;padding:0 0 0 24px;font-size:13.5px;line-height:1.3}
+.journey h2{margin:0;font-size:16px}
+.track{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.chip{border:2px solid var(--line);border-radius:14px;padding:0 7px;font-weight:700;color:var(--muted);background:#fff}
+.chip.v{color:#fff}
+.chip.v.atm{background:var(--atm);border-color:var(--atm)} .chip.v.land{background:var(--land);border-color:var(--land)}
+.chip.v.ocean{background:var(--ocean);border-color:var(--ocean)} .chip.v.lith{background:var(--lith);border-color:var(--lith)}
+.chip.v.proc{background:#5B3A8C;border-color:#5B3A8C}
+ol.log{flex:1;min-height:0;overflow:auto;margin:5px 0 0;padding:0 0 0 26px;font-size:14.5px;line-height:1.3}
 ol.log li{padding:2px 0;border-bottom:1px dashed var(--line)}
-ol.log li b{font-weight:700}
-ol.log li i{color:var(--muted);font-style:normal}
+ol.log li i{color:var(--muted);font-style:normal;font-weight:700}
 /* scene */
 .hit{fill:rgba(255,255,255,0);stroke:none;cursor:pointer;transition:fill .2s}
 .res:hover .hit{fill:rgba(255,255,255,.22)}
@@ -73,80 +73,82 @@ ol.log li i{color:var(--muted);font-style:normal}
 @media (prefers-reduced-motion:reduce){.res.can .hit{animation:none;opacity:.8}}
 .res.shake{animation:shake .35s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.pill rect{fill:#fff;stroke:#41525C;stroke-width:1.5;opacity:.93}
-.pill text{font:700 19px Calibri,Carlito,"Segoe UI",Arial,sans-serif;fill:#17232B;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.pill.small text{font-size:15.5px;font-weight:700}
-.res.can .pill rect{stroke:#C98F00;stroke-width:2.5}
+.pill rect{fill:#fff;stroke:#41525C;stroke-width:1.5;opacity:.94}
+.pill text{font:700 20px Arial,Helvetica,sans-serif;fill:#17232B;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pill.small text{font-size:16px}
+.res.can .pill rect{stroke:#C98F00;stroke-width:3}
 .res .pill{cursor:pointer}
 .res:focus{outline:none}
 .res:focus-visible .hit{stroke:#F2B63D;stroke-width:5}
-.atomtxt{font:700 17px Cambria,Georgia,serif;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.trail{fill:none;stroke:#17232B;stroke-width:3;stroke-dasharray:9 6;opacity:.75}
-.trailtxt{font:700 15px Calibri,Carlito,Arial,sans-serif;fill:#17232B;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
-/* ---------- Model view ---------- */
-.flowcard{flex:1;min-height:160px}
-.flowcard>svg text{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif}
-.ctrls{flex:none;padding:7px 12px 8px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:4px}
-.slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.slider label{font-weight:700;white-space:nowrap;font-size:14.5px}
-.slider output{font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
-.slider small{display:block;color:var(--muted);font-size:12px;line-height:1.15;margin-top:-1px}
-input[type=range]{width:100%;accent-color:var(--accent);height:20px;margin:0}
-.crow{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
-.graphcard{flex:1;min-height:200px;display:flex;flex-direction:column;padding:7px 12px 8px;gap:4px}
-.graphcard h2{margin:0;font-size:16px}
-.legend{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px;color:var(--muted)}
+.atomtxt{font:700 18px Arial,Helvetica,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.trail{fill:none;stroke:#17232B;stroke-width:3;stroke-dasharray:9 6;opacity:.8}
+.trailtxt{font:700 17px Arial,Helvetica,sans-serif;fill:#17232B;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.scenetxt{font:700 15px Arial,Helvetica,sans-serif;fill:#17232B;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+/* ---------- humans view ---------- */
+.ctrls{flex:none;padding:8px 12px;display:flex;flex-direction:column;gap:7px}
+.ctrls h2,.graphcard h2,.flowcard h2{margin:0;font-size:17px}
+.lever .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lever .name{font-weight:700;font-size:15.5px}
+.lever small{color:var(--muted);font-size:13px}
+.lever+.lever{margin-top:4px}
+.seg{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.seg button{padding:2px 10px;font-size:14.5px;border-width:2px;border-color:var(--line);color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.crow{display:flex;justify-content:flex-end}
+.flowcard{flex:1;min-height:170px;display:flex;flex-direction:column;padding:8px 12px;gap:6px}
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow .lbl{font-weight:700;font-size:15px;margin-bottom:2px}
+.bar{display:flex;height:30px;border-radius:6px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+.bar span{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;transition:width .3s}
+.key{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:13px;color:var(--muted)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.verdict{font-size:16px;line-height:1.35;padding:6px 10px;border-radius:8px;background:var(--card);font-weight:700}
+.verdict.up{background:#FDF1EF;color:#9B2C12} .verdict.down{background:#EEF8F0;color:#1D6B39}
+.graphcard{flex:1;min-height:220px;display:flex;flex-direction:column;padding:8px 12px;gap:4px}
+.legend{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13.5px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{display:inline-block;width:22px;height:0;border-top:3px solid}
 .plot{flex:1;min-height:0;position:relative}
-.plot svg{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
-.plot svg text{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif}
-.yearrow{display:flex;align-items:center;gap:10px;font-size:14px}
-.yearrow label{font-weight:700;white-space:nowrap}
-.yearrow output{font-family:Cambria,Georgia,serif;font-weight:700;font-size:16px;color:var(--ink);min-width:44px;font-variant-numeric:tabular-nums}
+.plot svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.plot svg text{font-family:Arial,Helvetica,sans-serif}
 .tiles{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tile{background:var(--card);border-radius:10px;padding:4px 10px;text-align:center}
-.tile .k{font-size:12.5px;color:var(--muted);font-weight:700}
-.tile .v{font-family:Cambria,Georgia,serif;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .k{font-size:13px;color:var(--muted);font-weight:700}
+.tile .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
 .tile .v small{font-size:13px;font-weight:400;color:var(--muted)}
-.tile .d{font-size:12px;color:var(--muted)}
 @media (max-width:860px){
-  html,body{font-size:14px}
-  header h1{font-size:18px}
-  .loc .n{font-size:17px}
-  .move p,.loc p{font-size:13px}
-  .slider small{display:none}
-  #pathView{grid-template-columns:minmax(0,1.9fr) minmax(200px,1fr)}
-  .ctrls{grid-template-columns:1fr}
+  html,body{font-size:15px}
+  header h1{font-size:17px}
+  .explore{grid-template-columns:minmax(0,1.6fr) minmax(220px,1fr)}
+  .loc p,.move p{font-size:14.5px}
 }
-@media (max-height:600px){
-  .slider small{display:none}
-  .loc p{display:none}
-}
-@media (max-width:640px){
+@media (max-height:620px){ .lever small{display:none} }
+@media (max-width:680px){
   body{overflow:auto}
-  .view.on{display:flex;flex-direction:column}
-  .stage{min-height:300px}
-  .flowcard{min-height:240px}
+  .view.on{display:flex;flex-direction:column;flex:none}
+  .col{flex:none}
+  .stage{min-height:0;flex:none;height:64vw}
+  .flowcard{flex:none}
   .graphcard{min-height:320px}
-  .journey{min-height:160px}
+  .journey{min-height:180px}
 }
 </style>
 </head>
 <body>
 <header>
-  <h1>Carbon Cycle Lab</h1>
+  <h1>Carbon and Nitrogen Cycles Lab</h1>
   <div class="tabs" role="tablist">
-    <button role="tab" id="tabPath" aria-selected="true" aria-controls="pathView">1. Follow a Carbon Atom</button>
-    <button role="tab" id="tabModel" aria-selected="false" aria-controls="modelView">2. Carbon Model</button>
+    <button role="tab" id="tabC" aria-selected="true" aria-controls="carbonView">1. Carbon Atom</button>
+    <button role="tab" id="tabH" aria-selected="false" aria-controls="humanView">2. Humans and CO<sub>2</sub></button>
+    <button role="tab" id="tabN" aria-selected="false" aria-controls="nitroView">3. Nitrogen Atom</button>
   </div>
 </header>
 
-<!-- ===================== PART 1: PATH ===================== -->
-<main id="pathView" class="view on" role="tabpanel" aria-labelledby="tabPath">
+<!-- ===================== TAB 1: CARBON ATOM ===================== -->
+<main id="carbonView" class="view explore on" role="tabpanel" aria-labelledby="tabC">
   <div class="col">
     <div class="card stage">
-      <svg id="scene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-label="Landscape showing places where carbon is stored">
+      <svg id="cScene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-label="Landscape showing places where carbon is stored">
         <defs>
           <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9D8F2"/><stop offset="1" stop-color="#E7F5FC"/></linearGradient>
           <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5BB2DE"/><stop offset="1" stop-color="#1F5E8E"/></linearGradient>
@@ -228,102 +230,121 @@ input[type=range]{width:100%;accent-color:var(--accent);height:20px;margin:0}
           <g id="coral"></g>
         </g>
 
-        <!-- ===== clickable places ===== -->
-        <g id="places"></g>
-        <!-- trail + atom -->
-        <g id="trailG" pointer-events="none"></g>
-        <g id="atom" pointer-events="none">
-          <circle r="16" fill="#17232B" stroke="#fff" stroke-width="3"/>
-          <text class="atomtxt">C</text>
-        </g>
+        <g id="cPlaces"></g>
+        <g id="cTrail" pointer-events="none"></g>
+        <g id="cAtom" pointer-events="none"><circle r="17" fill="#17232B" stroke="#fff" stroke-width="3"/><text class="atomtxt">C</text></g>
       </svg>
     </div>
   </div>
-  <div class="col">
-    <div class="card ptools">
-      <label for="startSel">Start in:</label>
-      <select id="startSel"></select>
-      <button id="resetPath">Reset</button>
-      <label for="chalSel" style="flex-basis:100%;display:flex;gap:6px;align-items:center;flex-wrap:wrap">Challenge:
-        <select id="chalSel">
-          <option value="free">Explore freely</option>
-          <option value="spheres">Visit all four spheres</option>
-          <option value="rock">Lock the atom in limestone rock</option>
-          <option value="fuel">Make a fossil fuel, then burn it</option>
-        </select>
-      </label>
-    </div>
-    <div class="card loc" aria-live="polite">
-      <div class="k">The carbon atom is in</div>
-      <div class="n"><span id="locName">Atmosphere</span><span id="locBadge" class="badge sp-atmosphere">atmosphere</span></div>
-      <p id="locStore"></p>
-    </div>
-    <div class="card move" id="moveCard" aria-live="polite">
-      <h2 id="moveTitle">Click a glowing place</h2>
-      <p id="moveText">The places that glow are where carbon can go next. Click one to move the atom.</p>
-    </div>
-    <div class="card journey">
-      <div class="top">
-        <h2>Journey <span class="muted" id="moveCount" style="font-weight:400;font-size:13.5px">(0 moves)</span></h2>
-        <div class="dots" id="sphereDots" title="Spheres visited"></div>
-      </div>
-      <ol class="log" id="log"></ol>
-    </div>
-  </div>
+  <div class="col" id="cSide"></div>
 </main>
 
-<!-- ===================== PART 2: MODEL ===================== -->
-<main id="modelView" class="view" role="tabpanel" aria-labelledby="tabModel">
+<!-- ===================== TAB 2: HUMANS AND CO2 ===================== -->
+<main id="humanView" class="view" role="tabpanel" aria-labelledby="tabH">
   <div class="col">
-    <div class="card stage flowcard">
-      <svg id="flow" viewBox="0 0 640 310" preserveAspectRatio="xMidYMid meet" aria-label="Carbon flowing into and out of the air"></svg>
-    </div>
     <div class="card ctrls">
-      <div class="slider">
-        <div class="top"><label for="sFF">Burning fossil fuels</label><output id="oFF">100%</output></div>
-        <input type="range" id="sFF" min="0" max="200" step="10" value="100">
-        <small>100% = today's coal, oil &amp; gas use</small>
+      <h2>Change what people do</h2>
+      <div id="levers"></div>
+      <div class="crow"><button id="resetModel">Reset to today</button></div>
+    </div>
+    <div class="card flowcard">
+      <h2>Carbon going into and out of the air (this year)</h2>
+      <div class="bars">
+        <div class="barrow"><div class="lbl">INTO the air</div><div class="bar" id="barIn"></div></div>
+        <div class="barrow"><div class="lbl">OUT of the air</div><div class="bar" id="barOut"></div></div>
       </div>
-      <div class="slider">
-        <div class="top"><label for="sDef">Cutting down forests</label><output id="oDef">100%</output></div>
-        <input type="range" id="sDef" min="0" max="200" step="10" value="100">
-        <small>100% = today's rate of forest clearing</small>
-      </div>
-      <div class="slider">
-        <div class="top"><label for="sTree">Planting new forests</label><output id="oTree">0%</output></div>
-        <input type="range" id="sTree" min="0" max="100" step="10" value="0">
-        <small>100% = a huge world-wide planting effort</small>
-      </div>
-      <div class="slider">
-        <div class="top"><label for="sVol">Volcanic activity</label><output id="oVol">100%</output></div>
-        <input type="range" id="sVol" min="0" max="500" step="50" value="100">
-        <small>100% = a normal year of eruptions</small>
-      </div>
-      <div class="crow"><span>Settings stay the same every year from 2025 to 2100.</span><button id="resetModel">Reset to today</button></div>
+      <div class="key" id="flowKey"></div>
+      <div class="verdict" id="verdict" aria-live="polite"></div>
     </div>
   </div>
   <div class="col">
     <div class="card graphcard">
-      <h2>Carbon dioxide in the air (ppm)</h2>
+      <h2>Carbon dioxide (CO<sub>2</sub>) in the air</h2>
       <div class="legend">
         <span><i style="border-color:var(--hist)"></i>Measured</span>
-        <span><i style="border-color:var(--you);border-top-width:4px"></i>Your settings</span>
+        <span><i style="border-color:var(--you);border-top-width:4px"></i>Your choices</span>
         <span><i style="border-color:var(--base);border-top-style:dashed"></i>If nothing changes</span>
-        <span><i style="border-color:var(--pre);border-top-style:dotted"></i>Before factories (280)</span>
+        <span><i style="border-color:var(--pre);border-top-style:dotted"></i>Before factories</span>
       </div>
-      <div class="plot"><svg id="graph" aria-label="Line graph of carbon dioxide in the air from 1960 to 2100"></svg></div>
-      <div class="yearrow">
-        <label for="sYear">Look at year</label>
-        <input type="range" id="sYear" min="2025" max="2100" step="1" value="2025">
-        <output id="oYear">2025</output>
-      </div>
+      <div class="plot"><svg id="graph" role="img" aria-label="Line graph of carbon dioxide in the air from 1960 to 2100"></svg></div>
       <div class="tiles">
-        <div class="tile"><div class="k">CO<sub>2</sub> in 2050</div><div class="v" id="t2050">–</div><div class="d" id="d2050"></div></div>
-        <div class="tile"><div class="k">CO<sub>2</sub> in 2075</div><div class="v" id="t2075">–</div><div class="d" id="d2075"></div></div>
-        <div class="tile"><div class="k">CO<sub>2</sub> in 2100</div><div class="v" id="t2100">–</div><div class="d" id="d2100"></div></div>
+        <div class="tile"><div class="k">CO<sub>2</sub> today (2025)</div><div class="v">425 <small>ppm</small></div></div>
+        <div class="tile"><div class="k">CO<sub>2</sub> in 2050</div><div class="v" id="t2050">–</div></div>
+        <div class="tile"><div class="k">CO<sub>2</sub> in 2100</div><div class="v" id="t2100">–</div></div>
       </div>
     </div>
   </div>
+</main>
+
+<!-- ===================== TAB 3: NITROGEN ATOM ===================== -->
+<main id="nitroView" class="view explore" role="tabpanel" aria-labelledby="tabN">
+  <div class="col">
+    <div class="card stage">
+      <svg id="nScene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-label="Farm field and soil showing places where nitrogen is found">
+        <defs>
+          <linearGradient id="nSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9D8F2"/><stop offset="1" stop-color="#E7F5FC"/></linearGradient>
+          <linearGradient id="nSoil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A5636"/><stop offset="1" stop-color="#4E3520"/></linearGradient>
+          <marker id="nArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#17232B"/></marker>
+        </defs>
+        <g id="nArt" pointer-events="none">
+          <rect width="1000" height="292" fill="url(#nSky)"/>
+          <circle cx="940" cy="56" r="30" fill="#FFE07A"/>
+          <!-- storm cloud + lightning -->
+          <g fill="#8C97A1"><circle cx="70" cy="62" r="30"/><circle cx="110" cy="48" r="36"/><circle cx="152" cy="64" r="28"/><rect x="44" y="62" width="130" height="30" rx="15"/></g>
+          <path d="M112 92 L92 140 L112 140 L94 192 L140 126 L118 126 L134 92Z" fill="#FFD23F" stroke="#C99A00" stroke-width="2"/>
+          <!-- N2 molecules in the air -->
+          <g id="n2"></g>
+          <!-- ground -->
+          <rect y="290" width="1000" height="330" fill="url(#nSoil)"/>
+          <path d="M0 286 H1000 V296 H0Z" fill="#6DB257"/>
+          <!-- soil areas -->
+          <rect x="30" y="312" width="940" height="118" rx="18" fill="#8B6A48" stroke="#C9B08A" stroke-width="2" stroke-dasharray="6 5"/>
+          <rect x="30" y="448" width="940" height="128" rx="18" fill="#6E5034" stroke="#C9B08A" stroke-width="2" stroke-dasharray="6 5"/>
+          <g id="bugs"></g>
+          <!-- grass -->
+          <g stroke="#3E8E3A" stroke-width="3" stroke-linecap="round">
+            <path d="M420 290 l-4 -16 M428 290 l2 -18 M436 290 l6 -14 M470 290 l-3 -15 M478 290 l3 -17 M760 290 l-4 -14 M768 290 l2 -16"/>
+          </g>
+          <!-- bean plants with roots and nodules -->
+          <g id="beans"></g>
+          <!-- cow -->
+          <g transform="translate(560 214)">
+            <rect x="0" y="16" width="112" height="46" rx="18" fill="#F4F1EA" stroke="#3B3B3B" stroke-width="2.5"/>
+            <path d="M18 24 q14 -6 22 8 q-8 14 -24 6Z M62 40 q16 -10 26 4 q-6 14 -24 8Z" fill="#3B3B3B"/>
+            <rect x="10" y="58" width="11" height="22" fill="#F4F1EA" stroke="#3B3B3B" stroke-width="2"/><rect x="30" y="58" width="11" height="22" fill="#F4F1EA" stroke="#3B3B3B" stroke-width="2"/>
+            <rect x="76" y="58" width="11" height="22" fill="#F4F1EA" stroke="#3B3B3B" stroke-width="2"/><rect x="94" y="58" width="11" height="22" fill="#F4F1EA" stroke="#3B3B3B" stroke-width="2"/>
+            <path d="M108 26 L136 22 Q150 30 146 48 L120 52 Z" fill="#F4F1EA" stroke="#3B3B3B" stroke-width="2.5"/>
+            <ellipse cx="144" cy="46" rx="9" ry="7" fill="#E8B4B0" stroke="#3B3B3B" stroke-width="2"/>
+            <circle cx="128" cy="32" r="3" fill="#222"/>
+            <path d="M118 22 l-6 -10 M132 20 l4 -11" stroke="#8A7A5A" stroke-width="4" stroke-linecap="round"/>
+            <path d="M0 26 q-14 8 -10 30" stroke="#3B3B3B" stroke-width="3" fill="none"/>
+          </g>
+          <!-- rabbit -->
+          <g transform="translate(470 266)" fill="#C9C1B4"><ellipse cx="10" cy="12" rx="12" ry="9"/><circle cx="22" cy="5" r="6"/><ellipse cx="22" cy="-5" rx="2.4" ry="7"/><ellipse cx="26" cy="-4" rx="2.4" ry="7"/></g>
+          <!-- waste and dead things -->
+          <g>
+            <ellipse cx="860" cy="288" rx="92" ry="16" fill="#6B4A2E"/>
+            <path d="M790 284 q12 -16 26 -2 q-14 8 -26 2Z M830 280 q14 -18 30 -4 q-16 10 -30 4Z M880 284 q10 -14 26 -4 q-12 10 -26 4Z" fill="#B8862E"/>
+            <path d="M812 290 q8 -14 20 -4 q-10 8 -20 4Z M900 288 q14 -12 22 0 q-10 8 -22 0Z" fill="#9C6B2A"/>
+            <path d="M846 270 q-6 -10 4 -14 q10 2 6 12" fill="none" stroke="#7C6A55" stroke-width="3"/>
+            <ellipse cx="932" cy="282" rx="14" ry="7" fill="#5A4632"/>
+            <path d="M770 288 l18 -10 l10 4 l14 -8" stroke="#8D6E4C" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- mushrooms (fungi = decomposers) -->
+          <g>
+            <rect x="952" y="268" width="6" height="20" fill="#EFE6D6"/><path d="M940 270 q15 -22 30 0Z" fill="#C0504D"/>
+            <rect x="744" y="272" width="5" height="16" fill="#EFE6D6"/><path d="M734 274 q12 -18 25 0Z" fill="#C0504D"/>
+          </g>
+          <text class="scenetxt" x="118" y="216">lightning</text>
+          <text class="scenetxt" x="410" y="420" style="font-size:14px">bacteria on roots</text>
+        </g>
+        <g id="nPlaces"></g>
+        <g id="nTrail" pointer-events="none"></g>
+        <g id="nAtom" pointer-events="none"><circle r="17" fill="#2F4FA8" stroke="#fff" stroke-width="3"/><text class="atomtxt">N</text></g>
+      </svg>
+    </div>
+  </div>
+  <div class="col" id="nSide"></div>
 </main>
 
 <script>
@@ -334,14 +355,14 @@ function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const
 const $=id=>document.getElementById(id);
 
 /* ---------------- Tabs ---------------- */
-const tabs=[[$('tabPath'),$('pathView')],[$('tabModel'),$('modelView')]];
+const tabs=[[$('tabC'),$('carbonView')],[$('tabH'),$('humanView')],[$('tabN'),$('nitroView')]];
 tabs.forEach(([b,v])=>b.addEventListener('click',()=>{
   tabs.forEach(([b2,v2])=>{const on=b2===b;b2.setAttribute('aria-selected',on);v2.classList.toggle('on',on);});
-  if(v.id==='modelView')drawGraph();
+  if(v.id==='humanView')drawGraph();
 }));
 
-/* ---------------- Scene decoration ---------------- */
-(function decorate(){
+/* ---------------- Carbon scene decoration ---------------- */
+(function(){
   const mols=$('mols');
   [[340,40],[420,92],[520,46],[600,96],[280,100],[660,44],[470,140],[760,120],[230,52],[860,150]].forEach(([x,y])=>{
     const g=el('g',{transform:`translate(${x} ${y})`},mols);
@@ -356,379 +377,379 @@ tabs.forEach(([b,v])=>b.addEventListener('click',()=>{
   });
   const algae=$('algae');
   for(let i=0;i<34;i++){const x=640+((i*37)%150),y=300+((i*23)%46);el('circle',{cx:x,cy:y,r:2.2+(i%3)*.9,fill:i%2?'#7DD36A':'#4FB25A'},algae);}
-  el('path',{d:'M760 456 C752 430 770 410 758 388 M770 456 C778 432 766 418 776 396',stroke:'#3E9A55','stroke-width':4,fill:'none'},algae);
   const fish=$('fish');
   [[860,352,1,'#F2A33A'],[920,378,.8,'#F2A33A'],[880,400,.9,'#E9E3C4'],[955,346,.7,'#E9E3C4']].forEach(([x,y,s,c])=>{
     const g=el('g',{transform:`translate(${x} ${y}) scale(${s})`},fish);
     el('ellipse',{cx:0,cy:0,rx:16,ry:8,fill:c},g);el('path',{d:'M14 0 L26 -8 L26 8Z',fill:c},g);el('circle',{cx:-9,cy:-2,r:1.8,fill:'#222'},g);
   });
   const coral=$('coral');
-  [[706,456,'#F07C6B'],[724,456,'#F5A04E'],[742,456,'#E35D8F'],[800,456,'#F07C6B']].forEach(([x,y,c],i)=>{
+  [[706,456,'#F07C6B'],[724,456,'#F5A04E'],[742,456,'#E35D8F'],[800,456,'#F07C6B']].forEach(([x,y,c])=>{
     el('path',{d:`M${x} ${y} V${y-26} M${x} ${y-14} l-9 -12 M${x} ${y-18} l9 -14 M${x-9} ${y-26} v-6 M${x+9} ${y-32} v-5`,stroke:c,'stroke-width':5,'stroke-linecap':'round',fill:'none'},coral);
   });
   [[775,452],[826,453],[842,451]].forEach(([x,y])=>{el('path',{d:`M${x-8} ${y} A8 8 0 0 1 ${x+8} ${y}Z`,fill:'#F3E6D0',stroke:'#B99C74','stroke-width':1.5},coral);});
 })();
 
-/* ---------------- Path data ---------------- */
-const R={
-  atm:{name:'Atmosphere',sphere:'atmosphere',store:'Stored as carbon dioxide (CO₂) gas in the air.',label:[470,72],
-       shapes:[['ellipse',{cx:470,cy:80,rx:215,ry:62}]]},
-  plants:{name:'Land plants',sphere:'biosphere',store:'Stored in sugar, starch and wood in leaves, stems and roots.',label:[296,196],
-       shapes:[['path',{d:'M205 290 C200 240 225 200 260 196 C300 186 340 192 370 205 C392 220 394 260 388 290Z'}]]},
-  animals:{name:'Land animals',sphere:'biosphere',store:'Stored in the fats, proteins and sugars that make up an animal’s body.',label:[442,214],
-       shapes:[['ellipse',{cx:440,cy:262,rx:58,ry:32}]]},
-  soil:{name:'Soil',sphere:'geosphere',store:'Stored in dead leaves, wood and wastes, and in decomposers like fungi, worms and bacteria.',label:[396,314],
-       shapes:[['path',{d:'M196 292 H584 L604 330 C500 340 300 336 196 334Z'}]]},
-  ocean:{name:'Ocean water',sphere:'hydrosphere',store:'Stored as carbon dioxide dissolved in seawater.',label:[880,318],
-       shapes:[['path',{d:'M588 291 L1000 291 V456 H690 Z'}]]},
-  algae:{name:'Marine algae',sphere:'biosphere',store:'Stored in sugars inside tiny floating algae (phytoplankton) and seaweed.',label:[712,322],
-       shapes:[['ellipse',{cx:712,cy:322,rx:80,ry:30}]]},
-  marine:{name:'Marine animals',sphere:'biosphere',store:'Stored in the bodies of fish, krill and other sea animals.',label:[900,420],
-       shapes:[['ellipse',{cx:900,cy:375,rx:78,ry:36}]]},
-  shells:{name:'Shells & coral',sphere:'biosphere',store:'Stored as calcium carbonate (CaCO₃) in shells and coral skeletons.',label:[770,390],
-       shapes:[['path',{d:'M694 458 L700 418 C730 404 790 404 850 414 L856 458Z'}]]},
-  sediments:{name:'Sea-floor mud',sphere:'geosphere',store:'Stored in mud made of dead organisms and broken shells that settle on the sea floor.',label:[862,475],
-       shapes:[['path',{d:'M690 458 H1000 V492 H711 Z'}]]},
-  limestone:{name:'Limestone rock',sphere:'geosphere',store:'Stored as calcium carbonate in rock made from ancient shells and coral.',label:[862,516],
-       shapes:[['path',{d:'M711 492 H1000 V538 H739 Z M600 470 C640 480 680 486 711 492 L739 538 C690 530 640 520 590 505Z'}]]},
-  fossil:{name:'Fossil fuels',sphere:'geosphere',store:'Stored in coal, oil and natural gas made from living things buried millions of years ago.',label:[395,446],
-       shapes:[['path',{d:'M228 392 C300 384 420 398 560 390 L562 420 C420 430 300 418 226 424Z'}],['path',{d:'M760 580 C780 556 880 552 905 578 C890 600 790 602 760 580Z'}]],
-       extra:[[832,605,'oil & gas'],[394,374,'coal']]},
-  volcano:{name:'Volcano & magma',sphere:'geosphere',store:'Stored in hot melted rock (magma) deep inside Earth.',label:[112,228],
-       shapes:[['path',{d:'M-10 292 L78 122 Q110 108 142 122 L232 292Z'}],['ellipse',{cx:110,cy:578,rx:100,ry:36}]],
-       extra:[[110,578,'magma']]},
-};
-const SPHERES=['atmosphere','biosphere','hydrosphere','geosphere'];
-/* [process name, speed, explanation] */
-const T={
- 'atm>plants':['Photosynthesis','fast','Leaves take in CO₂ from the air and use energy from sunlight to turn it into sugar. The carbon atom is now part of the plant.'],
- 'atm>ocean':['Dissolving','fast','CO₂ in the air dissolves into the ocean surface, a bit like the fizz in a carbonated drink.'],
- 'plants>atm':['Respiration or burning','fast','The plant breaks down sugar for energy and releases CO₂. Burning wood in a forest fire or when land is cleared also releases it.'],
- 'plants>animals':['Eating','fast','An animal eats the plant. The carbon becomes part of the animal’s body.'],
- 'plants>soil':['Death and decay','fast','Leaves fall and plants die. Their carbon becomes dead matter in the soil.'],
- 'animals>atm':['Respiration','fast','The animal uses its food for energy and breathes out CO₂.'],
- 'animals>soil':['Death and waste','fast','Animal wastes and dead bodies add carbon to the soil.'],
- 'soil>atm':['Decomposition','fast','Decomposers such as fungi and bacteria break down dead matter and release CO₂.'],
- 'soil>fossil':['Burial and pressure','slow','Swamp plants buried deep underground are squeezed and heated for millions of years until they become coal.'],
- 'ocean>atm':['Release from water','fast','Some dissolved CO₂ escapes from the ocean back into the air. Warmer water holds less gas, so more escapes.'],
- 'ocean>algae':['Photosynthesis','fast','Algae near the sunny surface use dissolved CO₂ to make sugar.'],
- 'ocean>shells':['Shell building','fast','Corals, clams and snails combine dissolved carbon with calcium to build hard shells (calcium carbonate).'],
- 'algae>ocean':['Respiration','fast','Algae break down sugar for energy and release CO₂ into the water.'],
- 'algae>marine':['Eating','fast','Tiny sea animals eat the algae, and bigger animals eat them.'],
- 'algae>sediments':['Sinking','fast','Dead algae drift down and settle into the mud on the sea floor.'],
- 'marine>ocean':['Respiration','fast','Sea animals use food for energy and release CO₂ into the water.'],
- 'marine>sediments':['Death and sinking','fast','Dead sea animals sink and are buried in the mud on the sea floor.'],
- 'shells>ocean':['Dissolving','fast','In more acidic water, shells slowly dissolve and the carbon returns to the seawater.'],
- 'shells>sediments':['Sinking','fast','When the animals die, their shells pile up on the sea floor.'],
- 'sediments>limestone':['Compaction','slow','Over millions of years, layers of shells and mud are pressed together and harden into limestone.'],
- 'sediments>fossil':['Burial and heat','slow','Tiny sea organisms buried deep under the mud are slowly heated and squeezed into oil and natural gas.'],
- 'limestone>volcano':['Sinking plates (subduction)','slow','Where tectonic plates collide, rock is dragged deep into Earth, where it melts into magma.'],
- 'limestone>atm':['Making cement (people)','fast','Factories heat crushed limestone to make cement. This gives off CO₂.'],
- 'limestone>ocean':['Weathering','slow','Rain slowly dissolves limestone that has been pushed up onto land. Rivers carry the carbon back to the ocean.'],
- 'fossil>atm':['Combustion (burning)','fast','People burn coal, oil and natural gas in power plants, vehicles and furnaces. The carbon joins with oxygen to make CO₂.'],
- 'volcano>atm':['Volcanic eruption','slow','Volcanoes release CO₂ gas from magma into the air.'],
-};
-const SPEED={fast:'Fast: days to hundreds of years',slow:'Slow: thousands to millions of years'};
-const CH={
- free:{goal:'',done:()=>false},
- spheres:{goal:'Move the atom through the atmosphere, biosphere, hydrosphere and geosphere.',done:s=>SPHERES.every(p=>s.visited.has(p))},
- rock:{goal:'Get the atom locked away in limestone rock.',done:s=>s.cur==='limestone'},
- fuel:{goal:'Turn the atom into a fossil fuel, then burn it so it returns to the air.',done:s=>s.moves.some(m=>m.from==='fossil'&&m.to==='atm')},
-};
-
-/* ---------------- Build clickable places ---------------- */
-const places=$('places');
-const resEls={};
-const order=['ocean','atm','volcano','plants','animals','soil','fossil','algae','marine','shells','sediments','limestone'];
-order.forEach(id=>{
-  const r=R[id];
-  const g=el('g',{class:'res','data-id':id,tabindex:0,role:'button','aria-label':r.name},places);
-  r.shapes.forEach(([t,a])=>el(t,Object.assign({class:'hit'},a),g));
-  resEls[id]=g;
-  g.addEventListener('click',()=>tryMove(id));
-  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tryMove(id);}});
-});
-/* labels on top, so they are never hidden by other shapes */
-function pill(parent,x,y,text,small){
-  const g=el('g',{class:'pill'+(small?' small':'')},parent);
-  const rc=el('rect',{rx:12},g);const t=el('text',{x,y},g);t.textContent=text;
-  const w=t.getComputedTextLength()+(small?14:20),h=small?22:29;
-  rc.setAttribute('x',x-w/2);rc.setAttribute('y',y-h/2);rc.setAttribute('width',w);rc.setAttribute('height',h);
-  return g;
-}
-order.forEach(id=>{
-  const r=R[id],g=resEls[id];
-  const lg=el('g',{},places);
-  // put label inside the same clickable group so clicking the label works too
-  g.appendChild(lg);
-  pill(lg,r.label[0],r.label[1],r.name,false);
-  (r.extra||[]).forEach(([x,y,t])=>pill(lg,x,y,t,true));
-});
-// move label groups to the end so they paint above every hotspot, while keeping each one clickable
-order.forEach(id=>{const g=resEls[id];const lab=g.lastChild;const clone=el('g',{class:'res','data-id':id,'data-label':'1'},places);clone.appendChild(lab);clone.addEventListener('click',()=>tryMove(id));resEls[id+'_lab']=clone;});
-
-/* ---------------- Path state ---------------- */
-const S={start:'atm',cur:'atm',moves:[],visited:new Set(),done:false};
-const startSel=$('startSel');
-Object.keys(R).forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=R[id].name;startSel.appendChild(o);});
-startSel.value='atm';
-const atom=$('atom');
-function atomPos(id){const [x,y]=R[id].label;return [x-0,y-30];}
-let anim=null;
-function placeAtom(x,y){atom.setAttribute('transform',`translate(${x} ${y})`);}
-function animateAtom(from,to,done){
-  const [x0,y0]=atomPos(from),[x1,y1]=atomPos(to);
-  const cx=(x0+x1)/2,cy=Math.min(y0,y1)-60;
-  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(anim)cancelAnimationFrame(anim);
-  if(reduce){placeAtom(x1,y1);done();return;}
-  const t0=performance.now(),dur=750;
-  const step=now=>{let t=Math.min(1,(now-t0)/dur);const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-    const x=(1-e)*(1-e)*x0+2*(1-e)*e*cx+e*e*x1,y=(1-e)*(1-e)*y0+2*(1-e)*e*cy+e*e*y1;placeAtom(x,y);
-    if(t<1)anim=requestAnimationFrame(step);else{anim=null;done();}};
-  anim=requestAnimationFrame(step);
-}
-function drawTrail(m){
-  const tg=$('trailG');tg.innerHTML='';if(!m)return;
-  const [x0,y0]=atomPos(m.from),[x1,y1]=atomPos(m.to);
-  const cx=(x0+x1)/2,cy=Math.min(y0,y1)-60;
-  // shorten ends so the arrow sits between the two atoms
-  const p=el('path',{d:`M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}`,class:'trail','marker-end':'url(#mArrow)'},tg);
-  const L=p.getTotalLength();p.setAttribute('stroke-dasharray','9 6');
-  p.setAttribute('d',`M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}`);
-  const a=p.getPointAtLength(18),b=p.getPointAtLength(L-20);
-  // rebuild a trimmed curve with the same control point
-  p.setAttribute('d',`M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`);
-  const mid=p.getPointAtLength(p.getTotalLength()/2);
-  const t=el('text',{x:mid.x,y:mid.y-8,class:'trailtxt'},tg);t.textContent=T[m.from+'>'+m.to][0];
-}
-function nexts(id){return Object.keys(T).filter(k=>k.startsWith(id+'>')).map(k=>k.split('>')[1]);}
-function render(){
-  const can=new Set(nexts(S.cur));
-  Object.keys(R).forEach(id=>{
-    [resEls[id],resEls[id+'_lab']].forEach(g=>{g.classList.toggle('can',can.has(id));g.classList.toggle('here',id===S.cur);});
+/* ---------------- Nitrogen scene decoration ---------------- */
+(function(){
+  const n2=$('n2');
+  [[330,44],[420,96],[520,40],[610,92],[700,46],[280,110],[790,104],[470,146],[640,150],[860,60],[230,40]].forEach(([x,y])=>{
+    const g=el('g',{transform:`translate(${x} ${y})`},n2);
+    el('circle',{cx:-5,cy:0,r:6,fill:'#2F4FA8'},g);el('circle',{cx:6,cy:0,r:6,fill:'#2F4FA8'},g);
   });
-  const r=R[S.cur];
-  $('locName').textContent=r.name;
-  const b=$('locBadge');b.textContent=r.sphere;b.className='badge sp-'+r.sphere;
-  $('locStore').textContent=r.store;
-  $('moveCount').textContent=`(${S.moves.length} move${S.moves.length===1?'':'s'})`;
-  const dots=$('sphereDots');dots.innerHTML='';
-  SPHERES.forEach(sp=>{const d=document.createElement('span');d.className='dot '+sp+(S.visited.has(sp)?' v':'');d.title=sp+(S.visited.has(sp)?' (visited)':'');dots.appendChild(d);});
-  const lab=document.createElement('span');lab.textContent=S.visited.size+'/4 spheres';dots.appendChild(lab);
-  const log=$('log');log.innerHTML='';
-  const li0=document.createElement('li');li0.innerHTML=`Started in <b>${R[S.start].name}</b>`;log.appendChild(li0);
-  S.moves.forEach(m=>{const li=document.createElement('li');const t=T[m.from+'>'+m.to];
-    li.innerHTML=`<b>${R[m.from].name}</b> → <b>${R[m.to].name}</b><br><i>${t[0]} · ${t[1]}</i>`;log.appendChild(li);});
-  log.scrollTop=log.scrollHeight;
-}
-function setMove(kind,title,html){
-  const c=$('moveCard');c.className='card move'+(kind?' '+kind:'');$('moveTitle').innerHTML=title;$('moveText').innerHTML=html;
-}
-function introMsg(){
-  const ch=CH[$('chalSel').value];
-  if(ch.goal)setMove('','Challenge',ch.goal+' Click a glowing place to move the atom.');
-  else setMove('','Click a glowing place','The places that glow are where carbon can go next. Click one to move the atom.');
-}
-let busy=false;
-function tryMove(id){
-  if(busy)return;
-  if(id===S.cur){setMove('','You are here','The atom is already in '+R[id].name.toLowerCase()+'. Click a glowing place to move it.');return;}
-  const key=S.cur+'>'+id;
-  if(!T[key]){
-    setMove('bad','Not a direct path',`Carbon can’t move straight from <b>${R[S.cur].name.toLowerCase()}</b> to <b>${R[id].name.toLowerCase()}</b>. Look for the places that are glowing.`);
-    [resEls[id],resEls[id+'_lab']].forEach(g=>{g.classList.remove('shake');void g.getBBox();g.classList.add('shake');setTimeout(()=>g.classList.remove('shake'),400);});
-    return;
+  const beans=$('beans');
+  [[250,1.1],[330,1],[400,.9]].forEach(([x,s])=>{
+    const g=el('g',{transform:`translate(${x} 290) scale(${s})`},beans);
+    el('path',{d:'M0 0 C-2 -40 4 -80 0 -110',stroke:'#3E8E3A','stroke-width':5,fill:'none'},g);
+    [[-1,-30],[1,-55],[-1,-80],[1,-104]].forEach(([d,y])=>{el('ellipse',{cx:d*16,cy:y,rx:16,ry:8,fill:'#58B35A',transform:`rotate(${d*-25} ${d*16} ${y})`},g);});
+    el('path',{d:'M8 -64 q6 18 -2 30',stroke:'#7A9A3A','stroke-width':5,fill:'none','stroke-linecap':'round'},g);
+    el('path',{d:'M0 0 C-4 40 -24 90 -30 190 M0 0 C6 44 22 100 26 194 M0 20 C2 80 -2 150 2 210',stroke:'#E8D9B5','stroke-width':3,fill:'none'},g);
+    [[-10,50],[-18,92],[12,46],[18,96],[1,70],[1,116]].forEach(([cx,cy])=>el('circle',{cx,cy,r:6,fill:'#F0C9C0',stroke:'#B5655A','stroke-width':1.5},g));
+  });
+  const bugs=$('bugs');
+  const bug=(x,y,r)=>{el('rect',{x:x-9,y:y-4,width:18,height:8,rx:4,fill:'#C7E39B',stroke:'#4E6B22','stroke-width':1.3,transform:`rotate(${r} ${x} ${y})`},bugs);};
+  [[80,350,10],[520,340,-20],[900,400,15],[950,550,-10],[90,520,-30],[470,540,20],[780,500,8]].forEach(a=>bug(...a));
+})();
+
+/* =============== Cycle explorer (used by the carbon and nitrogen tabs) =============== */
+function Explorer(cfg){
+  const side=$(cfg.side);
+  const P=cfg.prefix;
+  side.innerHTML=`
+    <div class="card ptools">
+      <label>Start in: <select id="${P}Start"></select></label>
+      <button id="${P}Reset">Reset</button>
+      <label style="flex-basis:100%">Challenge: <select id="${P}Chal"></select></label>
+    </div>
+    <div class="card loc" aria-live="polite">
+      <div class="k">The ${cfg.atomWord} atom is in</div>
+      <div class="n"><span id="${P}Name"></span><span id="${P}Badges"></span></div>
+      <p id="${P}Store"></p>
+    </div>
+    <div class="card move" id="${P}Move" aria-live="polite"><h2 id="${P}MoveT"></h2><p id="${P}MoveP"></p></div>
+    <div class="card journey">
+      <div class="top"><h2>Journey <span id="${P}Count" style="font-weight:400;font-size:14px;color:var(--muted)"></span></h2></div>
+      <div class="track" id="${P}Track"></div>
+      <ol class="log" id="${P}Log"></ol>
+    </div>`;
+  const R=cfg.places,T=cfg.moves;
+  const startSel=$(P+'Start'),chalSel=$(P+'Chal');
+  Object.keys(R).forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=R[id].name;startSel.appendChild(o);});
+  Object.entries(cfg.challenges).forEach(([k,c])=>{const o=document.createElement('option');o.value=k;o.textContent=c.label;chalSel.appendChild(o);});
+  startSel.value=cfg.start;
+  /* clickable places */
+  const places=$(cfg.placesG),resEls={};
+  const order=cfg.order||Object.keys(R);
+  order.forEach(id=>{
+    const r=R[id];
+    const g=el('g',{class:'res','data-id':id,tabindex:0,role:'button','aria-label':r.name},places);
+    r.shapes.forEach(([t,a])=>el(t,Object.assign({class:'hit'},a),g));
+    resEls[id]=g;
+    g.addEventListener('click',()=>tryMove(id));
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tryMove(id);}});
+  });
+  function pill(parent,x,y,text,small){
+    const g=el('g',{class:'pill'+(small?' small':'')},parent);
+    const rc=el('rect',{rx:12},g);const t=el('text',{x,y},g);t.textContent=text;
+    let w;try{w=t.getComputedTextLength();}catch(e){w=0;}if(!w)w=text.length*(small?8:10.5);
+    w+=small?14:22;const h=small?24:31;
+    rc.setAttribute('x',x-w/2);rc.setAttribute('y',y-h/2);rc.setAttribute('width',w);rc.setAttribute('height',h);
   }
-  const m={from:S.cur,to:id};busy=true;
-  $('trailG').innerHTML='';
-  animateAtom(S.cur,id,()=>{
-    S.cur=id;S.moves.push(m);S.visited.add(R[id].sphere);busy=false;
-    drawTrail(m);render();
-    const t=T[key];
-    let msg=`${t[2]} <span class="speed ${t[1]}">${SPEED[t[1]]}</span>`;
-    const ch=CH[$('chalSel').value];
-    if(!S.done&&ch.done(S)){S.done=true;setMove('win','Challenge complete! ✓',`You did it in ${S.moves.length} move${S.moves.length===1?'':'s'}. Last step: <b>${t[0]}</b>. ${t[2]}`);}
-    else setMove('',`${t[0]}: ${R[m.from].name} → ${R[id].name}`,msg);
+  /* labels go last so they paint above every hotspot; each label is clickable too */
+  order.forEach(id=>{
+    const r=R[id];
+    const lg=el('g',{class:'res','data-id':id},places);
+    pill(lg,r.label[0],r.label[1],r.name,false);
+    (r.extra||[]).forEach(([x,y,t])=>pill(lg,x,y,t,true));
+    lg.addEventListener('click',()=>tryMove(id));
+    resEls[id+'_lab']=lg;
   });
+  const S={start:cfg.start,cur:cfg.start,moves:[],visited:new Set(),used:new Set(),done:false};
+  const atom=$(cfg.atomG),trailG=$(cfg.trailG);
+  const atomPos=id=>{const [x,y]=R[id].label;return [x,y-34];};
+  const placeAtom=(x,y)=>atom.setAttribute('transform',`translate(${x} ${y})`);
+  let anim=null,busy=false;
+  function animateAtom(from,to,done){
+    const [x0,y0]=atomPos(from),[x1,y1]=atomPos(to);
+    const cx=(x0+x1)/2,cy=Math.min(y0,y1)-60;
+    const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(anim)cancelAnimationFrame(anim);
+    if(reduce||document.hidden){placeAtom(x1,y1);done();return;}
+    const t0=performance.now(),dur=700;
+    const step=now=>{const t=Math.min(1,(now-t0)/dur);const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+      placeAtom((1-e)*(1-e)*x0+2*(1-e)*e*cx+e*e*x1,(1-e)*(1-e)*y0+2*(1-e)*e*cy+e*e*y1);
+      if(t<1)anim=requestAnimationFrame(step);else{anim=null;done();}};
+    anim=requestAnimationFrame(step);
+  }
+  function drawTrail(m){
+    trailG.innerHTML='';if(!m)return;
+    const [x0,y0]=atomPos(m.from),[x1,y1]=atomPos(m.to);
+    const cx=(x0+x1)/2,cy=Math.min(y0,y1)-60;
+    const p=el('path',{d:`M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}`,class:'trail','marker-end':`url(#${cfg.marker})`},trailG);
+    let mid={x:(x0+2*cx+x1)/4,y:(y0+2*cy+y1)/4};
+    try{const L=p.getTotalLength();const a=p.getPointAtLength(20),b=p.getPointAtLength(L-22);p.setAttribute('d',`M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`);}catch(e){}
+    const t=el('text',{x:mid.x,y:mid.y-8,class:'trailtxt'},trailG);t.textContent=T[m.from+'>'+m.to].name;
+  }
+  const nexts=id=>Object.keys(T).filter(k=>k.startsWith(id+'>')).map(k=>k.split('>')[1]);
+  function render(){
+    const can=new Set(nexts(S.cur));
+    Object.keys(R).forEach(id=>[resEls[id],resEls[id+'_lab']].forEach(g=>{g.classList.toggle('can',can.has(id));g.classList.toggle('here',id===S.cur);}));
+    const r=R[S.cur];
+    $(P+'Name').textContent=r.name;
+    $(P+'Badges').innerHTML=(r.group?`<span class="badge g-${r.group}">${(cfg.groupLong||cfg.groups)[r.group]}</span> `:'')+
+      `<span class="badge ${r.living?'g-living':'g-nonliving'}">${r.living?'living (biotic)':'nonliving (abiotic)'}</span>`;
+    $(P+'Store').innerHTML=r.store;
+    $(P+'Count').textContent=`(${S.moves.length} move${S.moves.length===1?'':'s'})`;
+    const tr=$(P+'Track');tr.innerHTML='';
+    if(cfg.track==='groups'){
+      Object.entries(cfg.groups).forEach(([g,n])=>{const s=document.createElement('span');s.className='chip '+g+(S.visited.has(g)?' v':'');s.textContent=n;tr.appendChild(s);});
+      const s=document.createElement('span');s.textContent=S.visited.size+' of 4 visited';tr.appendChild(s);
+    }else{
+      cfg.track.forEach(n=>{const s=document.createElement('span');s.className='chip proc'+(S.used.has(n)?' v':'');s.textContent=n;tr.appendChild(s);});
+      const s=document.createElement('span');s.textContent=cfg.track.filter(n=>S.used.has(n)).length+' of '+cfg.track.length+' used';tr.appendChild(s);
+    }
+    const log=$(P+'Log');log.innerHTML='';
+    const li0=document.createElement('li');li0.innerHTML=`Started in <b>${R[S.start].name}</b>`;log.appendChild(li0);
+    S.moves.forEach(m=>{const li=document.createElement('li');li.innerHTML=`<b>${R[m.from].name}</b> → <b>${R[m.to].name}</b><br><i>${T[m.from+'>'+m.to].name}</i>`;log.appendChild(li);});
+    log.scrollTop=log.scrollHeight;
+  }
+  function setMove(kind,title,html){$(P+'Move').className='card move'+(kind?' '+kind:'');$(P+'MoveT').innerHTML=title;$(P+'MoveP').innerHTML=html;}
+  function intro(){
+    const ch=cfg.challenges[chalSel.value];
+    if(ch.goal)setMove('','Challenge',ch.goal+' Click a glowing place to move the atom.');
+    else setMove('','Click a glowing place','Glowing places show where the '+cfg.atomWord+' atom can go next. Click one to move the atom.');
+  }
+  function tags(t){return (t.slow?'<span class="tag slow">Takes millions of years</span>':'')+(t.people?'<span class="tag people">Caused by people</span>':'');}
+  function tryMove(id){
+    if(busy)return;
+    if(id===S.cur){setMove('','You are here','The atom is already here. Click a glowing place to move it.');return;}
+    const key=S.cur+'>'+id;
+    if(!T[key]){
+      const why=(cfg.wrong||{})[key]||`${cfg.atomWord[0].toUpperCase()+cfg.atomWord.slice(1)} can’t move straight from <b>${R[S.cur].name.toLowerCase()}</b> to <b>${R[id].name.toLowerCase()}</b>. Look for the glowing places.`;
+      setMove('bad','Not a direct path',why);
+      [resEls[id],resEls[id+'_lab']].forEach(g=>{g.classList.remove('shake');void g.getBBox();g.classList.add('shake');setTimeout(()=>g.classList.remove('shake'),400);});
+      return;
+    }
+    const m={from:S.cur,to:id};busy=true;trailG.innerHTML='';
+    animateAtom(S.cur,id,()=>{
+      const t=T[key];
+      S.cur=id;S.moves.push(m);S.visited.add(R[id].group);S.used.add(t.name);busy=false;
+      drawTrail(m);render();
+      const ch=cfg.challenges[chalSel.value];
+      if(!S.done&&ch.done&&ch.done(S)){S.done=true;setMove('win','Challenge complete! ✓',`You did it in <b>${S.moves.length} move${S.moves.length===1?'':'s'}</b>. Last step: <b>${t.name}</b>. ${t.text}`);}
+      else setMove('',`${t.name}`,`${t.text}<br>${tags(t)}`);
+    });
+  }
+  function reset(){
+    if(anim){cancelAnimationFrame(anim);anim=null;}busy=false;
+    S.start=startSel.value;S.cur=S.start;S.moves=[];S.visited=new Set([R[S.start].group]);S.used=new Set();S.done=false;
+    const [x,y]=atomPos(S.cur);placeAtom(x,y);drawTrail(null);render();intro();
+  }
+  $(P+'Reset').addEventListener('click',reset);
+  startSel.addEventListener('change',reset);
+  chalSel.addEventListener('change',()=>{const c=cfg.challenges[chalSel.value];if(c.start)startSel.value=c.start;reset();});
+  reset();
+  return {state:S,move:tryMove,reset};
 }
-function resetPath(){
-  if(anim){cancelAnimationFrame(anim);anim=null;}busy=false;
-  S.start=startSel.value;S.cur=S.start;S.moves=[];S.visited=new Set([R[S.start].sphere]);S.done=false;
-  const [x,y]=atomPos(S.cur);placeAtom(x,y);drawTrail(null);render();introMsg();
-}
-$('resetPath').addEventListener('click',resetPath);
-startSel.addEventListener('change',resetPath);
-$('chalSel').addEventListener('change',()=>{
-  const v=$('chalSel').value;
-  if(v==='rock'||v==='fuel'||v==='spheres'){startSel.value='atm';}
-  resetPath();
+
+/* ---------------- Carbon data (words match the 6.7 handout and quiz) ---------------- */
+const carbon=Explorer({
+  prefix:'c',side:'cSide',placesG:'cPlaces',atomG:'cAtom',trailG:'cTrail',marker:'mArrow',atomWord:'carbon',start:'atm',track:'groups',
+  groups:{atm:'Atmosphere',land:'Land',ocean:'Ocean',lith:'Lithosphere'},
+  groupLong:{atm:'atmosphere',land:'land (terrestrial biosphere)',ocean:'ocean',lith:'lithosphere'},
+  order:['ocean','atm','volcano','plants','animals','soil','fossil','plankton','shells','limestone'],
+  places:{
+    atm:{name:'Atmosphere (air)',group:'atm',living:false,label:[470,72],shapes:[['ellipse',{cx:470,cy:80,rx:215,ry:62}]],
+      store:'Carbon is in the air as <b>carbon dioxide (CO₂)</b> gas and <b>methane</b> gas.'},
+    plants:{name:'Plants',group:'land',living:true,label:[296,192],shapes:[['path',{d:'M205 290 C200 240 225 200 260 196 C300 186 340 192 370 205 C392 220 394 260 388 290Z'}]],
+      store:'Carbon is stored in the sugar and wood of leaves, stems and roots. Plants live on land, in the <b>terrestrial biosphere</b>.'},
+    animals:{name:'Animals',group:'land',living:true,label:[442,212],shapes:[['ellipse',{cx:440,cy:262,rx:58,ry:32}]],
+      store:'Carbon is stored in the animal’s body. Animals get carbon by <b>eating</b>.'},
+    soil:{name:'Decomposers',group:'land',living:true,label:[396,314],shapes:[['path',{d:'M196 292 H584 L604 330 C500 340 300 336 196 334Z'}]],
+      store:'<b>Decomposers</b> in the soil, like <b>fungi</b> and <b>bacteria</b>, break down dead things and waste.'},
+    ocean:{name:'Ocean water',group:'ocean',living:false,label:[880,318],shapes:[['path',{d:'M588 291 L1000 291 V456 H690 Z'}]],
+      store:'CO₂ from the air dissolves in the ocean. CO₂ reacts with <b>water</b> to form <b>carbonic acid</b>. The ocean has the <b>greatest exchange</b> of carbon with the air.'},
+    plankton:{name:'Plankton',group:'ocean',living:true,label:[712,326],shapes:[['ellipse',{cx:712,cy:322,rx:80,ry:30}]],
+      store:'<b>Plankton</b> are tiny living things that float in the ocean. Carbon is stored in their bodies.'},
+    shells:{name:'Shells & coral',group:'ocean',living:true,label:[770,396],shapes:[['path',{d:'M694 458 L700 418 C730 404 790 404 850 414 L856 458Z'}]],
+      store:'Sea animals use carbon from the water to build hard <b>shells</b> and <b>coral</b>.'},
+    limestone:{name:'Limestone rock',group:'lith',living:false,label:[862,516],shapes:[['path',{d:'M690 458 H1000 V538 H739 Z M600 470 C640 480 680 486 711 492 L739 538 C690 530 640 520 590 505Z'}]],
+      store:'Carbon is stored in the <b>lithosphere</b> in minerals like <b>limestone</b>. Limestone is made from old shells and coral.'},
+    fossil:{name:'Fossil fuels',group:'lith',living:false,label:[395,446],shapes:[['path',{d:'M228 392 C300 384 420 398 560 390 L562 420 C420 430 300 418 226 424Z'}],['path',{d:'M760 580 C780 556 880 552 905 578 C890 600 790 602 760 580Z'}]],
+      extra:[[832,606,'oil & natural gas'],[394,376,'coal']],
+      store:'Carbon is stored in the <b>lithosphere</b> as <b>fossil fuels</b>: <b>coal</b>, <b>oil</b> and <b>natural gas</b>.'},
+    volcano:{name:'Volcano',group:'lith',living:false,label:[112,228],shapes:[['path',{d:'M-10 292 L78 122 Q110 108 142 122 L232 292Z'}],['ellipse',{cx:110,cy:578,rx:100,ry:36}]],
+      extra:[[110,578,'magma']],
+      store:'Carbon is stored in hot melted rock (<b>magma</b>) deep in the <b>lithosphere</b>.'},
+  },
+  moves:{
+    'atm>plants':{name:'Photosynthesis',text:'Plants <b>absorb CO₂</b> from the air. They use sunlight to turn it into sugar.'},
+    'atm>ocean':{name:'Dissolving',text:'CO₂ from the air is <b>absorbed by the ocean</b>. It reacts with <b>water</b> to form <b>carbonic acid</b>.'},
+    'plants>atm':{name:'Respiration',text:'Plants use sugar for energy and <b>release CO₂</b> (cellular respiration).'},
+    'plants>animals':{name:'Eating',text:'An animal <b>eats</b> the plant. The carbon becomes part of the animal’s body.'},
+    'plants>soil':{name:'Death',text:'Plants die and leaves fall. <b>Decomposers</b> break them down.'},
+    'animals>atm':{name:'Respiration',text:'Animals <b>release CO₂</b> when they breathe (cellular respiration). Some animals, like cows, also release <b>methane</b>.'},
+    'animals>soil':{name:'Waste and death',text:'Animal waste and dead animals are broken down by <b>decomposers</b>.'},
+    'soil>atm':{name:'Decomposition',text:'<b>Decomposers</b> break down dead things and <b>release carbon</b> into the air.'},
+    'soil>fossil':{name:'Buried',slow:true,text:'Dead plants are buried deep underground. Heat and pressure turn them into <b>coal</b> over <b>millions of years</b>.'},
+    'ocean>atm':{name:'Escaping',text:'Some CO₂ escapes from the ocean back into the air.'},
+    'ocean>plankton':{name:'Photosynthesis',text:'Some <b>plankton absorb CO₂</b> from the water for <b>photosynthesis</b>.'},
+    'ocean>shells':{name:'Shell building',text:'Sea animals take carbon from the water to build <b>shells</b> and <b>coral</b>.'},
+    'plankton>ocean':{name:'Respiration',text:'Plankton use sugar for energy and release CO₂ into the water.'},
+    'plankton>fossil':{name:'Buried',slow:true,text:'Dead plankton sink and are buried under mud. Over <b>millions of years</b> they turn into <b>oil</b> and <b>natural gas</b>.'},
+    'shells>limestone':{name:'Buried',slow:true,text:'Shells and coral pile up on the sea floor. Over <b>millions of years</b> they harden into <b>limestone</b>.'},
+    'limestone>volcano':{name:'Pushed deep',slow:true,text:'Over <b>millions of years</b>, moving rock pushes limestone deep into Earth. It melts into magma.'},
+    'limestone>atm':{name:'Making cement',people:true,text:'Factories heat limestone to make <b>clinker</b> for <b>cement</b>. This <b>releases</b> CO₂ into the air.'},
+    'fossil>atm':{name:'Burning fossil fuels',people:true,text:'People burn coal, oil and natural gas in cars, furnaces and power plants. This <b>releases CO₂</b> into the air.'},
+    'volcano>atm':{name:'Eruption',text:'<b>Volcanoes release</b> CO₂ from the lithosphere into the air.'},
+  },
+  wrong:{
+    'atm>animals':'Animals do not take carbon from the air. Animals get carbon by <b>eating</b>.',
+    'atm>fossil':'Fossil fuels do not come from the air. They form from living things buried for <b>millions of years</b>.',
+    'atm>limestone':'Limestone does not come straight from the air. It forms from old shells and coral.',
+  },
+  challenges:{
+    free:{label:'Explore freely'},
+    parts:{label:'Visit all four places carbon is stored',start:'atm',goal:'Move the carbon atom through the atmosphere, land, ocean and lithosphere.',done:s=>s.visited.size===4},
+    fuel:{label:'Make a fossil fuel, then burn it',start:'atm',goal:'Turn the carbon atom into a fossil fuel. Then burn it so it goes back into the air.',done:s=>s.moves.some(m=>m.from==='fossil'&&m.to==='atm')},
+    rock:{label:'Lock the atom in limestone',start:'atm',goal:'Get the carbon atom stored in limestone rock.',done:s=>s.cur==='limestone'},
+  },
 });
 
-/* ---------------- Model (fully deterministic) ----------------
-   Two-box model in ppm of CO2 above the pre-industrial 280 ppm.
-   Xa = extra carbon in the air; Xs = extra carbon taken up by oceans, plants and soil.
-   Uptake each year U = k*(Xa - Xs/beta). 2.12 billion tonnes of carbon = 1 ppm.
-   2025 starting point: 425 ppm, natural sinks take up 6.1 billion t/yr. */
+/* ---------------- Nitrogen data (words match the 6.7 handout and quiz) ---------------- */
+const nitrogen=Explorer({
+  prefix:'n',side:'nSide',placesG:'nPlaces',atomG:'nAtom',trailG:'nTrail',marker:'nArrow',atomWord:'nitrogen',start:'air',
+  track:['Nitrogen Fixation','Nitrification','Assimilation','Denitrification','Ammonification'],
+  groups:{},
+  order:['air','plants','animals','waste','nitrates','ammonia'],
+  places:{
+    air:{name:'Air (nitrogen gas)',living:false,label:[500,72],shapes:[['ellipse',{cx:520,cy:96,rx:330,ry:78}]],
+      store:'About <b>78%</b> of the atmosphere is <b>nitrogen gas</b>. Plants and animals <b>cannot</b> use nitrogen gas from the air.'},
+    plants:{name:'Plants',living:true,label:[330,152],shapes:[['rect',{x:210,y:166,width:230,height:126,rx:20}]],
+      store:'Plants use nitrogen to make <b>proteins</b> and <b>DNA</b>. They get nitrogen from <b>nitrates</b> in the soil.'},
+    animals:{name:'Animals',living:true,label:[628,186],shapes:[['rect',{x:540,y:204,width:180,height:86,rx:20}]],
+      store:'Animals and humans use nitrogen to make <b>proteins</b> and <b>DNA</b>. They get nitrogen from their <b>food</b>, not by breathing.'},
+    waste:{name:'Waste & dead things',living:false,label:[852,232],shapes:[['rect',{x:740,y:252,width:240,height:54,rx:16}]],
+      store:'Animal <b>waste</b>, dead plants and dead animals still have nitrogen in them. <b>Decomposers</b> (bacteria and <b>fungi</b>, like mushrooms) break them down.'},
+    nitrates:{name:'Nitrates in soil',living:false,label:[660,526],shapes:[['rect',{x:30,y:448,width:940,height:128,rx:18}]],
+      store:'<b>Nitrites</b> and <b>nitrates</b> are made from ammonia and oxygen. Plants absorb <b>nitrates</b> through their roots.'},
+    ammonia:{name:'Ammonia in soil',living:false,label:[660,386],shapes:[['rect',{x:30,y:312,width:940,height:118,rx:18}]],
+      store:'<b>Ammonia</b> is made of nitrogen and hydrogen. Ammonia is <b>toxic</b>.'},
+  },
+  moves:{
+    'air>ammonia':{name:'Nitrogen Fixation',text:'<b>Nitrogen from the air</b> combines with <b>hydrogen</b> to form <b>ammonia</b>. This is done by <b>bacteria on plant roots</b>, or by <b>lightning</b>.'},
+    'ammonia>nitrates':{name:'Nitrification',text:'Bacteria combine <b>ammonia</b> with <b>oxygen</b> to form <b>nitrites</b>, and then <b>nitrates</b>.'},
+    'nitrates>plants':{name:'Assimilation',text:'<b>Plants absorb nitrates</b> from the soil through their roots.'},
+    'nitrates>air':{name:'Denitrification',text:'<b>Denitrifying bacteria</b> convert <b>nitrates</b> back into <b>nitrogen gas</b> in the atmosphere.'},
+    'plants>animals':{name:'Eating',text:'An animal <b>eats</b> the plant. Animals get nitrogen by eating plants.'},
+    'plants>waste':{name:'Death',text:'The plant dies. Its nitrogen is still in the dead leaves and stems.'},
+    'animals>waste':{name:'Waste and death',text:'Animal <b>waste</b> and dead animals still have nitrogen in them.'},
+    'waste>ammonia':{name:'Ammonification',text:'<b>Decomposers</b> (bacteria and fungi) convert the nitrogen in <b>animal waste</b> and dead things into <b>ammonia</b>.'},
+  },
+  wrong:{
+    'air>animals':'Animals and humans <b>cannot</b> use nitrogen from the air. Animals get nitrogen from their <b>food</b>.',
+    'air>plants':'Plants <b>cannot</b> use nitrogen gas from the air. First, bacteria or lightning must change it into ammonia (<b>nitrogen fixation</b>).',
+    'ammonia>plants':'In this lab, plants absorb <b>nitrates</b>. First, bacteria change ammonia into nitrates (<b>nitrification</b>).',
+    'nitrates>animals':'Animals do not take nitrates from the soil. Animals get nitrogen by <b>eating</b>.',
+  },
+  challenges:{
+    free:{label:'Explore freely'},
+    animal:{label:'Get nitrogen from the air into an animal',start:'air',goal:'Move the nitrogen atom from the air into an animal.',done:s=>s.cur==='animals'},
+    all5:{label:'Use all five nitrogen processes',start:'air',goal:'Use all five processes: nitrogen fixation, nitrification, assimilation, denitrification and ammonification.',
+      done:s=>['Nitrogen Fixation','Nitrification','Assimilation','Denitrification','Ammonification'].every(n=>s.used.has(n))},
+  },
+});
+
+/* =============== Tab 2: Humans and CO2 (simple, fully deterministic model) ===============
+   Two-box model in ppm of CO2 above the 280 ppm of the 1700s. Xa = extra carbon in the air; Xs = extra carbon taken up by oceans, plants and soil.
+   Uptake each year U = k*(Xa - Xs/beta). 2.12 billion tonnes of carbon = 1 ppm. 2025: 425 ppm, natural uptake 6.1 billion t/yr. */
 const G=2.12,K=0.04,BETA=3,Y0=2025,Y1=2100,START=425;
 const BASE={ff:10.0,def:1.1,vol:0.1,tree:2.0};
 const OCEAN_SHARE=0.48;
 const HIST=[[1960,317],[1965,320],[1970,326],[1975,331],[1980,339],[1985,346],[1990,354],[1995,361],[2000,370],[2005,380],[2010,390],[2015,401],[2020,414],[2025,425]];
 function runModel(p){
-  let Xa=START-280;let Xs=BETA*(Xa-(6.1/G)/K);
+  let Xa=START-280,Xs=BETA*(Xa-(6.1/G)/K);
   const rows=[];
   for(let y=Y0;y<=Y1;y++){
-    const src={ff:BASE.ff*p.ff/100,def:BASE.def*p.def/100,vol:BASE.vol*p.vol/100};
-    const tree=BASE.tree*p.tree/100;
-    const U=K*(Xa-Xs/BETA)*G; // natural uptake, billion t/yr
+    const ff=BASE.ff*p.ff/100,def=BASE.def*p.def/100,vol=BASE.vol*p.vol/100,tree=BASE.tree*p.tree/100;
+    const U=Math.max(0,K*(Xa-Xs/BETA)*G);
     const ocean=U*OCEAN_SHARE,land=U-ocean;
-    const net=src.ff+src.def+src.vol-U-tree;
-    rows.push({year:y,ppm:280+Xa,ff:src.ff,def:src.def,vol:src.vol,ocean,land,tree,net,rate:net/G});
+    const net=ff+def+vol-U-tree;
+    rows.push({year:y,ppm:280+Xa,ff,def,vol,ocean,land,tree,net});
     Xa+=net/G;Xs+=U/G;
   }
   return rows;
 }
-const sliders={ff:$('sFF'),def:$('sDef'),tree:$('sTree'),vol:$('sVol')};
-const outs={ff:$('oFF'),def:$('oDef'),tree:$('oTree'),vol:$('oVol')};
+const LEVERS=[
+  {k:'ff',name:'Burning fossil fuels',help:'Coal, oil and natural gas in cars, furnaces and power plants.',opts:[[0,'None'],[50,'Half'],[100,'Today'],[200,'Double']],def:100},
+  {k:'def',name:'Cutting down forests (deforestation)',help:'Cut trees are burned or rot. Fewer trees are left to absorb CO₂.',opts:[[0,'None'],[50,'Half'],[100,'Today'],[200,'Double']],def:100},
+  {k:'tree',name:'Planting new trees',help:'New trees absorb CO₂ for photosynthesis.',opts:[[0,'None'],[50,'Some'],[100,'Lots']],def:0},
+  {k:'vol',name:'Volcanoes erupting',help:'Volcanoes release carbon from the lithosphere.',opts:[[0,'None'],[100,'Normal'],[200,'Double'],[500,'5 times']],def:100},
+];
+const P={};
+const lev=$('levers');
+LEVERS.forEach(L=>{
+  P[L.k]=L.def;
+  const d=document.createElement('div');d.className='lever';
+  d.innerHTML=`<div class="top"><span class="name">${L.name}</span></div><small>${L.help}</small><div class="seg" role="group" aria-label="${L.name}"></div>`;
+  const seg=d.querySelector('.seg');
+  L.opts.forEach(([v,t])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.dataset.v=v;b.setAttribute('aria-pressed',v===L.def);
+    b.addEventListener('click',()=>{P[L.k]=v;seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.v===v));updateModel();});seg.appendChild(b);});
+  lev.appendChild(d);
+});
+$('resetModel').addEventListener('click',()=>{LEVERS.forEach(L=>{P[L.k]=L.def;lev.querySelectorAll(`[aria-label="${L.name}"] button`).forEach(x=>x.setAttribute('aria-pressed',+x.dataset.v===L.def));});updateModel();});
 const baseline=runModel({ff:100,def:100,tree:0,vol:100});
 let cur=baseline;
-function params(){const p={};for(const k in sliders)p[k]=+sliders[k].value;return p;}
-function f1(v){return (Math.round(v*10)/10).toFixed(1);}
+const FLOWS={ff:['Fossil fuels','#B8431C'],def:['Cutting forests','#8A5A34'],vol:['Volcanoes','#6E625A'],ocean:['Ocean','#1D4F91'],land:['Plants & soil','#2E9447'],tree:['New trees','#7CB342']};
+(function(){const k=$('flowKey');Object.values(FLOWS).forEach(([n,c])=>{const s=document.createElement('span');s.innerHTML=`<i style="background:${c}"></i>${n}`;k.appendChild(s);});})();
+function fillBar(id,parts,max){
+  const b=$(id);b.innerHTML='';
+  parts.forEach(([k,v])=>{if(v<=0)return;const s=document.createElement('span');s.style.width=(100*v/max)+'%';s.style.background=FLOWS[k][1];
+    s.title=FLOWS[k][0];s.textContent=(100*v/max)>14?FLOWS[k][0]:'';b.appendChild(s);});
+}
 function updateModel(){
-  const p=params();for(const k in outs)outs[k].textContent=p[k]+'%';
-  cur=runModel(p);
-  [2050,2075,2100].forEach(y=>{
-    const r=cur[y-Y0],d=Math.round(r.ppm)-START;
-    $('t'+y).innerHTML=Math.round(r.ppm)+' <small>ppm</small>';
-    $('d'+y).textContent=(d>=0?'+':'−')+Math.abs(d)+' ppm since 2025';
-  });
-  drawGraph();drawFlow();
+  cur=runModel(P);
+  [2050,2100].forEach(y=>{$('t'+y).innerHTML=Math.round(cur[y-Y0].ppm)+' <small>ppm</small>';});
+  const r=cur[0],inn=r.ff+r.def+r.vol,out=r.ocean+r.land+r.tree,max=Math.max(inn,out,12);
+  fillBar('barIn',[['ff',r.ff],['def',r.def],['vol',r.vol]],max);
+  fillBar('barOut',[['ocean',r.ocean],['land',r.land],['tree',r.tree]],max);
+  const v=$('verdict');
+  if(inn>out+0.05){v.className='verdict up';v.textContent='More carbon goes INTO the air than comes OUT. CO₂ in the air goes UP.';}
+  else if(out>inn+0.05){v.className='verdict down';v.textContent='More carbon comes OUT of the air than goes IN. CO₂ in the air goes DOWN.';}
+  else{v.className='verdict';v.textContent='Carbon in and carbon out are about the same. CO₂ in the air stays about the same.';}
+  drawGraph();
 }
-Object.values(sliders).forEach(s=>s.addEventListener('input',updateModel));
-$('resetModel').addEventListener('click',()=>{sliders.ff.value=100;sliders.def.value=100;sliders.tree.value=0;sliders.vol.value=100;updateModel();});
-const sYear=$('sYear');
-sYear.addEventListener('input',()=>{$('oYear').textContent=sYear.value;drawGraph();drawFlow();});
-
-/* ----- flow diagram ----- */
-function drawFlow(){
-  const svg=$('flow');svg.innerHTML='';
-  const yr=+sYear.value,r=cur[yr-Y0];
-  const defs=el('defs',{},svg);
-  [['aSrc','#E0562B'],['aSea','#2F7FC1'],['aLand','#2E9447']].forEach(([id,c])=>{
-    const m=el('marker',{id,viewBox:'0 0 10 10',refX:5,refY:5,markerWidth:1.9,markerHeight:1.7,orient:'auto',markerUnits:'strokeWidth'},defs);
-    el('path',{d:'M0 0L10 5L0 10z',fill:c},m);
-  });
-  const sky=el('linearGradient',{id:'fSky',x1:0,y1:0,x2:0,y2:1},defs);el('stop',{offset:0,'stop-color':'#B6DDF3'},sky);el('stop',{offset:1,'stop-color':'#EAF6FC'},sky);
-  el('rect',{width:640,height:196,fill:'url(#fSky)'},svg);
-  el('rect',{y:196,width:430,height:114,fill:'#B9A07A'},svg);
-  el('rect',{y:192,width:430,height:8,fill:'#6DB257'},svg);
-  el('path',{d:'M430 196 H640 V310 H470 Z',fill:'#3F8FC4'},svg);
-  el('path',{d:'M430 196 H640',stroke:'#D8F0FB','stroke-width':3},svg);
-  // air box
-  el('rect',{x:170,y:8,width:300,height:58,rx:12,fill:'#fff',stroke:'#41525C','stroke-width':1.5},svg);
-  let t=el('text',{x:320,y:28,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#55666F'},svg);t.textContent='Carbon dioxide in the air, '+yr;
-  t=el('text',{x:320,y:55,'text-anchor':'middle','font-size':25,'font-weight':700,fill:'#17232B','font-family':'Cambria,Georgia,serif'},svg);t.textContent=Math.round(r.ppm)+' ppm';
-  // icons
-  const icon={
-    ff:(x,y)=>{el('rect',{x:x-22,y:y-26,width:30,height:30,fill:'#9AA3AA'},svg);el('rect',{x:x+2,y:y-46,width:8,height:24,fill:'#7B848B'},svg);el('rect',{x:x+12,y:y-12,width:22,height:9,rx:3,fill:'#C83A2A'},svg);el('circle',{cx:x+17,cy:y-2,r:3,fill:'#222'},svg);el('circle',{cx:x+29,cy:y-2,r:3,fill:'#222'},svg);},
-    def:(x,y)=>{[[-18,0],[0,4],[18,-2]].forEach(([dx,dy])=>{el('rect',{x:x+dx-5,y:y+dy-12,width:10,height:12,fill:'#8A5A34'},svg);el('ellipse',{cx:x+dx,cy:y+dy-12,rx:5,ry:2,fill:'#D9B78C'},svg);});el('path',{d:`M${x-30} ${y-6} l60 -20`,stroke:'#2D7A3D','stroke-width':6,'stroke-linecap':'round'},svg);},
-    vol:(x,y)=>{el('path',{d:`M${x-34} ${y} L${x-9} ${y-40} H${x+9} L${x+34} ${y}Z`,fill:'#7E7066'},svg);el('path',{d:`M${x-3} ${y-38} q-4 16 2 34`,stroke:'#F06A1F','stroke-width':4,fill:'none'},svg);},
-    land:(x,y)=>{[[-18,2,1],[0,-2,1.25],[18,2,1]].forEach(([dx,dy,s])=>{el('rect',{x:x+dx-2,y:y+dy-8,width:4,height:8,fill:'#6B4A2E'},svg);el('path',{d:`M${x+dx} ${y+dy-34*s} L${x+dx+12*s} ${y+dy-6} H${x+dx-12*s}Z`,fill:'#2D7A3D'},svg);});},
-    tree:(x,y)=>{[[-16,0],[0,0],[16,0]].forEach(([dx])=>{el('path',{d:`M${x+dx} ${y} v-12`,stroke:'#6B4A2E','stroke-width':2.5},svg);el('ellipse',{cx:x+dx-4,cy:y-14,rx:5,ry:3,fill:'#58B35A'},svg);el('ellipse',{cx:x+dx+4,cy:y-16,rx:5,ry:3,fill:'#58B35A'},svg);});},
-    ocean:(x,y)=>{[[-14,10],[12,22]].forEach(([dx,dy])=>{el('ellipse',{cx:x+dx,cy:y+dy,rx:10,ry:5,fill:'#F2A33A'},svg);el('path',{d:`M${x+dx+9} ${y+dy} l8 -5 v10z`,fill:'#F2A33A'},svg);});},
-  };
-  const items=[
-    {k:'ff',x:55,v:r.ff,name:['Burning','fossil fuels'],dir:'up'},
-    {k:'def',x:146,v:r.def,name:['Cutting','forests'],dir:'up'},
-    {k:'vol',x:234,v:r.vol,name:['Volcanoes',''],dir:'up'},
-    {k:'land',x:318,v:r.land,name:['Plants','& soil'],dir:'down'},
-    {k:'tree',x:396,v:r.tree,name:['New','forests'],dir:'down'},
-    {k:'ocean',x:548,v:r.ocean,name:['Ocean',''],dir:'down'},
-  ];
-  const yTop=74,yBot=178;
-  items.forEach(it=>{
-    const iy=it.k==='ocean'?204:192;
-    icon[it.k](it.x,iy);
-    const w=it.v<=0.0001?0:Math.max(2.5,Math.min(30,it.v*2.6));
-    const col=it.dir==='up'?'#E0562B':(it.k==='ocean'?'#2F7FC1':'#2E9447');
-    const mk=it.dir==='up'?'aSrc':(it.k==='ocean'?'aSea':'aLand');
-    const ax=it.x;
-    if(w>0){
-      const y0=it.dir==='up'?yBot-10:yTop+4,y1=it.dir==='up'?yTop+4+w*1.1:yBot-10-w*1.1;
-      el('path',{d:`M${ax} ${y0} L${ax} ${y1}`,stroke:col,'stroke-width':w,'marker-end':`url(#${mk})`,opacity:.9},svg);
-    }
-    const vy=it.dir==='up'?yTop+(yBot-yTop)/2:yTop+(yBot-yTop)/2;
-    const tv=el('text',{x:ax+(w/2)+6,y:vy+5,'font-size':17,'font-weight':700,fill:col,'paint-order':'stroke',stroke:'#fff','stroke-width':3},svg);tv.textContent=f1(it.v);
-    const ty=it.k==='ocean'?262:236;
-    const tn=el('text',{x:ax,y:ty,'text-anchor':'middle','font-size':15,'font-weight':700,fill:it.k==='ocean'?'#fff':'#17232B'},svg);tn.textContent=it.name[0];
-    if(it.name[1]){const tn2=el('text',{x:ax,y:ty+16,'text-anchor':'middle','font-size':15,'font-weight':700,fill:'#17232B'},svg);tn2.textContent=it.name[1];}
-  });
-  // totals
-  const inn=r.ff+r.def+r.vol,out=r.land+r.ocean+r.tree;
-  el('rect',{x:6,y:274,width:420,height:30,rx:8,fill:'#fff',opacity:.92},svg);
-  t=el('text',{x:14,y:294,'font-size':14,fill:'#17232B'},svg);
-  const s1=el('tspan',{'font-weight':700,fill:'#B8431C'},t);s1.textContent='In: '+f1(inn);
-  const s2=el('tspan',{dx:10,'font-weight':700,fill:'#1D5E96'},t);s2.textContent='Out: '+f1(out);
-  const s3=el('tspan',{dx:10},t);
-  const rate=Math.round(r.rate*10)/10;
-  s3.textContent=rate>0?`CO₂ rising ${f1(rate)} ppm per year`:rate<0?`CO₂ falling ${f1(-rate)} ppm per year`:'CO₂ steady';
-  t=el('text',{x:636,y:300,'text-anchor':'end','font-size':11.5,fill:'#fff'},svg);t.textContent='billion tonnes of carbon per year';
-}
-
-/* ----- line graph ----- */
 const gsvg=$('graph');
 const GX0=1960,GX1=2100,GY0=250,GY1=800;
 function drawGraph(){
-  const box=gsvg.getBoundingClientRect();const W=Math.max(200,box.width),H=Math.max(120,box.height);
+  const box=gsvg.getBoundingClientRect();const W=Math.max(240,box.width||600),H=Math.max(140,box.height||300);
   gsvg.setAttribute('viewBox',`0 0 ${W} ${H}`);gsvg.innerHTML='';
-  const L=44,R=10,Tm=8,B=22;
-  const x=y=>L+(y-GX0)/(GX1-GX0)*(W-L-R);
-  const y=v=>Tm+(1-(v-GY0)/(GY1-GY0))*(H-Tm-B);
-  gsvg._x=x;gsvg._L=L;gsvg._R=R;gsvg._W=W;
+  const L=44,R=12,Tm=10,B=24;
+  const x=v=>L+(v-GX0)/(GX1-GX0)*(W-L-R), y=v=>Tm+(1-(v-GY0)/(GY1-GY0))*(H-Tm-B);
+  el('rect',{x:x(2025),y:Tm,width:x(2100)-x(2025),height:H-Tm-B,fill:'#F6F9FB'},gsvg);
   for(let v=GY0;v<=GY1;v+=50){
     el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:v%100===0?'#D5DEE3':'#EDF1F3','stroke-width':1},gsvg);
-    if(v%100===0||H>260){const t=el('text',{x:L-5,y:y(v)+4,'text-anchor':'end','font-size':12,fill:'#55666F'},gsvg);t.textContent=v;}
+    if(v%100===0){const t=el('text',{x:L-5,y:y(v)+4,'text-anchor':'end','font-size':12.5,fill:'#4D5E67'},gsvg);t.textContent=v;}
   }
   for(let yr=GX0;yr<=GX1;yr+=20){
     el('line',{x1:x(yr),x2:x(yr),y1:Tm,y2:H-B,stroke:'#EDF1F3'},gsvg);
-    const t=el('text',{x:x(yr),y:H-6,'text-anchor':'middle','font-size':12,fill:'#55666F'},gsvg);t.textContent=yr;
+    const t=el('text',{x:x(yr),y:H-6,'text-anchor':'middle','font-size':12.5,fill:'#4D5E67'},gsvg);t.textContent=yr;
   }
   el('line',{x1:L,x2:L,y1:Tm,y2:H-B,stroke:'#17232B','stroke-width':1.5},gsvg);
   el('line',{x1:L,x2:W-R,y1:H-B,y2:H-B,stroke:'#17232B','stroke-width':1.5},gsvg);
-  // pre-industrial
+  const ty=el('text',{x:L+6,y:Tm+14,'font-size':12.5,fill:'#4D5E67'},gsvg);ty.textContent='ppm';
   el('line',{x1:L,x2:W-R,y1:y(280),y2:y(280),stroke:'#2E9447','stroke-width':2,'stroke-dasharray':'2 4'},gsvg);
-  // future shading
-  el('rect',{x:x(2025),y:Tm,width:x(2100)-x(2025),height:H-Tm-B,fill:'#F6F9FB'},gsvg).parentNode.insertBefore(gsvg.lastChild,gsvg.firstChild);
   const pts=a=>a.map(([a1,b1])=>`${x(a1).toFixed(1)},${y(b1).toFixed(1)}`).join(' ');
   el('polyline',{points:pts(HIST),fill:'none',stroke:'#2B2B2B','stroke-width':2.5},gsvg);
   el('polyline',{points:pts(baseline.map(r=>[r.year,r.ppm])),fill:'none',stroke:'#7D8A92','stroke-width':2,'stroke-dasharray':'7 5'},gsvg);
   el('polyline',{points:pts(cur.map(r=>[r.year,r.ppm])),fill:'none',stroke:'#D9480F','stroke-width':3.5,'stroke-linejoin':'round'},gsvg);
-  // year marker
-  const yr=+sYear.value,r=cur[yr-Y0];
-  el('line',{x1:x(yr),x2:x(yr),y1:Tm,y2:H-B,stroke:'#17232B','stroke-width':1,'stroke-dasharray':'3 3'},gsvg);
-  el('circle',{cx:x(yr),cy:y(r.ppm),r:5.5,fill:'#D9480F',stroke:'#fff','stroke-width':2},gsvg);
-  const label=`${yr}: ${Math.round(r.ppm)} ppm`;
-  const right=x(yr)<W-120;
-  const lx=right?x(yr)+9:x(yr)-9,ly=Math.max(Tm+14,Math.min(H-B-8,y(r.ppm)-10));
-  const lt=el('text',{x:lx,y:ly,'text-anchor':right?'start':'end','font-size':14,'font-weight':700,fill:'#17232B','paint-order':'stroke',stroke:'#fff','stroke-width':4,'stroke-linejoin':'round'},gsvg);lt.textContent=label;
-  const tl=el('text',{x:x(1962),y:y(280)-6,'font-size':11.5,fill:'#2E9447'},gsvg);tl.textContent='280 ppm before factories';
-  const tf=el('text',{x:x(2027),y:Tm+13,'font-size':11.5,fill:'#55666F'},gsvg);tf.textContent='Model →';
+  const last=cur[cur.length-1];
+  el('circle',{cx:x(2100),cy:y(last.ppm),r:5,fill:'#D9480F',stroke:'#fff','stroke-width':2},gsvg);
+  const tl=el('text',{x:x(1962),y:y(280)-6,'font-size':12,fill:'#2E9447'},gsvg);tl.textContent='280 ppm before factories';
+  const tf=el('text',{x:x(2027),y:Tm+14,'font-size':12,fill:'#4D5E67'},gsvg);tf.textContent='Future →';
 }
-function graphPick(e){
-  if(!gsvg._x)return;
-  const b=gsvg.getBoundingClientRect();const px=e.clientX-b.left;
-  const yr=Math.round(GX0+(px-gsvg._L)/(gsvg._W-gsvg._L-gsvg._R)*(GX1-GX0));
-  const v=Math.max(Y0,Math.min(Y1,yr));
-  if(+sYear.value!==v){sYear.value=v;$('oYear').textContent=v;drawGraph();drawFlow();}
-}
-gsvg.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||e.buttons)graphPick(e);});
-gsvg.addEventListener('pointerdown',graphPick);
-if(window.ResizeObserver)new ResizeObserver(()=>{if($('modelView').classList.contains('on'))drawGraph();}).observe(gsvg);
-window.addEventListener('resize',drawGraph);
-
-/* ---------------- init ---------------- */
-resetPath();
+if(window.ResizeObserver)new ResizeObserver(()=>{if($('humanView').classList.contains('on'))drawGraph();}).observe(gsvg);
 updateModel();
+window.__lab={carbon,nitrogen,runModel,P};
 })();
 </script>
 </body>
