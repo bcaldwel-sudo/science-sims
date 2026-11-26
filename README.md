@@ -10,3 +10,67 @@ Interactive science simulations for students, built as single self-contained HTM
 | Hooke's Law / Simple Harmonic Motion Virtual Lab: virtual version of the in-class spring lab (stretch and period data) | `hookes-law-shm-lab/` |
 | Adding Forces at Angles: animated step-by-step walkthrough of adding two Coulomb forces by components (SPH4U 3.3) | `forces-at-angles/` |
 | Meadow Food Chain: producers and consumers, population changes, disease, energy pyramid | `food-chain/` |
+
+## D2L embed codes
+
+To put a sim on a D2L page: open the page's HTML editor, click the **</>** (Source Code) button, paste the sim's line below, and save. D2L then always shows the latest version from this site.
+
+**Adding Forces at Angles**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/forces-at-angles/" title="Adding Forces at Angles" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Circulation Lab**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/circulatory-system/" title="Circulation Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Roller Coaster Energy Lab**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/roller-coaster/" title="Roller Coaster Energy Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Spring Damping**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/spring-damping/" title="Spring Damping" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Hooke's Law / Simple Harmonic Motion Virtual Lab**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/hookes-law-shm-lab/" title="Hooke's Law / Simple Harmonic Motion Virtual Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Ecosystem Food Chains**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/food-chain/" title="Ecosystem Food Chains" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Photosynthesis Lab**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/photosynthesis/" title="Photosynthesis Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Reaction Bench**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/chemical-changes/" title="Reaction Bench" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Frog Dissection Lab**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/frog-dissection/" title="Frog Dissection Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Carbon Cycle Lab**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/carbon-cycle/" title="Carbon Cycle Lab" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
