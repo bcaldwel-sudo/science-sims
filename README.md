@@ -10,7 +10,7 @@ Interactive science simulations for students, built as single self-contained HTM
 | Hooke's Law / Simple Harmonic Motion Virtual Lab: virtual version of the in-class spring lab (stretch and period data) | `hookes-law-shm-lab/` |
 | Adding Forces at Angles: animated step-by-step walkthrough of adding two Coulomb forces by components (SPH4U 3.3) | `forces-at-angles/` |
 | Meadow Food Chain: producers and consumers, population changes, disease, energy pyramid | `food-chain/` |
-| Carbon and Nitrogen Cycles Lab (SNC1L 6.7): follow a carbon atom, humans and CO₂, follow a nitrogen atom | `carbon-cycle/` |
+| Carbon and Nitrogen Cycles Lab (SNC1L 6.7): tap the carbon cycle, humans and CO₂, tap the nitrogen cycle | `carbon-cycle/` |
 
 ## D2L embed codes
 
