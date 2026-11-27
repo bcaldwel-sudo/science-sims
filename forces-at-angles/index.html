@@ -119,7 +119,7 @@ svg text { font-family: var(--body); fill: var(--ink); }
   <section class="stage" id="stage" data-step="1">
     <svg id="svg" viewBox="-40 20 900 720" preserveAspectRatio="xMidYMid meet" aria-label="Animated force diagram"></svg>
     <div class="title">Adding Forces at Angles<span>Net electric force on Q</span></div>
-    <div class="answer" id="answer">F<sub>net</sub> = 0.650 N [E 63.7° S]</div>
+    <div class="answer" id="answer">F<sub>net</sub> = 0.779 N [W 43.6° N]</div>
     <div class="caption" id="caption"></div>
   </section>
   <aside class="rail">
@@ -133,38 +133,44 @@ svg text { font-family: var(--body); fill: var(--ink); }
 
 <script>
 (() => {
-  // ---------- geometry (world units; 1200 px per metre for distances, 300 px per newton for forces)
-  const Q = { x: 580, y: 200 }, q1 = { x: 100, y: 560 }, q2 = { x: 580, y: 560 };
-  const FS = 300, cs = 0.8, sn = 0.6;
-  const F1 = { x: Q.x + 0.360 * FS * cs, y: Q.y - 0.360 * FS * sn };     // (666.4, 135.2)
-  const F2 = { x: Q.x, y: Q.y + 0.799 * FS };                          // (580, 439.7)
-  const X1 = { x: F1.x, y: Q.y };                                      // tip of F1x
-  const FY = 0.583 * FS, NET = { x: F1.x, y: Q.y + FY };
-  const VB_SCENE = [-40, 20, 900, 720], VB_ZOOM = [380, 40, 620, 530];
+  // ---------- geometry (world units; 1100 px per metre for distances, 260 px per newton for forces)
+  const D = 1100, FS = 260;
+  const Q = { x: 600, y: 300 };
+  const q1 = { x: Q.x - 0.300 * D, y: Q.y + 0.400 * D };            // 0.300 m left, 0.400 m below
+  const q2 = { x: Q.x - 0.240 * D, y: Q.y - 0.100 * D };            // 0.240 m left, 0.100 m above
+  const c1 = 0.600, s1 = 0.800, c2 = 12 / 13, s2 = 5 / 13;
+  const F1 = { x: Q.x + 0.288 * FS * c1, y: Q.y - 0.288 * FS * s1 };
+  const F2 = { x: Q.x - 0.798 * FS * c2, y: Q.y - 0.798 * FS * s2 };
+  const X1 = { x: F1.x, y: Q.y }, X2 = { x: F2.x, y: Q.y };         // tips of the x components
+  const L1x = 0.173 * FS, L1y = 0.230 * FS, L2x = 0.737 * FS, L2y = 0.307 * FS;
+  const LX = 0.564 * FS, LY = 0.537 * FS;
+  const C = { x: Q.x - LX, y: Q.y }, NET = { x: Q.x - LX, y: Q.y - LY };
+  const SX = Q.x + 44;                                               // where the y components get stacked
+  const VB_SCENE = [40, 110, 780, 820], VB_ZOOM = [Q.x - 340, Q.y - 320, 500, 560];
 
   const STEPS = [
     { t: "The setup", c: "Three charges. What is the net force on Q?",
-      m: [`Q = +2.00 μC`, `<span class="c1">q₁ = +5.00 μC</span>, 0.500 m away`, `<span class="c2">q₂ = −4.00 μC</span>, 0.300 m below`] },
-    { t: "q₁ pushes Q", c: "Like charges repel: q₁ pushes Q straight away from it.",
-      m: [`<span class="c1">F₁</span> = <span class="fr"><span>kq₁Q</span><span>r²</span></span> = <span class="fr"><span>(8.99×10⁹)(5.00×10⁻⁶)(2.00×10⁻⁶)</span><span>(0.500)²</span></span>`, `<b class="c1">F₁ = 0.360 N</b> [E 36.9° N]`] },
-    { t: "q₂ pulls Q", c: "Opposites attract: q₂ pulls Q straight down toward it.",
-      m: [`<span class="c2">F₂</span> = <span class="fr"><span>(8.99×10⁹)(4.00×10⁻⁶)(2.00×10⁻⁶)</span><span>(0.300)²</span></span>`, `<b class="c2">F₂ = 0.799 N</b> [S]`] },
-    { t: "Zoom in on Q", c: "Zoom in. Only the two forces on Q matter now.",
-      m: [`East is +x, north is +y.`, `We can't add 0.360 and 0.799: they point different ways.`] },
-    { t: "Split F₁ into components", c: "F₁ is on an angle. Split it into its x component and y component.",
-      m: [`<span class="c1">F₁ₓ</span> = 0.360 cos 36.9° = <b class="c1">+0.288 N</b>`, `<span class="c1">F₁ᵧ</span> = 0.360 sin 36.9° = <b class="c1">+0.216 N</b>`] },
-    { t: "Split F₂ into components", c: "F₂ points straight down. It has no x component.",
-      m: [`<span class="c2">F₂ₓ</span> = <b class="c2">0</b>`, `<span class="c2">F₂ᵧ</span> = <b class="c2">−0.799 N</b> (down is −)`] },
-    { t: "Add the x components", c: "Add the x components. Only F₁ has one.",
-      m: [`<span class="cs">Fₓ</span> = 0.288 + 0 = <b class="cs">+0.288 N</b>`] },
-    { t: "Add the y components", c: "Add the y components tip to tail. Up and down partly cancel.",
-      m: [`<span class="cs">Fᵧ</span> = 0.216 + (−0.799)`, `<b class="cs">Fᵧ = −0.583 N</b>`] },
+      m: [`Q = +2.00 μC`, `<span class="c1">q₁ = +4.00 μC</span>, 0.500 m away`, `<span class="c2">q₂ = −3.00 μC</span>, 0.260 m away`] },
+    { t: "q₁ pushes Q", c: "Like charges repel: q₁ pushes Q directly away from it.",
+      m: [`<span class="c1">F₁</span> = <span class="fr"><span>kq₁Q</span><span>r²</span></span> = <span class="fr"><span>(8.99×10⁹)(4.00×10⁻⁶)(2.00×10⁻⁶)</span><span>(0.500)²</span></span>`, `<b class="c1">F₁ = 0.288 N</b> [E 53.1° N]`] },
+    { t: "q₂ pulls Q", c: "Opposites attract: q₂ pulls Q directly toward it.",
+      m: [`<span class="c2">F₂</span> = <span class="fr"><span>(8.99×10⁹)(3.00×10⁻⁶)(2.00×10⁻⁶)</span><span>(0.260)²</span></span>`, `<b class="c2">F₂ = 0.798 N</b> [W 22.6° N]`] },
+    { t: "Zoom in on Q", c: "Zoom in. Both forces are on angles, so neither one lines up with an axis.",
+      m: [`East is +x, north is +y.`, `We can't just add 0.288 and 0.798: they point different ways.`] },
+    { t: "Split F₁ into components", c: "Split F₁ into an x component and a y component.",
+      m: [`<span class="c1">F₁ₓ</span> = 0.288 cos 53.1° = <b class="c1">+0.173 N</b>`, `<span class="c1">F₁ᵧ</span> = 0.288 sin 53.1° = <b class="c1">+0.230 N</b>`] },
+    { t: "Split F₂ into components", c: "Do the same for F₂. Its x component points west, so it is negative.",
+      m: [`<span class="c2">F₂ₓ</span> = −0.798 cos 22.6° = <b class="c2">−0.737 N</b>`, `<span class="c2">F₂ᵧ</span> = 0.798 sin 22.6° = <b class="c2">+0.307 N</b>`] },
+    { t: "Add the x components", c: "Add the x components tip to tail. East and west partly cancel.",
+      m: [`<span class="cs">Fₓ</span> = 0.173 + (−0.737)`, `<b class="cs">Fₓ = −0.564 N</b>`] },
+    { t: "Add the y components", c: "Add the y components tip to tail. Both point north, so they add.",
+      m: [`<span class="cs">Fᵧ</span> = 0.230 + 0.307`, `<b class="cs">Fᵧ = +0.537 N</b>`] },
     { t: "Rebuild tip to tail", c: "Put the two sums tip to tail. The net force closes the triangle.",
       m: [`One arrow now does the job of both forces.`] },
     { t: "Size: Pythagoras", c: "The net force is the hypotenuse: the two small squares fill the big one.",
-      m: [`F<sub>net</sub> = <span class="rt"><span>Fₓ² + Fᵧ²</span></span>`, `= <span class="rt"><span>0.288² + 0.583²</span></span>`, `<b class="cn">F<sub>net</sub> = 0.650 N</b>`] },
-    { t: "Direction: tangent", c: "Start facing east, then turn 63.7° toward south.",
-      m: [`θ = tan⁻¹ <span class="fr"><span>opposite</span><span>adjacent</span></span> = tan⁻¹ <span class="fr"><span>0.583</span><span>0.288</span></span> = <b>63.7°</b>`, `<b class="cn">F<sub>net</sub> = 0.650 N [E 63.7° S]</b>`] },
+      m: [`F<sub>net</sub> = <span class="rt"><span>Fₓ² + Fᵧ²</span></span>`, `= <span class="rt"><span>0.564² + 0.537²</span></span>`, `<b class="cn">F<sub>net</sub> = 0.779 N</b>`] },
+    { t: "Direction: tangent", c: "Start facing west, then turn 43.6° toward north.",
+      m: [`θ = tan⁻¹ <span class="fr"><span>opposite</span><span>adjacent</span></span> = tan⁻¹ <span class="fr"><span>0.537</span><span>0.564</span></span> = <b>43.6°</b>`, `<b class="cn">F<sub>net</sub> = 0.779 N [W 43.6° N]</b>`] },
   ];
 
   // ---------- markup
@@ -176,72 +182,82 @@ svg text { font-family: var(--body); fill: var(--ink); }
   }
   const T = (id, x, y, txt, cls, size, anchor = "middle", extra = "") =>
     `<text id="${id}" class="lbl ${cls}" x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" opacity="0" ${extra}>${txt}</text>`;
-  function grid() { let d = ""; for (let x = 0; x <= 1000; x += 40) d += `M${x} 0V700`; for (let y = 0; y <= 700; y += 40) d += `M0 ${y}H1000`; return `<g class="grid"><path d="${d}"/></g>`; }
+  function grid() { let d = ""; for (let x = -200; x <= 1100; x += 40) d += `M${x} -200V1000`; for (let y = -200; y <= 1000; y += 40) d += `M-200 ${y}H1100`; return `<g class="grid"><path d="${d}"/></g>`; }
   const charge = (id, p, s, k) => `<g id="${id}" class="chg ${k}" opacity="0"><circle cx="${p.x}" cy="${p.y}" r="22"/><text x="${p.x}" y="${p.y + 1}">${s}</text></g>`;
-
-  const HYP = [Q, NET, { x: NET.x - FY * 0.8 * 0 - 174.9 * 1 + 0, y: NET.y + 86.4 }, { x: Q.x - 174.9, y: Q.y + 86.4 }];
+  const wedge = (id, r, from, to, sweep, col) => {
+    const P = a => `${Q.x + r * Math.cos(a * Math.PI / 180)} ${Q.y - r * Math.sin(a * Math.PI / 180)}`;
+    return `<path id="${id}" d="M${Q.x} ${Q.y}L${P(from)}A${r} ${r} 0 0 ${sweep} ${P(to)}Z" fill="color-mix(in srgb, var(${col}) 22%, transparent)" stroke="var(${col})" stroke-width="2" opacity="0"/>`;
+  };
+  const leg = "fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 6";
+  const sq = [Q, NET, { x: NET.x + LY, y: NET.y - LX }, { x: Q.x + LY, y: Q.y - LX }];
   const MARKUP = `
   ${grid()}
   <g id="scene">
-    <path id="tri" class="side" d="M${q1.x} ${q1.y}L${Q.x} ${Q.y}L${q2.x} ${q2.y}Z" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
-    <path id="rtq" d="M${q2.x - 22} ${q2.y}v-22h22" fill="none" stroke="var(--muted)" stroke-width="1.5" opacity="0"/>
-    ${T("d1", (q1.x + q2.x) / 2, q1.y + 52, "0.400 m", "tm", 21)}
-    ${T("d2", q2.x + 34, (q2.y + Q.y) / 2 + 40, "0.300 m", "tm", 21, "start")}
-    ${T("d3", (q1.x + Q.x) / 2 - 46, (q1.y + Q.y) / 2 - 16, "0.500 m", "tm", 21)}
-    <path id="ang" d="M${q1.x + 70} ${q1.y} A70 70 0 0 0 ${q1.x + 56} ${q1.y - 42}" fill="none" stroke="var(--muted)" stroke-width="2" opacity="0"/>
-    ${T("angt", q1.x + 82, q1.y - 16, "36.9°", "tm", 18, "start")}
-    <circle class="ring r1" cx="${q1.x}" cy="${q1.y}" r="18" transform="rotate(0)"/>
+    <path id="lin1" class="side" d="M${q1.x} ${q1.y}L${Q.x} ${Q.y}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+    <path id="lin2" class="side" d="M${q2.x} ${q2.y}L${Q.x} ${Q.y}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+    <path id="leg1" d="M${q1.x} ${q1.y}H${Q.x}V${Q.y}" style="${leg}" opacity="0"/>
+    <path id="leg2" d="M${q2.x} ${q2.y}V${Q.y}H${Q.x}" style="${leg}" opacity="0"/>
+    ${T("d1a", (q1.x + Q.x) / 2, q1.y + 56, "0.300 m", "tm", 21)}
+    ${T("d1b", Q.x + 14, (q1.y + Q.y) / 2 + 60, "0.400 m", "tm", 21, "start")}
+    ${T("d1c", (q1.x + Q.x) / 2 - 40, (q1.y + Q.y) / 2 + 10, "0.500 m", "tm", 21, "end")}
+    ${T("d2a", (q2.x + Q.x) / 2 + 40, Q.y + 30, "0.240 m", "tm", 21)}
+    ${T("d2b", q2.x - 14, (q2.y + Q.y) / 2 + 30, "0.100 m", "tm", 19, "end")}
+    ${T("d2c", (q2.x + Q.x) / 2 - 10, (q2.y + Q.y) / 2 - 16, "0.260 m", "tm", 21, "middle")}
+    <circle class="ring r1" cx="${q1.x}" cy="${q1.y}" r="18"/>
     <circle class="ring r2" cx="${q1.x}" cy="${q1.y}" r="18"/>
     <circle class="ring r3" cx="${q1.x}" cy="${q1.y}" r="18"/>
-    <path class="pull" d="M${Q.x - 26} ${Q.y + 30}L${q2.x - 26} ${q2.y - 30}"/>
+    <path class="pull" d="M${Q.x - 30 * c2 - 12} ${Q.y - 30 * s2 + 26}L${q2.x + 30 * c2 - 12} ${q2.y + 30 * s2 + 26}"/>
     ${charge("cq1", q1, "+", "p")}${charge("cq2", q2, "−", "n")}
-    ${T("lq1", q1.x, q1.y + 52, "q₁ = +5.00 μC", "t1", 21)}
-    ${T("lq2", q2.x + 34, q2.y + 7, "q₂ = −4.00 μC", "t2", 21, "start")}
+    ${T("lq1", q1.x - 34, q1.y + 7, "q₁ = +4.00 μC", "t1", 21, "end")}
+    ${T("lq2", q2.x - 34, q2.y + 7, "q₂ = −3.00 μC", "t2", 21, "end")}
   </g>
   <g id="zoomgfx" opacity="0">
-    <line class="axis" x1="${VB_ZOOM[0]}" y1="${Q.y}" x2="${VB_ZOOM[0] + VB_ZOOM[2]}" y2="${Q.y}"/>
-    <line class="axis" x1="${Q.x}" y1="${VB_ZOOM[1]}" x2="${Q.x}" y2="${VB_ZOOM[1] + VB_ZOOM[3]}"/>
-    <text class="tm" x="${VB_ZOOM[0] + VB_ZOOM[2] - 10}" y="${Q.y - 8}" font-size="14" text-anchor="end" font-weight="700">E  +x</text>
-    <text class="tm" x="${Q.x - 10}" y="${Q.y - 70}" font-size="14" font-weight="700" text-anchor="end">N  +y</text>
+    <line class="axis" x1="${VB_ZOOM[0] - 300}" y1="${Q.y}" x2="${VB_ZOOM[0] + VB_ZOOM[2] + 300}" y2="${Q.y}"/>
+    <line class="axis" x1="${Q.x}" y1="${VB_ZOOM[1] - 200}" x2="${Q.x}" y2="${VB_ZOOM[1] + VB_ZOOM[3]}"/>
+    <text class="tm" x="${Q.x + 170}" y="${Q.y - 8}" font-size="14" text-anchor="end" font-weight="700">E  +x</text>
+    <text class="tm" x="${Q.x - 300}" y="${Q.y - 8}" font-size="14" text-anchor="end" font-weight="700">W  −x</text>
+    <text class="tm" x="${Q.x + 8}" y="${Q.y - 290}" font-size="14" font-weight="700" text-anchor="start">N  +y</text>
   </g>
-  <polygon id="sqn" class="sq sqn" points="${Q.x},${Q.y} ${NET.x},${NET.y} ${NET.x - 174.9},${NET.y + 86.4} ${Q.x - 174.9},${Q.y + 86.4}" opacity="0"/>
-  <rect id="sqx" class="sq sqx" x="${Q.x}" y="${Q.y - 86.4}" width="86.4" height="86.4" opacity="0"/>
-  <rect id="sqy" class="sq sqy" x="${X1.x}" y="${Q.y}" width="${FY}" height="${FY}" opacity="0"/>
-  ${T("sqxt", Q.x + 43.2, Q.y - 38, "0.288²", "ts", 15)}
-  ${T("sqyt", X1.x + FY / 2, Q.y + FY / 2 + 6, "0.583²", "ts", 19)}
-  ${T("sqnt", (Q.x + NET.x - 174.9) / 2 - 4, (Q.y + NET.y + 86.4) / 2 + 6, "0.650²", "tn", 19)}
+  <polygon id="sqn" class="sq sqn" points="${sq.map(p => p.x + "," + p.y).join(" ")}" opacity="0"/>
+  <rect id="sqx" class="sq sqx" x="${C.x}" y="${Q.y}" width="${LX}" height="${LX}" opacity="0"/>
+  <rect id="sqy" class="sq sqy" x="${C.x - LY}" y="${NET.y}" width="${LY}" height="${LY}" opacity="0"/>
+  ${T("sqxt", C.x + LX / 2, Q.y + LX / 2 + 7, "0.564²", "ts", 19)}
+  ${T("sqyt", C.x - LY / 2, NET.y + LY / 2 + 7, "0.537²", "ts", 19)}
+  ${T("sqnt", (sq[0].x + sq[2].x) / 2, (sq[0].y + sq[2].y) / 2 + 7, "0.779²", "tn", 19)}
   <path id="arc" class="arc" d="" opacity="0"/>
-  <path id="a1" d="M${Q.x} ${Q.y}L${Q.x + 34} ${Q.y}A34 34 0 0 0 ${Q.x + 34 * cs} ${Q.y - 34 * sn}Z" fill="color-mix(in srgb, var(--f1) 22%, transparent)" stroke="var(--f1)" stroke-width="2" opacity="0"/>
-  ${T("a1t", Q.x + 37, Q.y - 6, "36.9°", "t1", 12.5, "start")}
-  <rect id="band" class="band" x="${Q.x - 9}" y="${F1.y}" width="18" height="${Q.y - F1.y}" opacity="0"/>
-  ${T("bandt", Q.x - 16, (F1.y + Q.y) / 2 + 5, "cancel", "tm", 13, "end")}
-  <line id="px" class="proj" x1="${F1.x}" y1="${F1.y}" x2="${F1.x}" y2="${Q.y}" opacity="0"/>
-  <path id="rt1" d="M${X1.x - 12} ${Q.y}v-12h12" fill="none" stroke="var(--muted)" stroke-width="1.4" opacity="0"/>
+  ${wedge("a1", 34, 0, 53.13, 0, "--f1")}
+  ${wedge("a2", 62, 180, 157.38, 1, "--f2")}
+  <rect id="band" class="band" x="${Q.x}" y="${Q.y + 13}" width="${L1x}" height="18" opacity="0"/>
+  ${T("bandt", Q.x + L1x / 2, Q.y + 52, "cancel", "tm", 13)}
+  <line id="px1" class="proj" x1="${F1.x}" y1="${F1.y}" x2="${F1.x}" y2="${Q.y}" opacity="0"/>
+  <line id="px2" class="proj" x1="${F2.x}" y1="${F2.y}" x2="${F2.x}" y2="${Q.y}" opacity="0"/>
   ${arrow("aF1", Q, F1, "k1")}
   ${arrow("aF2", Q, F2, "k2")}
   ${arrow("aF1x", Q, X1, "k1", "thin dash")}
   ${arrow("aF1y", X1, F1, "k1", "thin dash")}
-  ${arrow("aF2y", { x: Q.x + 0.01, y: Q.y }, F2, "k2", "thin dash")}
-  ${arrow("aFx", Q, X1, "ks")}
-  ${arrow("aFy", { x: Q.x + 30, y: Q.y }, { x: Q.x + 30, y: Q.y + FY }, "ks")}
+  ${arrow("aF2x", Q, X2, "k2", "thin dash")}
+  ${arrow("aF2y", X2, F2, "k2", "thin dash")}
+  ${arrow("aFx", Q, C, "ks")}
+  ${arrow("aFy", { x: SX + 34, y: Q.y }, { x: SX + 34, y: Q.y - LY }, "ks")}
   ${arrow("aNet", Q, NET, "kn")}
-  <circle id="f2x0" cx="${Q.x}" cy="${Q.y}" r="34" fill="none" stroke="var(--f2)" stroke-width="2" stroke-dasharray="4 5" opacity="0"/>
   ${charge("cQ", Q, "+", "q")}
-  ${T("lQ", Q.x - 34, Q.y - 8, "Q = +2.00 μC", "", 21, "end")}
-  ${T("lF1", F1.x + 14, F1.y - 10, "F₁ = 0.360 N", "t1", 21, "start")}
-  ${T("lF2", Q.x - 22, F2.y - 8, "F₂ = 0.799 N", "t2", 21, "end")}
-  ${T("zF1", F1.x + 10, F1.y - 8, "F₁ = 0.360 N", "t1", 15, "start")}
-  ${T("zF2", Q.x - 14, F2.y - 4, "F₂ = 0.799 N", "t2", 15, "end")}
-  ${T("zF1x", (Q.x + X1.x) / 2 + 8, Q.y + 22, "+0.288", "t1", 14)}
-  ${T("zF1y", F1.x + 8, (F1.y + Q.y) / 2 + 5, "+0.216", "t1", 14, "start")}
-  ${T("zF2x", Q.x - 40, Q.y + 40, "x component = 0", "t2", 13, "end")}
-  ${T("zF2y", Q.x + 12, F2.y - 50, "−0.799", "t2", 14, "start")}
-  ${T("zFx", Q.x + 28, Q.y - 12, "Fₓ = +0.288 N", "ts", 15, "start")}
-  ${T("zFy", Q.x + 40, Q.y + FY / 2 + 40, "Fᵧ = −0.583 N", "ts", 15, "start")}
-  ${T("zNet", (Q.x + NET.x) / 2 - 14, (Q.y + NET.y) / 2 + 10, "F<tspan font-size='11' dy='4'>net</tspan><tspan dy='-4'> = 0.650 N</tspan>", "tn", 16, "end")}
-  ${T("arct", Q.x + 64, Q.y + 52, "63.7°", "tn", 17, "start")}
-  ${T("adj", Q.x + 28, Q.y - 32, "adjacent", "ts", 12, "start")}
-  ${T("opp", X1.x + 12, Q.y + FY / 2 + 20, "opposite", "ts", 12, "start")}
+  ${T("lQ", Q.x + 30, Q.y + 42, "Q = +2.00 μC", "", 21, "start")}
+  ${T("lF1", F1.x + 14, F1.y - 6, "F₁ = 0.288 N", "t1", 21, "start")}
+  ${T("lF2", (Q.x + F2.x) / 2 - 10, (Q.y + F2.y) / 2 - 50, "F₂ = 0.798 N", "t2", 21)}
+  ${T("zF1", F1.x + 10, F1.y - 6, "F₁ = 0.288 N", "t1", 15, "start")}
+  ${T("zF2", F2.x - 10, F2.y - 10, "F₂ = 0.798 N", "t2", 15, "end")}
+  ${T("a1t", Q.x + 54, Q.y - 6, "53.1°", "t1", 12.5, "start")}
+  ${T("a2t", Q.x - 68, Q.y - 8, "22.6°", "t2", 12.5, "end")}
+  ${T("zF1x", Q.x + 26, Q.y + 34, "+0.173", "t1", 14, "start")}
+  ${T("zF1y", F1.x + 8, (F1.y + Q.y) / 2 + 5, "+0.230", "t1", 14, "start")}
+  ${T("zF2x", (Q.x + X2.x) / 2, Q.y + 24, "−0.737", "t2", 14)}
+  ${T("zF2y", F2.x - 8, (F2.y + Q.y) / 2 + 5, "+0.307", "t2", 14, "end")}
+  ${T("zFx", (Q.x + C.x) / 2, Q.y + 50, "Fₓ = −0.564 N", "ts", 15)}
+  ${T("zFy", SX + 46, Q.y - LY / 2, "Fᵧ = +0.537 N", "ts", 15, "start")}
+  ${T("zNet", (Q.x + NET.x) / 2 + 14, (Q.y + NET.y) / 2 - 8, "F<tspan font-size='11' dy='4'>net</tspan><tspan dy='-4'> = 0.779 N</tspan>", "tn", 16, "start")}
+  ${T("adj", (Q.x + C.x) / 2, Q.y + 22, "adjacent", "ts", 12)}
+  ${T("opp", C.x - 10, Q.y - LY / 2, "opposite", "ts", 12, "end")}
+  ${T("arct", Q.x - 96, Q.y - 16, "43.6°", "tn", 17, "middle")}
   `;
 
   // ---------- tiny animation engine
@@ -278,28 +294,32 @@ svg text { font-family: var(--body); fill: var(--ink); }
   const draw = id => (I, d = 0, dur = 1200) => { const el = $(id); tw(dur, d, p => el.setAttribute("stroke-dashoffset", 1 - p), I); };
   const pop = id => (I, d = 0, dur = 450) => { const el = $(id); const bb = el.getBBox(), cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
     tw(dur, d, p => { const s = 0.4 + 0.6 * p + Math.sin(p * Math.PI) * 0.15; el.setAttribute("opacity", p); el.setAttribute("transform", `translate(${cx} ${cy}) scale(${s}) translate(${-cx} ${-cy})`); }, I); };
-  const arcSweep = (I, d = 0, dur = 1400) => { const el = $("arc"); el.setAttribute("opacity", 1); const r = 58;
-    tw(dur, d, p => { const a = 63.7 * p * Math.PI / 180; el.setAttribute("d", `M${Q.x} ${Q.y}L${Q.x + r} ${Q.y}A${r} ${r} 0 0 1 ${Q.x + r * Math.cos(a)} ${Q.y + r * Math.sin(a)}Z`); }, I); };
+  const arcSweep = (I, d = 0, dur = 1400) => { const el = $("arc"); el.setAttribute("opacity", 1); const r = 64;
+    tw(dur, d, p => { const a = 43.6 * p * Math.PI / 180; el.setAttribute("d", `M${Q.x} ${Q.y}L${Q.x - r} ${Q.y}A${r} ${r} 0 0 1 ${Q.x - r * Math.cos(a)} ${Q.y - r * Math.sin(a)}Z`); }, I); };
   const cls = (id, c, on) => (I) => $(id).classList.toggle(c, on);
 
   // what each step does: [action, delay ms, duration ms]
   const DO = [
-    [[draw("tri"), 200], [pop("cq1"), 0], [pop("cq2"), 150], [pop("cQ"), 300], [op("lq1", 1), 500], [op("lq2", 1), 600], [op("lQ", 1), 700],
-     [op("d1", 1), 1100], [op("d2", 1), 1200], [op("d3", 1), 1300], [op("ang", 1), 1400], [op("angt", 1), 1400], [op("rtq", 1), 1400]],
+    [[draw("lin1"), 200], [draw("lin2"), 300], [pop("cq1"), 0], [pop("cq2"), 150], [pop("cQ"), 300], [op("lq1", 1), 500], [op("lq2", 1), 600], [op("lQ", 1), 700],
+     [op("leg1", 1), 1200], [op("leg2", 1), 1200], [op("d1a", 1), 1300], [op("d1b", 1), 1300], [op("d1c", 1), 1300], [op("d2a", 1), 1400], [op("d2b", 1), 1400], [op("d2c", 1), 1400]],
     [[grow("aF1"), 700, 1000], [op("lF1", 1), 1500]],
-    [[grow("aF2"), 600, 1100], [op("lF2", 1), 1500]],
-    [[camera(VB_ZOOM), 100], [op("scene", 0.07), 0, 900], [op("d1", 0), 0, 400], [op("d2", 0), 0, 400], [op("d3", 0), 0, 400], [op("angt", 0), 0, 400], [op("lq1", 0), 0, 400], [op("lq2", 0), 0, 400], [op("lF1", 0), 0, 300], [op("lF2", 0), 0, 300], [op("lQ", 0), 0, 300],
-     [op("zoomgfx", 1), 900], [op("zF1", 1), 1200], [op("zF2", 1), 1300], [op("a1", 1), 1500], [op("a1t", 1), 1600]],
-    [[op("px", 1), 200], [grow("aF1x"), 600, 900], [op("zF1x", 1), 1400], [op("rt1", 1), 1500], [grow("aF1y"), 1700, 700], [op("zF1y", 1), 2300]],
-    [[pop("f2x0"), 300, 600], [op("zF2x", 1), 700], [op("f2x0", 0), 1800, 500], [grow("aF2y"), 1100, 900], [op("zF2y", 1), 1900]],
-    [[op("aF1", 0.15), 0], [op("aF2", 0.15), 0], [op("a1", 0), 0, 300], [op("a1t", 0), 0, 300], [op("zF1", 0), 0, 300], [op("zF2", 0), 0, 300], [op("px", 0), 0], [op("rt1", 0), 0],
-     [op("aF1x", 0.0), 600, 400], [op("zF1x", 0), 600, 300], [op("zF2x", 0), 0, 300], [grow("aFx"), 700, 900], [op("zFx", 1), 1500]],
-    [[slide("aF1y", Q.x - X1.x, 0), 100, 1000], [op("zF1y", 0), 0, 300], [op("zF2y", 0), 0, 300],
-     [slide("aF2y", 0, F1.y - Q.y), 1200, 1000], [op("band", 1), 2300], [op("bandt", 1), 2300], [grow("aFy"), 2700, 1000], [op("zFy", 1), 3600]],
-    [[op("aF1y", 0), 0], [op("aF2y", 0), 0], [op("band", 0), 0], [op("bandt", 0), 0], [op("aF1", 0), 0], [op("aF2", 0), 0],
-     [slide("aFy", X1.x - Q.x - 30, 0), 300, 1100], [op("zFy", 0), 0, 300], [grow("aNet"), 1700, 1200], [op("zNet", 1), 2700],
-     [cls("aNet", "pulse", true), 2900]],
-    [[cls("aNet", "pulse", false), 0], [pop("sqx"), 200, 700], [op("sqxt", 1), 700], [pop("sqy"), 900, 700], [op("sqyt", 1), 1400], [pop("sqn"), 1900, 900], [op("sqnt", 1), 2700]],
+    [[op("d2c", 0), 0, 400], [grow("aF2"), 600, 1100], [op("lF2", 1), 1500]],
+    [[camera(VB_ZOOM), 100], [op("scene", 0.07), 0, 900], ...["d1a", "d1b", "d1c", "d2a", "d2b", "d2c", "lq1", "lq2", "lF1", "lF2", "lQ"].map(id => [op(id, 0), 0, 300]),
+     [op("zoomgfx", 1), 900], [op("zF1", 1), 1200], [op("zF2", 1), 1300], [op("a1", 1), 1500], [op("a1t", 1), 1600], [op("a2", 1), 1800], [op("a2t", 1), 1900]],
+    [[op("a2", 0.25), 0, 300], [op("a2t", 0.25), 0, 300], [op("px1", 1), 200], [grow("aF1x"), 600, 900], [op("zF1x", 1), 1400], [grow("aF1y"), 1700, 700], [op("zF1y", 1), 2300]],
+    [[op("a2", 1), 0, 300], [op("a2t", 1), 0, 300], [op("px2", 1), 200], [grow("aF2x"), 600, 1000], [op("zF2x", 1), 1500], [grow("aF2y"), 1800, 800], [op("zF2y", 1), 2500]],
+    [[op("aF1", 0.15), 0], [op("aF2", 0.15), 0], ...["a1", "a1t", "a2", "a2t", "zF1", "zF2", "px1", "px2"].map(id => [op(id, 0), 0, 300]),
+     [op("aF1y", 0.2), 0, 400], [op("aF2y", 0.2), 0, 400], [op("zF1y", 0), 0, 300], [op("zF2y", 0), 0, 300], [op("zF1x", 0), 300, 300], [op("zF2x", 0), 300, 300],
+     [slide("aF2x", L1x, 22), 600, 1200], [op("band", 1), 1900], [op("bandt", 1), 1900],
+     [op("aF1x", 0.25), 2500, 400], [op("aF2x", 0.25), 2500, 400], [grow("aFx"), 2700, 900], [op("zFx", 1), 3500]],
+    [[op("aF1x", 0), 0, 400], [op("aF2x", 0), 0, 400], [op("band", 0), 0], [op("bandt", 0), 0],
+     [op("aF1y", 1), 100, 400], [slide("aF1y", SX - X1.x, 0), 100, 1000],
+     [op("aF2y", 1), 1200, 400], [slide("aF2y", SX - X2.x, -L1y), 1200, 1300],
+     [grow("aFy"), 2700, 1000], [op("zFy", 1), 3600]],
+    [[op("aF1y", 0), 0], [op("aF2y", 0), 0], [op("aF1", 0), 0], [op("aF2", 0), 0], [op("zFy", 0), 0, 300],
+     [slide("aFy", C.x - SX - 34, 0), 300, 1300], [grow("aNet"), 1900, 1200], [op("zNet", 1), 2900],
+     [cls("aNet", "pulse", true), 3100]],
+    [[cls("aNet", "pulse", false), 0], [op("zFx", 0), 0, 300], [pop("sqx"), 200, 700], [op("sqxt", 1), 700], [pop("sqy"), 900, 700], [op("sqyt", 1), 1400], [pop("sqn"), 1900, 900], [op("sqnt", 1), 2700]],
     [[op("sqx", 0), 0], [op("sqy", 0), 0], [op("sqn", 0), 0], [op("sqxt", 0), 0], [op("sqyt", 0), 0], [op("sqnt", 0), 0],
      [op("adj", 1), 400], [op("opp", 1), 600], [arcSweep, 900, 1500], [op("arct", 1), 2300]],
   ];
