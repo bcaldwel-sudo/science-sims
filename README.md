@@ -11,6 +11,7 @@ Interactive science simulations for students, built as single self-contained HTM
 | Adding Forces at Angles: animated step-by-step walkthrough of adding two Coulomb forces by components (SPH4U 3.3) | `forces-at-angles/` |
 | Meadow Food Chain: producers and consumers, population changes, disease, energy pyramid | `food-chain/` |
 | Carbon Cycle Simulator (SNC1L 6.8): tap the carbon cycle, humans and CO₂, tap the nitrogen cycle | `carbon-cycle/` |
+| Water Cycle Simulator (SNC1L 6.9): follow a water drop, where Earth's water is stored | `water-cycle/` |
 
 ## D2L embed codes
 
@@ -74,4 +75,10 @@ To put a sim on a D2L page: open the page's HTML editor, click the **</>** (Sour
 
 ```html
 <iframe src="https://bcaldwel-sudo.github.io/science-sims/carbon-cycle/" title="Carbon Cycle Simulator" width="100%" height="650" style="border:0; max-width:1200px;" allow="fullscreen" allowfullscreen></iframe>
+```
+
+**Water Cycle Simulator**
+
+```html
+<iframe src="https://bcaldwel-sudo.github.io/science-sims/water-cycle/" title="Water Cycle Simulator" width="100%" height="650" style="border:0; max-width:1400px;" allow="fullscreen" allowfullscreen></iframe>
 ```
