@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water Cycle Simulator</title>
+<style>
+/* Water Cycle Simulator (SNC1L 6.9), 2026-11-27.
+   Two parts, one per D2L quiz page. Part 1: move a water drop from place to place; each move names its process.
+   Part 2: where Earth's water is stored and how people use it. All numbers are fixed (quiz answer key depends on them). */
+:root{
+  color-scheme:light;
+  --bg:#EEF2F4; --card:#FFFFFF; --ink:#17232B; --muted:#4D5E67; --line:#C9D4DA; --header:#123247; --accent:#1C6E9C; --focus:#F2B63D;
+  --water:#2378C3; --ice:#9FD3EA; --ground:#8A6A45; --good:#1D6B39;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:17px}
+body{display:flex;flex-direction:column;overflow:hidden}
+header{flex:none;background:var(--header);color:#fff;padding:6px 12px;display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
+header h1{margin:0;font-size:19px;white-space:nowrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:16px;font-weight:700;border:2px solid #7FB2D3;background:transparent;color:#fff;border-radius:9px;padding:4px 12px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--header);border-color:#fff}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.view{flex:1;min-height:0;display:none;flex-direction:column;gap:8px;padding:8px 10px 10px}
+.view.on{display:flex}
+.info{flex:none;min-height:56px;background:var(--card);border:1px solid var(--line);border-left:7px solid var(--accent);border-radius:12px;padding:8px 14px;font-size:18px;line-height:1.35}
+.info b{color:var(--accent)}
+.info .ok{color:var(--good)}
+
+/* ---------- Part 1 ---------- */
+/* wide screens: picture left, cards right, sentence along the bottom.
+   squarer screens (most D2L frames): picture full width, three short cards underneath. */
+.p1{flex:1;min-height:0;display:grid;gap:8px;
+  grid-template-columns:minmax(0,1fr) clamp(215px,22vw,290px);
+  grid-template-rows:auto minmax(0,1fr) auto;
+  grid-template-areas:"pic next" "pic path" "info info"}
+.pic{grid-area:pic;position:relative;min-height:0;background:#EAF6FC;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pic svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.card1{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;flex-direction:column;gap:5px;min-height:0;overflow:auto}
+.nextCard{grid-area:next}
+.pathCard{grid-area:path}
+.p1 .info{grid-area:info}
+.card1 h2{margin:0;font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.card1 h2 span{text-transform:none;letter-spacing:0;color:var(--ink);font-size:16px}
+.here{font-size:16px;color:var(--muted)}
+.here b{font-size:21px;color:var(--water)}
+.next{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.next button{font:inherit;text-align:left;border:2px solid var(--focus);background:#FFF6DA;border-radius:9px;padding:3px 7px;cursor:pointer;line-height:1.1;color:var(--ink)}
+.next button b{display:block;font-size:15px}
+.next button small{font-size:13px;color:var(--muted)}
+.next button:hover{background:#FFE9A8}
+ol.path{margin:0;padding:0 0 0 26px;font-size:15px;line-height:1.3;flex:1;min-height:0;overflow:auto}
+ol.path li i{color:var(--muted)}
+.startLine{font-size:15px}
+.chain{display:none;flex:1;min-height:0;overflow:auto;font-size:15px;line-height:1.3}
+.chain b{color:var(--water)}
+.done{background:#E6F4EA;color:var(--good);font-weight:700;border-radius:9px;padding:4px 8px;font-size:15px}
+.btns{display:flex;gap:6px;flex:none}
+.btns button{flex:1;font:inherit;font-weight:700;font-size:16px;padding:5px 8px;border-radius:10px;border:2px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer}
+.btns button:disabled{opacity:.4;cursor:default}
+@media (max-aspect-ratio:19/10) and (min-width:641px){
+  .p1{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:minmax(0,1fr) clamp(118px,24vh,170px);
+    grid-template-areas:"pic pic pic" "info next path"}
+  .p1 .info{font-size:16px;overflow:auto;min-height:0}
+  .done,.startLine,ol.path{display:none}
+  .chain{display:block}
+}
+@media (max-width:820px){header h1{font-size:16px}.tabs button{font-size:14px;padding:3px 9px}}
+/* picture labels */
+.place{cursor:pointer}
+.place rect{fill:#fff;stroke:#5C7686;stroke-width:2.5}
+.place text{font-family:Arial,Helvetica,sans-serif;font-size:21px;font-weight:700;fill:var(--ink);text-anchor:middle;pointer-events:none}
+.place:hover rect{stroke:var(--accent);stroke-width:4}
+.place.can rect{fill:#FFF3C4;stroke:var(--focus);stroke-width:5;animation:glow 1.4s ease-in-out infinite}
+.place.cur rect{fill:var(--water);stroke:#0E4A80;stroke-width:4}
+.place.cur text{fill:#fff}
+@keyframes glow{50%{stroke-width:8;stroke:#F7CB6B}}
+.move text{font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;fill:#0E4A80;paint-order:stroke;stroke:#fff;stroke-width:7px;stroke-linejoin:round;text-anchor:middle}
+.lyr{font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;letter-spacing:.06em;fill:#5B4632}
+@media (prefers-reduced-motion:reduce){.place.can rect{animation:none}}
+
+/* ---------- Part 2 ---------- */
+.p2{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:minmax(0,1fr) auto;gap:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.card h2{margin:0;font-size:18px}
+.card p{margin:0;font-size:15px;color:var(--muted)}
+.gridWrap{flex:1;min-height:90px;position:relative}
+.gridWrap svg{position:absolute;inset:0;width:100%;height:100%}
+.key{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:14px}
+.key span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c);border:1px solid #6A8796}
+table.stores{border-collapse:collapse;width:100%;font-size:16px}
+table.stores td{padding:3px 6px;border-bottom:1px solid #E3E9ED;vertical-align:middle}
+table.stores td.pc{text-align:right;font-weight:700;white-space:nowrap;font-size:18px}
+table.stores td.bar{width:32%}
+table.stores .b{height:14px;border-radius:7px;background:var(--water);min-width:3px}
+table.stores small{color:var(--muted);font-size:13px;display:block}
+.fresh{background:#E9F5FC;border-radius:9px;padding:6px 9px;font-size:15px;line-height:1.3}
+.use{grid-column:1/-1}
+.stack{display:flex;height:38px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.stack div{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden}
+.useRow{display:flex;gap:10px;align-items:center}
+.useRow h2{flex:none}
+.useRow .stack{flex:1}
+.useKey{flex:none;display:flex;flex-direction:column;font-weight:700;font-size:15px;line-height:1.2}
+
+@media (max-width:640px){
+  .p1{grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"pic" "info" "next" "path"}
+  body{overflow:auto}
+  .view.on{flex:none}
+  .pic{height:62vw;min-height:220px}
+  .p2{grid-template-columns:1fr}
+  .gridWrap{height:200px;flex:none}
+  .useRow{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Water Cycle Simulator</h1>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t1" aria-selected="true" aria-controls="v1">Part 1: Follow a Water Drop</button>
+    <button role="tab" id="t2" aria-selected="false" aria-controls="v2">Part 2: Where Is Earth's Water?</button>
+  </div>
+</header>
+
+<main id="v1" class="view on" role="tabpanel" aria-labelledby="t1">
+  <div class="p1">
+    <div class="pic"><svg id="scene" viewBox="0 0 1100 540" role="img" aria-label="Landscape showing places water can be"></svg></div>
+    <section class="card1 nextCard">
+      <div class="here" id="here">Tap a place on the picture to start.</div>
+      <div class="next" id="next"></div>
+    </section>
+    <section class="card1 pathCard">
+      <h2>Path <span id="count">0 steps</span></h2>
+      <div id="doneBox"></div>
+      <div class="startLine" id="startLine"></div>
+      <ol class="path" id="path"></ol>
+      <div class="chain" id="chain"></div>
+      <div class="btns"><button id="back" disabled>Back</button><button id="reset" disabled>Reset</button></div>
+    </section>
+    <div class="info" id="info" aria-live="polite"></div>
+  </div>
+</main>
+
+<main id="v2" class="view" role="tabpanel" aria-labelledby="t2">
+  <div class="p2">
+    <section class="card">
+      <h2>If all of Earth's water were 100 cups</h2>
+      <div class="gridWrap"><svg id="cups" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="97 cups ocean, 2 cups ice and snow, 1 cup everything else"></svg></div>
+      <div class="key">
+        <span style="--c:#2378C3">Ocean: 97 cups</span>
+        <span style="--c:#D8F0FA">Ice and snow: 2 cups</span>
+        <span style="--c:#8A6A45">Everything else: 1 cup</span>
+      </div>
+      <div class="fresh"><b>Fresh water</b> (not salty) is only about <b>3%</b> of Earth's water, and most of it is frozen. Less than 1% of Earth's water is fresh water that people can easily reach.</div>
+    </section>
+    <section class="card">
+      <h2>Where is Earth's water stored?</h2>
+      <table class="stores" id="stores"></table>
+      <p>Numbers are rounded.</p>
+    </section>
+    <section class="card use">
+      <div class="useRow">
+        <h2>How people use the<br>fresh water they take</h2>
+        <div class="stack">
+          <div style="width:70%;background:#3E8E41">70%</div>
+          <div style="width:20%;background:#7A5C99">20%</div>
+          <div style="width:10%;background:#C0392B">10%</div>
+        </div>
+        <div class="useKey"><span style="color:#3E8E41">Farming (agriculture) 70%</span><span style="color:#7A5C99">Factories 20%</span><span style="color:#C0392B">Homes 10%</span></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+(function(){
+"use strict";
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(p,x,y,s,a){const t=el('text',Object.assign({x,y},a||{}),p);t.textContent=s;return t;}
+
+/* tabs */
+const tabs=[['t1','v1'],['t2','v2']];
+tabs.forEach(([b,v])=>$(b).addEventListener('click',()=>tabs.forEach(([b2,v2])=>{const on=b2===b;$(b2).setAttribute('aria-selected',on);$(v2).classList.toggle('on',on);})));
+
+/* ---------- places (x,y = centre of the label on the picture) ---------- */
+const P={
+  ocean:      {name:'Ocean',x:1010,y:395,store:'97%',say:'The ocean is salt water. It holds 97% of all the water on Earth.'},
+  atmosphere: {name:'Atmosphere',x:985,y:150,store:'0.001%',say:'Water in the air is an invisible gas called <b>water vapour</b>.'},
+  clouds:     {name:'Clouds',x:515,y:55,say:'Clouds are made of tiny drops of water (or bits of ice) floating in the air.'},
+  rain:       {name:'Rain',x:668,y:160,say:'Rain is liquid water falling from clouds. Rain is one kind of <b>precipitation</b>.'},
+  snow:       {name:'Snow',x:378,y:150,say:'Snow is frozen water falling from clouds. Snow is one kind of <b>precipitation</b>.'},
+  glacier:    {name:'Ice and snow',x:150,y:132,store:'2%',say:'Glaciers and ice caps store frozen fresh water for a very long time. They hold 2% of Earth\'s water.'},
+  lake:       {name:'Lake',x:92,y:250,store:'0.01%',say:'A lake is fresh water held in a low spot in the land. Lakes hold 0.01% of Earth\'s water.'},
+  animals:    {name:'Animals',x:222,y:236,store:'0.0001%',say:'Animals need water to live. They drink it and get it from their food.'},
+  runoff:     {name:'Runoff',x:295,y:268,say:'Runoff is water that flows over the top of the ground, downhill.'},
+  reservoir:  {name:'Reservoir',x:420,y:222,say:'A reservoir is a lake made by people. A dam holds the water back so it can be saved and used.'},
+  river:      {name:'River',x:560,y:292,store:'0.0002%',say:'A river is fresh water flowing downhill, toward a lake or the ocean.'},
+  factory:    {name:'Factory',x:497,y:178,say:'Factories use water to cool machines and to make products. Factories use 20% of the fresh water people take.'},
+  plants:     {name:'Plants',x:590,y:212,store:'0.0001%',say:'Plants take in water through their roots and lose water vapour through their leaves.'},
+  farm:       {name:'Farm',x:672,y:228,say:'Farms (agriculture) water crops and animals. Farms use 70% of the fresh water people take.'},
+  people:     {name:'People',x:770,y:205,store:'0.0001%',say:'People need water to drink, cook and wash. Homes use 10% of the fresh water people take.'},
+  wastewater: {name:'Wastewater plant',x:948,y:236,say:'A wastewater plant cleans dirty water from homes and factories before it goes back outside.'},
+  well:       {name:'Well',x:858,y:330,say:'A well is a deep hole with a pump. It brings groundwater up to the surface.'},
+  soil:       {name:'Soil',x:560,y:330,store:'0.005%',say:'Soil holds water between its tiny grains. Soil holds 0.005% of Earth\'s water.'},
+  groundwater:{name:'Groundwater (aquifer)',x:560,y:400,store:'0.9%',say:'Groundwater fills the spaces in rock under the ground. A layer of rock that holds water and lets it move is called an <b>aquifer</b>. Groundwater is 0.9% of Earth\'s water.'},
+};
+
+/* ---------- moves: from -> [to, process, sentence] ---------- */
+const M={
+  ocean:[['atmosphere','evaporation','The sun heats the ocean. Water evaporates and rises into the air as water vapour.'],
+         ['glacier','freezing','In the coldest places, ocean water freezes into sea ice.']],
+  atmosphere:[['clouds','condensation','High in the sky the air is cold. Water vapour cools and condenses into tiny droplets. The droplets make clouds.']],
+  clouds:[['rain','precipitation','Tiny droplets in the cloud join together. When the drops get too heavy, they fall as rain.'],
+          ['snow','precipitation','When the air is very cold, water in the cloud freezes and falls as snow.'],
+          ['atmosphere','evaporation','Some cloud droplets evaporate back into water vapour.']],
+  rain:[['ocean','falling','The rain falls into the ocean.'],
+        ['lake','falling','The rain falls into the lake.'],
+        ['river','falling','The rain falls into the river.'],
+        ['reservoir','falling','The rain falls into the reservoir.'],
+        ['soil','infiltration','The rain soaks into the ground. Water soaking into the ground is called infiltration.'],
+        ['runoff','runoff','The ground is full, so the rain flows over the top of the ground as runoff.']],
+  snow:[['glacier','building up','Snow piles up year after year and packs down into glacier ice.'],
+        ['runoff','melting','In spring the snow melts. The water flows downhill over the ground.'],
+        ['soil','melting','The snow melts and the water soaks into the soil.']],
+  glacier:[['river','melting','In summer some of the ice melts and flows into a river.'],
+           ['ocean','melting','A chunk of ice breaks off into the ocean and melts.'],
+           ['atmosphere','sublimation','Ice can turn straight into water vapour without melting first. This is called sublimation.']],
+  runoff:[['river','flowing','Runoff flows downhill into a river.'],
+          ['lake','flowing','Runoff flows downhill into a lake.'],
+          ['reservoir','flowing','Runoff flows downhill into the reservoir.'],
+          ['soil','infiltration','Some of the runoff soaks into the ground (infiltration).']],
+  river:[['ocean','flowing','The river flows downhill into the ocean.'],
+         ['reservoir','flowing','The river flows into the reservoir behind the dam.'],
+         ['lake','flowing','The river flows into a lake.'],
+         ['atmosphere','evaporation','The sun heats the river. Water evaporates into the air.'],
+         ['farm','pumping','Farmers pump river water onto their fields. Watering crops is called irrigation.'],
+         ['factory','pumping','The factory pumps in river water to cool its machines.'],
+         ['animals','drinking','An animal drinks from the river.']],
+  lake:[['atmosphere','evaporation','The sun heats the lake. Water evaporates into the air.'],
+        ['river','flowing','Water flows out of the lake into a river.'],
+        ['groundwater','infiltration','Water seeps down through the bottom of the lake into the rock below.'],
+        ['animals','drinking','An animal drinks from the lake.']],
+  reservoir:[['people','piping','Water from the reservoir is cleaned and piped to homes.'],
+             ['farm','piping','Water from the reservoir is piped to farm fields.'],
+             ['factory','piping','Water from the reservoir is piped to the factory.'],
+             ['river','release','Water is let out through the dam into the river.'],
+             ['atmosphere','evaporation','The sun heats the reservoir. Water evaporates into the air.']],
+  soil:[['plants','absorption','Plant roots take in water from the soil.'],
+        ['groundwater','infiltration','Water trickles down through the soil into the rock below. It becomes groundwater. A layer of rock that holds water and lets it move is called an <b>aquifer</b>.'],
+        ['atmosphere','evaporation','The sun dries the soil. Water evaporates into the air.']],
+  groundwater:[['well','pumping','A pump pulls groundwater up through the well.'],
+               ['river','seeping','Groundwater slowly seeps out into a river.'],
+               ['lake','seeping','Groundwater slowly seeps out into a lake.'],
+               ['ocean','seeping','Groundwater slowly seeps out into the ocean.']],
+  well:[['people','pumping','Well water is pumped into a home for drinking and washing.'],
+        ['farm','pumping','Well water is pumped onto farm fields.']],
+  plants:[['atmosphere','transpiration','Water leaves the plant through tiny holes in its leaves as water vapour. This is called transpiration.'],
+          ['animals','eating','An animal eats the plant and gets the water inside it.'],
+          ['people','eating','A person eats fruit or vegetables, which are full of water.']],
+  animals:[['atmosphere','breathing out','Animals breathe out water vapour.'],
+           ['soil','waste','Animals return water to the soil in their urine.']],
+  people:[['atmosphere','breathing out','People breathe out water vapour and sweat.'],
+          ['wastewater','draining','Water from toilets, sinks and showers goes down the drain to the wastewater plant.']],
+  farm:[['plants','watering','The farm water is sprayed on the crops.'],
+        ['soil','infiltration','Water on the fields soaks into the soil.'],
+        ['runoff','runoff','Extra water runs off the fields and flows downhill.'],
+        ['atmosphere','evaporation','The sun heats the wet fields. Water evaporates into the air.']],
+  factory:[['wastewater','draining','Used water from the factory goes down the drain to the wastewater plant.'],
+           ['atmosphere','evaporation','Hot water from cooling the machines evaporates as steam.']],
+  wastewater:[['river','release','The plant cleans the water and lets it out into the river.'],
+              ['ocean','release','The plant cleans the water and lets it out into the ocean.']],
+};
+
+/* ---------- scenery ---------- */
+const svg=$('scene');
+(function draw(){
+  const d=el('defs',{},svg);
+  const sky=el('linearGradient',{id:'sky',x1:0,y1:0,x2:0,y2:1},d);
+  el('stop',{offset:0,'stop-color':'#BFE3F7'},sky);el('stop',{offset:1,'stop-color':'#EAF6FC'},sky);
+  const sea=el('linearGradient',{id:'sea',x1:0,y1:0,x2:0,y2:1},d);
+  el('stop',{offset:0,'stop-color':'#4A9AD6'},sea);el('stop',{offset:1,'stop-color':'#1B5E99'},sea);
+  const aq=el('pattern',{id:'aq',width:22,height:16,patternUnits:'userSpaceOnUse'},d);
+  el('rect',{width:22,height:16,fill:'#B9C7CF'},aq);
+  el('circle',{cx:5,cy:5,r:3.5,fill:'#9DB0BB'},aq);el('circle',{cx:16,cy:11,r:4,fill:'#9DB0BB'},aq);
+  el('circle',{cx:12,cy:3,r:1.8,fill:'#5AA4DC'},aq);el('circle',{cx:3,cy:13,r:1.8,fill:'#5AA4DC'},aq);el('circle',{cx:19,cy:4,r:1.6,fill:'#5AA4DC'},aq);
+  const mk=el('marker',{id:'mvArrow',viewBox:'0 0 10 10',refX:7,refY:5,markerWidth:4.5,markerHeight:4.5,orient:'auto'},d);
+  el('path',{d:'M0 0L10 5L0 10z',fill:'#0E4A80'},mk);
+
+  el('rect',{width:1100,height:540,fill:'url(#sky)'},svg);
+  // sun
+  const sun=el('g',{},svg);
+  for(let i=0;i<12;i++){const a=i*Math.PI/6;el('line',{x1:1055+Math.cos(a)*40,y1:48+Math.sin(a)*40,x2:1055+Math.cos(a)*54,y2:48+Math.sin(a)*54,stroke:'#F2B63D','stroke-width':5,'stroke-linecap':'round'},sun);}
+  el('circle',{cx:1055,cy:48,r:32,fill:'#FFD24D'},sun);
+  // underground layers
+  el('rect',{x:0,y:292,width:1100,height:248,fill:'#7D7066'},svg);           // bedrock
+  el('rect',{x:0,y:355,width:1100,height:85,fill:'url(#aq)'},svg);          // aquifer
+  el('path',{d:'M0 292 H1100 V355 H0Z',fill:'#A9825A'},svg);                 // soil
+  for(let x=10;x<1100;x+=26)el('circle',{cx:x,cy:310+((x*7)%30),r:2.4,fill:'#8C6A47'},svg);
+  el('path',{d:'M0 355 H1100',stroke:'#6B5440','stroke-width':2},svg);
+  el('path',{d:'M0 440 H1100',stroke:'#5E534B','stroke-width':2},svg);
+  txt(svg,14,525,'BEDROCK',{class:'lyr',fill:'#E8E1DA'});
+  // ocean (cuts into ground on the right)
+  el('path',{d:'M872 292 C930 294 950 296 1100 296 V480 C1020 480 960 440 905 360 Q885 320 872 292 Z',fill:'url(#sea)'},svg);
+  el('path',{d:'M872 292 C930 294 950 296 1100 296',stroke:'#D7EEFA','stroke-width':3,fill:'none'},svg);
+  // mountains
+  el('path',{d:'M0 292 V150 L70 95 L150 50 L215 98 L282 108 L330 160 L395 292 Z',fill:'#7E8C6E'},svg);
+  el('path',{d:'M150 50 L215 98 L282 108 L330 160 L395 292 H300 Z',fill:'#6C7A5E'},svg);
+  el('path',{d:'M150 50 L115 76 L130 82 L147 72 L160 88 L183 80 L215 98 L190 66 Z',fill:'#F4FAFD',stroke:'#C6DDE8','stroke-width':2},svg); // glacier
+  el('path',{d:'M282 108 L265 124 L284 122 L300 132 Z',fill:'#F4FAFD'},svg);
+  // plain (green land on top)
+  el('path',{d:'M0 292 V240 C80 236 200 246 300 238 L395 238 C600 236 760 240 880 252 C900 262 900 290 880 300 V292 Z',fill:'#8DBF5E'},svg);
+  // redraw mountain front over the plain edge
+  el('path',{d:'M0 292 V150 L70 95 L150 50 L215 98 L282 108 L330 160 L372 245 L340 260 L240 262 L120 266 L0 264 Z',fill:'#7E8C6E'},svg);
+  el('path',{d:'M150 50 L215 98 L282 108 L330 160 L372 245 L340 260 L250 262 Z',fill:'#6C7A5E'},svg);
+  el('path',{d:'M150 50 L115 76 L130 82 L147 72 L160 88 L183 80 L215 98 L190 66 Z',fill:'#F4FAFD',stroke:'#C6DDE8','stroke-width':2},svg);
+  el('path',{d:'M282 108 L265 124 L284 122 L300 132 Z',fill:'#F4FAFD'},svg);
+  el('path',{d:'M0 264 L120 266 L240 262 L340 260 L372 245 L395 238 V292 H0Z',fill:'#8DBF5E'},svg);
+  // lake
+  el('ellipse',{cx:95,cy:279,rx:78,ry:11,fill:'#3F8FD1',stroke:'#2A6FAA','stroke-width':2},svg);
+  // river: glacier -> reservoir -> along the plain -> ocean
+  el('path',{d:'M185 92 C200 130 240 150 255 185 C268 215 320 228 380 250',stroke:'#3F8FD1','stroke-width':7,fill:'none','stroke-linecap':'round'},svg);
+  el('path',{d:'M452 262 C520 290 600 280 700 282 C790 284 840 290 890 300',stroke:'#3F8FD1','stroke-width':13,fill:'none','stroke-linecap':'round'},svg);
+  // reservoir + dam
+  el('path',{d:'M372 250 C390 240 430 240 446 250 C440 266 392 268 372 258Z',fill:'#3F8FD1'},svg);
+  el('path',{d:'M444 242 L456 242 L458 270 L442 270Z',fill:'#A3A9AD',stroke:'#6F777C','stroke-width':1.5},svg);
+  // runoff arrows on the hillside
+  [[300,212],[322,232],[344,250]].forEach(([x,y])=>el('path',{d:`M${x-14} ${y-10} L${x+8} ${y+6}`,stroke:'#2A6FAA','stroke-width':4,'marker-end':'url(#mvArrow)'},svg));
+  // factory
+  const f=el('g',{},svg);
+  el('rect',{x:470,y:222,width:60,height:28,fill:'#9C8B7C',stroke:'#5E534B','stroke-width':1.5},f);
+  el('path',{d:'M470 222 l12 -10 v10 l12 -10 v10 l12 -10 v10 l12 -10 v10',fill:'#9C8B7C',stroke:'#5E534B','stroke-width':1.5},f);
+  el('rect',{x:514,y:196,width:9,height:30,fill:'#7C6D61'},f);
+  [[519,190,7],[527,182,9],[538,175,10]].forEach(([x,y,r])=>el('circle',{cx:x,cy:y,r,fill:'#F2F5F7',opacity:.95},f));
+  // trees
+  [[560,248,1],[585,244,1.2],[612,250,.95],[632,246,1.05]].forEach(([x,y,s])=>{
+    el('rect',{x:x-3,y:y-6,width:6,height:12,fill:'#6B4A2E'},svg);
+    el('path',{d:`M${x} ${y-34*s} L${x+14*s} ${y-4} H${x-14*s}Z`,fill:'#2D7A3D'},svg);});
+  // farm field
+  const fm=el('g',{},svg);
+  el('path',{d:'M640 262 L720 258 L736 284 L648 290Z',fill:'#C9B36B',stroke:'#9C8A4A','stroke-width':1.5},fm);
+  for(let i=1;i<5;i++)el('path',{d:`M${640+i*2+ i*0} ${262+i*5.6} L${720+i*3.2} ${258+i*5.2}`,stroke:'#6E9E3C','stroke-width':3},fm);
+  el('rect',{x:700,y:238,width:22,height:18,fill:'#B5392F'},fm);el('path',{d:'M697 239 L711 228 L725 239Z',fill:'#7E2A23'},fm);
+  // house + person
+  el('rect',{x:752,y:236,width:34,height:24,fill:'#F2E6D0',stroke:'#7C6A55','stroke-width':1.5},svg);
+  el('path',{d:'M748 237 L769 220 L790 237Z',fill:'#C0392B'},svg);
+  el('rect',{x:764,y:246,width:9,height:14,fill:'#7C6A55'},svg);
+  el('circle',{cx:802,cy:241,r:5,fill:'#8D5B3E'},svg);
+  el('path',{d:'M802 246 v10 M802 256 l-4 8 M802 256 l4 8 M796 250 h12',stroke:'#2F4F6F','stroke-width':3,'stroke-linecap':'round'},svg);
+  // well: small housing + pipe down to aquifer
+  el('path',{d:'M826 262 V400',stroke:'#5D6B73','stroke-width':6},svg);
+  el('rect',{x:816,y:250,width:20,height:14,fill:'#B9C0C4',stroke:'#5D6B73','stroke-width':1.5},svg);
+  el('path',{d:'M812 250 L826 240 L840 250Z',fill:'#5D6B73'},svg);
+  // wastewater plant: two round tanks
+  [[858,268],[892,274]].forEach(([x,y])=>{el('ellipse',{cx:x,cy:y,rx:16,ry:7,fill:'#7FA9B8',stroke:'#4F6F7C','stroke-width':2},svg);});
+  // animal (deer) by the lake
+  const dr=el('g',{transform:'translate(196 252) scale(.62)',fill:'#8A5A34'},svg);
+  el('path',{d:'M0 22 C8 12 34 10 48 16 L58 6 L62 2 L66 10 L60 16 C62 24 56 28 50 30 L50 44 L46 44 L45 32 C34 34 18 34 10 30 L9 44 L5 44 L5 30 C2 28 0 26 0 22Z'},dr);
+  el('path',{d:'M60 4 L56 -8 M62 2 L68 -10',stroke:'#6B4527','stroke-width':2.4,fill:'none'},dr);
+  // clouds
+  const c=el('g',{},svg);
+  [[360,60,30],[400,46,38],[450,40,42],[505,36,46],[560,40,42],[615,46,38],[660,60,30],[420,72,30],[540,72,34],[640,72,28]].forEach(([x,y,r])=>el('circle',{cx:x,cy:y,r,fill:'#FFFFFF'},c));
+  el('rect',{x:360,y:60,width:300,height:30,fill:'#FFFFFF'},c);
+  [[400,46,38],[505,36,46],[615,46,38]].forEach(([x,y,r])=>el('circle',{cx:x,cy:y+6,r:r*.7,fill:'#EEF3F6'},c));
+  // snow (left end of the clouds)
+  for(let i=0;i<9;i++){const x=332+(i%3)*24+(i>2&&i<6?12:0),y=104+Math.floor(i/3)*16;txt(svg,x,y,'*',{'font-size':22,fill:'#FFFFFF',stroke:'#7FA7BF','stroke-width':1,'font-family':'Arial','text-anchor':'middle'});}
+  // rain (right end of the clouds)
+  for(let i=0;i<14;i++){const x=618+(i%5)*20+(i%2)*6,y=104+Math.floor(i/5)*28;el('path',{d:`M${x} ${y} l-5 14`,stroke:'#2A78C2','stroke-width':3,'stroke-linecap':'round'},svg);}
+  // water vapour over the ocean
+  [[950,270],[985,262],[1020,272],[1055,264]].forEach(([x,y])=>el('path',{d:`M${x} ${y} c-8 -10 8 -16 0 -26 c-8 -10 8 -16 0 -26 c-8 -10 8 -16 0 -26`,stroke:'#FFFFFF','stroke-width':3.5,fill:'none','stroke-linecap':'round',opacity:.95},svg));
+  txt(svg,14,348,'SOIL',{class:'lyr',fill:'#4A3524'});
+  txt(svg,14,432,'AQUIFER (rock with water in it)',{class:'lyr',fill:'#2F3F48'});
+})();
+
+/* ---------- labels ---------- */
+const labelG=el('g',{},svg);
+const moveG=el('g',{class:'move',style:'pointer-events:none'},svg);
+const G={};
+Object.keys(P).forEach(id=>{
+  const p=P[id];
+  const h=32;
+  const g=el('g',{class:'place',tabindex:0,role:'button','aria-label':p.name},labelG);
+  const r=el('rect',{y:p.y-h/2,height:h,rx:10},g);
+  const t=txt(g,p.x,p.y+7.5,p.name);
+  let tw=0;try{tw=t.getComputedTextLength();}catch(e){}
+  if(!tw)tw=p.name.length*11;
+  const w=Math.round(tw+22);
+  r.setAttribute('x',p.x-w/2);r.setAttribute('width',w);
+  g.addEventListener('click',e=>{e.stopPropagation();tap(id);});
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tap(id);}});
+  G[id]=g;p.w=w;
+});
+// the water drop
+const drop=el('g',{style:'pointer-events:none',visibility:'hidden'},svg);
+el('path',{d:'M0 -26 C8 -12 14 -4 14 4 A14 14 0 0 1 -14 4 C-14 -4 -8 -12 0 -26Z',fill:'#2F8FE0',stroke:'#0E4A80','stroke-width':2.5},drop);
+el('ellipse',{cx:-5,cy:0,rx:3.5,ry:6,fill:'#CFE9FB'},drop);
+function dropAt(id){const p=P[id];return [p.x-p.w/2-6,p.y-14];}
+function placeDrop(xy){drop.setAttribute('transform',`translate(${xy[0]} ${xy[1]})`);}
+
+/* ---------- state ---------- */
+let start=null,cur=null,steps=[]; // steps: {from,to,how,say}
+let anim=null;
+const info=$('info');
+const HINT='The water cycle (also called the <b>hydrologic cycle</b>) is how water moves around Earth. <b>Tap any place</b> on the picture to put a water drop there.';
+
+function placeLine(id){const p=P[id];return `<b>${p.name}:</b> ${p.say}`;}
+function moveFrom(id){return M[id]||[];}
+function findMove(a,b){return moveFrom(a).find(m=>m[0]===b);}
+
+function tap(id){
+  if(cur===null){start=id;cur=id;steps=[];info.innerHTML=placeLine(id);render(true);return;}
+  if(id===cur){info.innerHTML=placeLine(id);return;}
+  const m=findMove(cur,id);
+  if(!m){info.innerHTML=`Water can't go straight from <b>${P[cur].name}</b> to <b>${P[id].name}</b>. Pick one of the places that glow.`;return;}
+  go(m);
+}
+function go(m){
+  const from=cur;
+  steps.push({from,to:m[0],how:m[1],say:m[2]});
+  cur=m[0];
+  let msg=`<b>${P[from].name} → ${P[cur].name}: ${m[1]}.</b> ${m[2]}`;
+  if(cur===start)msg+=` <b class="ok">Cycle complete! Your cycle has ${steps.length} step${steps.length===1?'':'s'}.</b>`;
+  info.innerHTML=msg;
+  render(false,from);
+}
+function back(){
+  if(!steps.length){start=null;cur=null;info.innerHTML=HINT;render(true);return;}
+  const s=steps.pop();cur=s.from;info.innerHTML=placeLine(cur);render(true);
+}
+function reset(){start=null;cur=null;steps=[];info.innerHTML=HINT;render(true);}
+
+function render(jump,from){
+  Object.keys(G).forEach(id=>{G[id].classList.remove('cur','can');});
+  const nx=$('next');nx.innerHTML='';
+  while(moveG.firstChild)moveG.removeChild(moveG.firstChild);
+  if(cur===null){
+    $('here').innerHTML='<b>Tap a place</b> on the picture to start the water drop.';
+    drop.setAttribute('visibility','hidden');
+  }else{
+    G[cur].classList.add('cur');
+    $('here').innerHTML=`The water drop is in: <b>${P[cur].name}</b><br>It can go to:`;
+    moveFrom(cur).forEach(m=>{
+      G[m[0]].classList.add('can');
+      const b=document.createElement('button');
+      b.innerHTML=`<b>${P[m[0]].name}</b><small>${m[1]}</small>`;
+      b.addEventListener('click',()=>go(m));
+      nx.appendChild(b);
+    });
+    drop.setAttribute('visibility','visible');
+    // arrow for the last move
+    const last=steps[steps.length-1];
+    if(last){
+      const a=P[last.from],b=P[last.to];
+      const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
+      const pad=a=>Math.min(Math.abs(a.w/2/(ux||1e-6)),Math.abs(20/(uy||1e-6)))+6;
+      const x1=a.x+ux*pad(a),y1=a.y+uy*pad(a),x2=b.x-ux*pad(b),y2=b.y-uy*pad(b);
+      el('path',{d:`M${x1} ${y1} L${x2} ${y2}`,stroke:'#0E4A80','stroke-width':4,'stroke-dasharray':'10 7',fill:'none','marker-end':'url(#mvArrow)'},moveG);
+      txt(moveG,(x1+x2)/2,(y1+y2)/2-8,last.how);
+    }
+    const to=dropAt(cur);
+    if(jump||!from||matchMedia('(prefers-reduced-motion: reduce)').matches){if(anim)cancelAnimationFrame(anim);placeDrop(to);}
+    else{
+      const fr=dropAt(from),t0=performance.now(),T=650;
+      if(anim)cancelAnimationFrame(anim);
+      const stepF=t=>{let k=Math.min(1,(t-t0)/T);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+        placeDrop([fr[0]+(to[0]-fr[0])*k,fr[1]+(to[1]-fr[1])*k-Math.sin(k*Math.PI)*30]);
+        if(k<1)anim=requestAnimationFrame(stepF);};
+      anim=requestAnimationFrame(stepF);
+    }
+  }
+  // path list
+  const ol=$('path');ol.innerHTML='';
+  $('chain').innerHTML=start===null?'<span style="color:var(--muted)">Your path will show here.</span>':[`<b>${P[start].name}</b>`].concat(steps.map(s=>`<b>${P[s.to].name}</b>`)).join(' → ');
+  $('chain').scrollTop=1e5;
+  $('startLine').innerHTML=start!==null?`Start: <b>${P[start].name}</b>`:'';
+  steps.forEach(s=>{const li=document.createElement('li');li.innerHTML=`${P[s.to].name} <i>(${s.how})</i>`;ol.appendChild(li);});
+  ol.scrollTop=ol.scrollHeight;
+  $('count').textContent=`${steps.length} step${steps.length===1?'':'s'}`;
+  $('doneBox').innerHTML=(steps.length&&cur===start)?`<div class="done">Cycle complete! ${steps.length} steps. It starts and ends at ${P[start].name}.</div>`:'';
+  $('back').disabled=start===null;$('reset').disabled=start===null;
+
+}
+$('back').addEventListener('click',back);
+$('reset').addEventListener('click',reset);
+info.innerHTML=HINT;
+
+/* ---------- Part 2 ---------- */
+(function cups(){
+  const s=$('cups');
+  for(let i=0;i<100;i++){
+    const r=Math.floor(i/10),c=i%10;
+    const fill=i<97?'#2378C3':i<99?'#D8F0FA':'#8A6A45';
+    el('rect',{x:c*10+1,y:r*10+1,width:8,height:8,rx:1.6,fill,stroke:i<97?'#1A5F9C':'#6A8796','stroke-width':.5},s);
+  }
+})();
+const STORES=[
+  ['Ocean','salt water',97],
+  ['Ice and snow','glaciers and ice caps',2],
+  ['Groundwater','water in the aquifer',0.9],
+  ['Lakes','',0.01],
+  ['Soil','',0.005],
+  ['Atmosphere','water vapour and clouds',0.001],
+  ['Rivers','',0.0002],
+  ['Living things','plants, animals and people',0.0001],
+];
+const tb=$('stores');
+STORES.forEach(([n,sub,v])=>{
+  const tr=document.createElement('tr');
+  const w=Math.max(1.5,v/97*100);
+  tr.innerHTML=`<td><b>${n}</b>${sub?`<small>${sub}</small>`:''}</td><td class="bar"><div class="b" style="width:${w}%"></div></td><td class="pc">${v}%</td>`;
+  tb.appendChild(tr);
+});
+})();
+</script>
+</body>
+</html>
